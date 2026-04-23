@@ -37,4 +37,27 @@
 
 ---
 
-*[Entries will be appended as each major feature is built: Auth, Triple-Filter Search, Archive Grid, etc.]*
+## 4. Foundation Implementation (Tasks 4–15)
+
+**Tool:** Claude Sonnet 4.6 via Claude Code (executing-plans skill)
+
+**Key Prompt:**
+> "Continue the implementation of the plan keeping the same rigor and logging into AI workflow log when necessary."
+
+**What it produced:** Full foundation scaffold across 12 commits:
+- Jest v30 test infrastructure with `next/jest` transformer and `@testing-library/jest-dom`
+- Supabase browser and server client factories (`lib/supabase/client.ts`, `lib/supabase/server.ts`)
+- Auth guard middleware with 3 redirect cases (unauthenticated → /login, no profile → /build-profile, authenticated on /login → /discover) — 4 TDD tests passing
+- Zod v4 profile schema with role enum, display_name length, interests array bounds — 8 TDD tests passing
+- `Button` component using `HTMLMotionProps<'button'>` to resolve Framer Motion v12 type conflicts — 4 tests passing
+- `Card`, `Input`, `Badge` UI components — 3 smoke tests passing
+- Root layout with Space Grotesk (heading) and Inter (body) via `next/font/google`
+- Login page with Google OAuth (`signInWithOAuth`) and email/password auth; `Globe` icon used (lucide-react v1 has no `Chrome` icon)
+- OAuth callback route (`/auth/callback`) for PKCE code exchange
+- Main layout shell with sticky nav linking Discover + Profile
+- Page stubs for `/discover`, `/profile/[id]`, and `/build-profile` with async params (Next.js 15/16 requirement)
+- Supabase migration SQL: `profiles` + `archive_items` tables, 3 performance indexes, full RLS policies
+
+**Verification:** 19 tests passing, `tsc --noEmit` clean, `npm run build` compiles all 6 routes successfully.
+
+**Adaptation notes:** Tailwind v4 has no `tailwind.config.ts` — design tokens live in `app/globals.css` under `@theme`. Middleware tests required `@jest-environment node` docblock since jsdom lacks the Web `Request` global.
