@@ -100,3 +100,82 @@
 > "Run the full test suite, tsc --noEmit, and npm run build. Confirm 19 tests pass and all 6 routes compile."
 
 **What it produced:** 19 tests passing (middleware ×4, validator ×8, Button ×4, UI smoke ×3), zero TypeScript errors, clean production build across `/login`, `/auth/callback`, `/discover`, `/profile/[id]`, `/build-profile`.
+
+---
+
+## 10. Features Milestone A - Auth Flow Update (Browse First)
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "Start implementing it step by step, review each time a task is done to verify if it is actually done."
+
+**What it produced:** Migrated deprecated `middleware.ts` to `proxy.ts` with browse-first route policy, added `?next=` redirect support for protected `/build-profile`, added safe return URL sanitizer (`lib/auth/next-path.ts`), split login into server page plus client form for promise-based `searchParams` handling, preserved `next` through OAuth callback, and updated `(main)` nav to show `Join Saye` / `Complete Profile` / `Profile` based on auth plus profile state. Verification completed with lint, build, and targeted tests (`__tests__/proxy.test.ts`, `__tests__/auth/next-path.test.ts`).
+
+---
+
+## 11. Features Milestone B - Build Profile Wizard
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "Start implementing it step by step, review each time a task is done to verify if it is actually done."
+
+**What it produced:** Implemented the 5-screen onboarding/edit flow in `features/profiles/*` with a single React Hook Form instance, step-gated validation, role/identity/interests capture, local draft persistence (`saye_profile_draft`), edit-mode draft bypass, secure server action `upsertProfile()` that derives user from auth, and build-profile route integration that fetches existing profile defaults.
+
+---
+
+## 12. Features Milestone C - Discover Triple-Filter Engine
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "Start implementing it step by step, review each time a task is done to verify if it is actually done."
+
+**What it produced:** Implemented discover parser/query/UI stack: `parseDiscoverFilters`, `getProfiles`, `getFilterOptions`, client `FilterBar` URL-driven chip toggles, profile cards, dual empty states, and route-level loading/error boundaries under `app/(main)/discover/`. Added discover tests for filter parsing and query-filter application behavior.
+
+---
+
+## 13. Features Milestone D - Public Profile + Archive CRUD
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "Start implementing it step by step, review each time a task is done to verify if it is actually done."
+
+**What it produced:** Added profile/archive query and mutation layer (`features/archive/queries.ts`, `features/archive/actions.ts`) with owner checks for delete and auth-derived profile ownership for create. Implemented `ArchiveGrid`, `ArchiveItem`, and `AddBlockPanel` with owner-only controls and refresh-on-mutation. Replaced profile route placeholder with full public profile header and owner-aware archive rendering; added profile loading/error boundaries.
+
+---
+
+## 14. Features Milestone E - Cleanup and Verification
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "Start implementing it step by step, review each time a task is done to verify if it is actually done."
+
+**What it produced:** Replaced root `app/page.tsx` with redirect to `/discover`, added shared `lib/types.ts`, `lib/constants.ts`, and `components/ui/Textarea.tsx`, and ran repeated verification loops (targeted Jest suites, lint, TypeScript no-emit, and production build) after each milestone to validate completion before proceeding.
+
+---
+
+## 15. UX Gap Audit and Robustness Backlog Expansion
+
+**Tool:** GPT-5 Codex via Codex CLI agent + web research
+
+**Key Prompt:**
+> "Look at the document again and try to locate UI and UX gaps and add them as tasks as well... do a complete audit check the net for what constitutes a robust website"
+
+**What it produced:** Re-audited the features spec and expanded `docs/superpowers/plans/2026-04-23-saye-features.md` with a new Phase 7 UX/Product completeness backlog. Added concrete tasks for: (1) logout + account deletion lifecycle, (2) local image upload from device via storage integration, (3) back/save-exit controls in onboarding, (4) motion/feedback polish to improve perceived liveliness, and (5) a full robustness baseline covering accessibility, security, performance, observability, trust/legal, and discovery completeness.
+
+---
+
+## 16. Phase 7 Implementation - Account Lifecycle, Uploads, UX Controls, and Robustness
+
+**Tool:** GPT-5 Codex via Codex CLI agent
+
+**Key Prompt:**
+> "did you implement them or just referenced them? If only reference now implement each and every one of them now"
+
+**What it produced:** Implemented all requested Phase 7 gap tasks end-to-end: (1) account lifecycle controls with nav logout, `/settings/account`, and secure `/api/account/delete` flow (confirmation + password reauth + admin deletion + storage cleanup), (2) local image upload from device with validation/preview and Supabase Storage helper + storage RLS migration, (3) onboarding improvements with Back navigation, Save & Exit, and explicit draft resume/discard choice, (4) liveliness upgrades via global toast feedback and discover vitality indicator, (5) robust website baseline features including privacy/terms/community-guidelines/report-abuse pages, security headers, and discover search/sort/pagination, plus profile share metadata/copy-link UX.
+
+**Verification:** `npm test` (11 suites, 44 tests), `npm run lint`, `npx tsc --noEmit`, `npm run build` all passing.
