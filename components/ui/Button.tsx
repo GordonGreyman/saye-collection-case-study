@@ -1,10 +1,9 @@
 'use client'
-import { motion } from 'framer-motion'
-import { ButtonHTMLAttributes } from 'react'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 
 type Variant = 'primary' | 'ghost'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonProps = HTMLMotionProps<'button'> & {
   variant?: Variant
 }
 
