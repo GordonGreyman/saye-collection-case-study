@@ -1,0 +1,70 @@
+import type { ProfileRole } from '@/lib/types'
+
+export const GEOGRAPHY_PRESETS = [
+  'Istanbul',
+  'London',
+  'New York',
+  'Berlin',
+  'Paris',
+  'Tokyo',
+  'Amsterdam',
+  'Los Angeles',
+  'Sao Paulo',
+  'Lagos',
+  'Cairo',
+  'Mumbai',
+  'Seoul',
+  'Mexico City',
+  'Nairobi',
+] as const
+
+export const DISCIPLINE_PRESETS: Record<ProfileRole, string[]> = {
+  Artist: [
+    'Photography',
+    'Painting',
+    'Sculpture',
+    'Drawing',
+    'Printmaking',
+    'Digital Art',
+    'Performance',
+    'Installation',
+    'Textile',
+    'Ceramics',
+  ],
+  Curator: [
+    'Exhibition Design',
+    'Research',
+    'Commissioning',
+    'Collection Management',
+    'Public Programming',
+    'Writing',
+    'Education',
+  ],
+  Institution: [
+    'Gallery',
+    'Museum',
+    'Foundation',
+    'Residency',
+    'Art Fair',
+    'Publisher',
+    'Archive',
+    'Cultural Centre',
+  ],
+}
+
+export const INTEREST_PRESETS = [
+  'Architecture',
+  'Street Art',
+  'Photography',
+  'Painting',
+  'Film',
+  'Music',
+  'Fashion',
+  'Literature',
+  'Performance',
+  'Technology',
+  'Craft',
+  'Design',
+  'Sculpture',
+  'Publishing',
+] as const

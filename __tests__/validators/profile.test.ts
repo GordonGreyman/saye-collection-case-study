@@ -29,6 +29,15 @@ describe('profileSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  test('accepts custom geography and discipline values', () => {
+    const result = profileSchema.safeParse({
+      ...valid,
+      geography: 'Accra',
+      discipline: 'Community Curating',
+    })
+    expect(result.success).toBe(true)
+  })
+
   test('rejects display_name longer than 50 chars', () => {
     const result = profileSchema.safeParse({ ...valid, display_name: 'K'.repeat(51) })
     expect(result.success).toBe(false)
@@ -47,8 +56,18 @@ describe('profileSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  test('rejects blank interest entries', () => {
+    const result = profileSchema.safeParse({ ...valid, interests: ['Photography', '  '] })
+    expect(result.success).toBe(false)
+  })
+
+  test('rejects whitespace-only geography', () => {
+    const result = profileSchema.safeParse({ ...valid, geography: '   ' })
+    expect(result.success).toBe(false)
+  })
+
   test('bio is optional', () => {
-    const { bio, ...withoutBio } = valid
+    const withoutBio = { ...valid, bio: undefined }
     expect(profileSchema.safeParse(withoutBio).success).toBe(true)
   })
 })

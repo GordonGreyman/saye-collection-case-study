@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk, Inter } from 'next/font/google'
+import { ToastProvider } from '@/components/ui/ToastProvider'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
       <body className="font-body bg-bg text-text-primary antialiased min-h-screen">
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   )

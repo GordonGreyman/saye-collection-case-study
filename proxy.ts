@@ -1,7 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+const AUTH_REQUIRED_PREFIXES = ['/build-profile']
+
+function requiresAuth(pathname: string) {
+  return AUTH_REQUIRED_PREFIXES.some(prefix => pathname.startsWith(prefix))
+}
+
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -26,29 +32,17 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
 
-  // Case 1: No session — send to login
-  if (!user && !pathname.startsWith('/login') && !pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  const { pathname, search } = request.nextUrl
 
-  // Case 2: Logged-in user on login page — send to discover
   if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/discover', request.url))
   }
 
-  // Case 3: Logged in but no profile — send to onboarding
-  if (user && !pathname.startsWith('/build-profile') && !pathname.startsWith('/auth')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
-      return NextResponse.redirect(new URL('/build-profile', request.url))
-    }
+  if (!user && requiresAuth(pathname)) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('next', `${pathname}${search}`)
+    return NextResponse.redirect(loginUrl)
   }
 
   return supabaseResponse
