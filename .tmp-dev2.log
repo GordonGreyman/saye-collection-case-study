@@ -1,0 +1,75 @@
+
+> saye@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://26.101.180.16:3000
+- Environments: .env.local
+✓ Ready in 822ms
+Creating turbopack project { dir: 'C:\\Users\\MONSTER\\Desktop\\projects\\saye', testMode: true }
+
+○ Compiling / ...
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}

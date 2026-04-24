@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { buildDiscoverUrl, type DiscoverFilters } from '@/features/discover/filters'
 import type { FilterOptions } from '@/features/discover/queries'
@@ -11,16 +11,21 @@ interface FilterBarProps {
 }
 
 function toggleFilter(values: string[], value: string) {
-  if (values.includes(value)) {
-    return values.filter(item => item !== value)
-  }
-
-  return [...values, value]
+  return values.includes(value) ? values.filter(item => item !== value) : [...values, value]
 }
+
+type GroupId = 'geo' | 'disc' | 'int'
+
+const groups: { id: GroupId; label: string; category: 'geography' | 'discipline' | 'interests' }[] = [
+  { id: 'geo', label: 'Geography', category: 'geography' },
+  { id: 'disc', label: 'Discipline', category: 'discipline' },
+  { id: 'int', label: 'Interests', category: 'interests' },
+]
 
 export function FilterBar({ filters, filterOptions }: FilterBarProps) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const [openGroup, setOpenGroup] = useState<GroupId>('geo')
 
   const updateFilters = (nextFilters: DiscoverFilters) => {
     startTransition(() => {
@@ -29,24 +34,34 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
   }
 
   const onToggle = (category: 'geography' | 'discipline' | 'interests', value: string) => {
-    const nextFilters: DiscoverFilters = {
-      ...filters,
-      [category]: toggleFilter(filters[category], value),
-      page: 1,
-    }
+    updateFilters({ ...filters, [category]: toggleFilter(filters[category], value), page: 1 })
+  }
 
-    updateFilters(nextFilters)
+  const clearAll = () =>
+    updateFilters({ geography: [], discipline: [], interests: [], q: '', sort: 'newest', page: 1 })
+
+  const totalActive = filters.geography.length + filters.discipline.length + filters.interests.length
+
+  const optionsMap: Record<GroupId, string[]> = {
+    geo: filterOptions.geographies,
+    disc: filterOptions.disciplines,
+    int: filterOptions.interests,
+  }
+  const selectedMap: Record<GroupId, string[]> = {
+    geo: filters.geography,
+    disc: filters.discipline,
+    int: filters.interests,
   }
 
   return (
-    <div className="space-y-4 mb-8">
+    <div style={{ marginBottom: 36, opacity: isPending ? 0.6 : 1, transition: 'opacity 0.18s' }}>
+      {/* Search bar */}
       <form
-        className="grid md:grid-cols-[1fr_auto_auto] gap-2"
-        onSubmit={event => {
-          event.preventDefault()
-          const formData = new FormData(event.currentTarget)
-          const q = String(formData.get('q') ?? '').trim()
-          updateFilters({ ...filters, q, page: 1 })
+        style={{ position: 'relative', marginBottom: 28, maxWidth: 600 }}
+        onSubmit={e => {
+          e.preventDefault()
+          const fd = new FormData(e.currentTarget)
+          updateFilters({ ...filters, q: String(fd.get('q') ?? '').trim(), page: 1 })
         }}
       >
         <input
@@ -54,110 +69,124 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
           key={filters.q}
           type="search"
           defaultValue={filters.q}
-          placeholder="Search names, disciplines, geographies..."
-          className="w-full bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent"
+          placeholder="Search by name, discipline, keyword…"
+          style={{
+            width: '100%', boxSizing: 'border-box', background: '#111111',
+            border: '1px solid rgba(255,255,255,0.07)', borderRadius: 4,
+            padding: '14px 48px 14px 20px', color: '#f0f0f0',
+            fontFamily: 'var(--font-heading)', fontSize: 14, outline: 'none',
+          }}
         />
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-purple-700 transition-colors"
-        >
-          Search
-        </button>
-        <select
-          value={filters.sort}
-          onChange={e =>
-            updateFilters({
-              ...filters,
-              sort: e.target.value as DiscoverFilters['sort'],
-              page: 1,
-            })
-          }
-          className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-        >
-          <option value="newest">Newest</option>
-          <option value="name_asc">Name A-Z</option>
-          <option value="name_desc">Name Z-A</option>
-        </select>
+        <span style={{
+          position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)',
+          fontFamily: 'var(--font-mono)', fontSize: 10, color: '#333', pointerEvents: 'none',
+        }}>
+          ⌘K
+        </span>
       </form>
 
-      <FilterRow
-        label="Geography"
-        options={filterOptions.geographies}
-        selected={filters.geography}
-        isPending={isPending}
-        onToggle={value => onToggle('geography', value)}
-      />
-      <FilterRow
-        label="Discipline"
-        options={filterOptions.disciplines}
-        selected={filters.discipline}
-        isPending={isPending}
-        onToggle={value => onToggle('discipline', value)}
-      />
-      <FilterRow
-        label="Interests"
-        options={filterOptions.interests}
-        selected={filters.interests}
-        isPending={isPending}
-        onToggle={value => onToggle('interests', value)}
-      />
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() =>
-            updateFilters({
-              geography: [],
-              discipline: [],
-              interests: [],
-              q: '',
-              sort: 'newest',
-              page: 1,
-            })
-          }
-          className="text-xs text-text-muted hover:text-text-primary transition-colors"
-        >
-          Clear all
-        </button>
-      </div>
-    </div>
-  )
-}
-
-interface FilterRowProps {
-  label: string
-  options: string[]
-  selected: string[]
-  isPending: boolean
-  onToggle: (value: string) => void
-}
-
-function FilterRow({ label, options, selected, isPending, onToggle }: FilterRowProps) {
-  if (options.length === 0) {
-    return null
-  }
-
-  return (
-    <div className={`${isPending ? 'opacity-50' : ''} transition-opacity`}>
-      <p className="text-xs uppercase tracking-wider text-text-muted mb-2">{label}</p>
-      <div className="flex flex-wrap gap-2">
-        {options.map(option => {
-          const active = selected.includes(option)
-          return (
+      {/* Tab accordion */}
+      <div style={{
+        background: '#111111', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6, marginBottom: 16,
+      }}>
+        {/* Group tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          {groups.map(g => {
+            const count = selectedMap[g.id].length
+            const isOpen = openGroup === g.id
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setOpenGroup(g.id)}
+                style={{
+                  padding: '12px 24px', background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em',
+                  color: isOpen ? '#9b7ff8' : '#444',
+                  borderBottom: `2px solid ${isOpen ? '#9b7ff8' : 'transparent'}`,
+                  marginBottom: -1, transition: 'all 0.18s',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}
+              >
+                {g.label.toUpperCase()}
+                {count > 0 && (
+                  <span style={{
+                    background: '#9b7ff8', color: '#080808', borderRadius: 100,
+                    width: 16, height: 16, display: 'inline-flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: 8, fontWeight: 700,
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+          {totalActive > 0 && (
             <button
-              key={option}
               type="button"
-              onClick={() => onToggle(option)}
-              className={`px-3 py-1.5 rounded-full border text-sm transition ${
-                active
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white/5 border-white/10 text-text-muted hover:border-accent'
-              }`}
+              onClick={clearAll}
+              style={{
+                marginLeft: 'auto', padding: '12px 20px', background: 'none', border: 'none',
+                cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 9,
+                letterSpacing: '0.08em', color: '#3a3a3a',
+              }}
             >
-              {option}
+              CLEAR ALL ×
             </button>
-          )
-        })}
+          )}
+        </div>
+
+        {/* Chips panel */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {optionsMap[openGroup].map(chip => {
+            const active = selectedMap[openGroup].includes(chip)
+            const cat = groups.find(g => g.id === openGroup)!.category
+            return (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => onToggle(cat, chip)}
+                style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+                  padding: '6px 14px', borderRadius: 100,
+                  border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
+                  background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
+                  color: active ? '#9b7ff8' : '#555',
+                  cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                }}
+              >
+                {chip}
+              </button>
+            )
+          })}
+          {optionsMap[openGroup].length === 0 && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.08em' }}>
+              No options yet
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Active filter summary */}
+      {totalActive > 0 && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.08em' }}>
+            FILTERING:
+          </span>
+          {[...filters.geography, ...filters.discipline, ...filters.interests].map(f => (
+            <span
+              key={f}
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9b7ff8',
+                background: 'rgba(155,127,248,0.08)', border: '1px solid rgba(155,127,248,0.2)',
+                padding: '3px 10px', borderRadius: 100,
+              }}
+            >
+              {f}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 
 interface CelebrationScreenProps {
@@ -12,25 +11,37 @@ export function CelebrationScreen({ name }: CelebrationScreenProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      router.push('/discover')
-    }, 2500)
-
+    const timeout = setTimeout(() => { router.push('/discover') }, 2500)
     return () => clearTimeout(timeout)
   }, [router])
 
   return (
-    <section className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-      <h2 className="text-5xl font-heading text-text-primary">Welcome to Saye,</h2>
-      <motion.p
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: 'easeOut', delay: 0.15 }}
-        className="text-5xl font-heading text-accent mt-3"
-      >
-        {name}
-      </motion.p>
-      <p className="text-text-muted mt-4">Your identity is live.</p>
-    </section>
+    <div style={{
+      minHeight: '100vh', background: '#080808',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      textAlign: 'center', padding: '80px 48px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
+        width: 500, height: 500,
+        background: 'radial-gradient(circle, rgba(155,127,248,0.1) 0%, transparent 70%)',
+        borderRadius: '50%', pointerEvents: 'none',
+      }} />
+
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.18em', color: '#9b7ff8', marginBottom: 32 }}>
+        PROFILE LIVE
+      </div>
+      <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(40px,6vw,72px)', color: '#f0f0f0', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
+        Welcome to Saye,
+      </h2>
+      <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(40px,6vw,72px)', color: '#9b7ff8', letterSpacing: '-0.02em', lineHeight: 1, marginTop: 8 }}>
+        {name}.
+      </div>
+      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#555', marginTop: 24 }}>
+        Your identity is live. Taking you to Discover…
+      </p>
+    </div>
   )
 }

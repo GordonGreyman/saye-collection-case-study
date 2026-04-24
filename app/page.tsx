@@ -1,5 +1,8 @@
-import { redirect } from 'next/navigation'
+'use client'
 
-export default function Home() {
-  redirect('/discover')
+import { SayeShell } from '@/features/handoff/shell'
+import { LandingScreen } from '@/features/handoff/screens'
+
+export default function LandingPage() {
+  return <SayeShell current="landing">{(navigate) => <LandingScreen navigate={navigate} />}</SayeShell>
 }

@@ -14,18 +14,21 @@ export function AccountMenu() {
     router.refresh()
   }
 
+  const linkStyle: React.CSSProperties = {
+    fontFamily: 'var(--font-heading)', fontSize: 13, fontWeight: 400,
+    color: '#555', textDecoration: 'none', transition: 'color 0.18s',
+  }
+
   return (
-    <div className="flex items-center gap-3">
-      <Link
-        href="/settings/account"
-        className="text-text-muted hover:text-text-primary text-sm transition-colors"
-      >
+    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+      <Link href="/settings/account" style={linkStyle} className="hover:!text-[#f0f0f0]">
         Settings
       </Link>
       <button
         type="button"
         onClick={signOut}
-        className="text-text-muted hover:text-text-primary text-sm transition-colors"
+        style={{ ...linkStyle, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        className="hover:!text-[#f0f0f0]"
       >
         Log out
       </button>

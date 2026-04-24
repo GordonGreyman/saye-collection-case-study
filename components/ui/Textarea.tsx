@@ -1,25 +1,46 @@
-import { TextareaHTMLAttributes } from 'react'
+'use client'
+
+import { useState } from 'react'
+import type { TextareaHTMLAttributes } from 'react'
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string
   error?: string
 }
 
-export function Textarea({ label, error, className = '', id, ...props }: TextareaProps) {
+export function Textarea({ label, error, id, className = '', ...props }: TextareaProps) {
+  const [focused, setFocused] = useState(false)
   return (
-    <div className="flex flex-col gap-1.5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className={className}>
       {label && (
-        <label htmlFor={id} className="text-sm text-text-muted font-medium">
+        <label htmlFor={id} style={{
+          fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em',
+          color: '#555', textTransform: 'uppercase',
+        }}>
           {label}
         </label>
       )}
       <textarea
         id={id}
         aria-invalid={Boolean(error)}
-        className={`w-full bg-surface border border-white/10 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition resize-none min-h-[100px] ${className}`}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          background: '#0c0c0c',
+          border: `1px solid ${focused ? 'rgba(155,127,248,0.45)' : 'rgba(255,255,255,0.08)'}`,
+          borderRadius: 3, padding: '12px 16px', color: '#f0f0f0',
+          fontFamily: 'var(--font-heading)', fontSize: 14, outline: 'none',
+          width: '100%', boxSizing: 'border-box', resize: 'vertical',
+          minHeight: 100, transition: 'border-color 0.18s',
+          boxShadow: focused ? '0 0 0 3px rgba(155,127,248,0.06)' : 'none',
+        }}
         {...props}
       />
-      {error && <p className="text-red-400 text-xs mt-0.5">{error}</p>}
+      {error && (
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#f87171', letterSpacing: '0.04em' }}>
+          {error}
+        </p>
+      )}
     </div>
   )
 }

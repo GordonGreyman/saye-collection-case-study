@@ -106,28 +106,41 @@ export function ArchiveItem({ item, isOwner }: ArchiveItemProps) {
 
       {item.type === 'text' && (
         <Card>
-          <p className="text-text-primary whitespace-pre-wrap">{item.content}</p>
-          {createdAt && <p className="text-text-muted text-xs mt-3">{createdAt}</p>}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '0.12em', color: '#9b7ff8', marginBottom: 8 }}>TEXT</div>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#ddd', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{item.content}</p>
+          {createdAt && (
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 12 }}>{createdAt}</p>
+          )}
         </Card>
       )}
 
       {item.type === 'link' && (
-        <Card>
-          <a
-            href={item.content}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 text-accent hover:underline break-all"
-          >
-            <ExternalLink size={14} />
-            {item.content}
-          </a>
-          {domain && (
-            <div className="mt-3">
-              <Badge>{domain}</Badge>
-            </div>
-          )}
-          {createdAt && <p className="text-text-muted text-xs mt-3">{createdAt}</p>}
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{
+            padding: '12px 18px', background: 'rgba(155,127,248,0.04)',
+            borderBottom: '1px solid rgba(155,127,248,0.09)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b7ff8', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', color: '#9b7ff8' }}>LINK</span>
+            {domain && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', marginLeft: 'auto' }}>{domain} →</span>
+            )}
+          </div>
+          <div style={{ padding: '14px 18px' }}>
+            <a
+              href={item.content}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#9b7ff8', textDecoration: 'none', wordBreak: 'break-all' }}
+            >
+              <ExternalLink size={12} />
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}>{item.content}</span>
+            </a>
+            {createdAt && (
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 10 }}>{createdAt}</p>
+            )}
+          </div>
         </Card>
       )}
 

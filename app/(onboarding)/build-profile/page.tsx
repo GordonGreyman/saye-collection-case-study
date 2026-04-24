@@ -1,23 +1,8 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { BuildProfileWizard } from '@/features/profiles/BuildProfileWizard'
-import { getProfileById } from '@/features/profiles/queries'
+'use client'
 
-export default async function BuildProfilePage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+import { SayeShell } from '@/features/handoff/shell'
+import { BuildProfileScreen } from '@/features/handoff/screens'
 
-  if (!user) {
-    redirect('/login?next=/build-profile')
-  }
-
-  const profile = await getProfileById(user.id)
-
-  return (
-    <div className="min-h-screen bg-bg px-4 py-10">
-      <BuildProfileWizard defaultValues={profile} />
-    </div>
-  )
+export default function BuildProfilePage() {
+  return <SayeShell current="build-profile">{(navigate) => <BuildProfileScreen navigate={navigate} />}</SayeShell>
 }

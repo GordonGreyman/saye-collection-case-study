@@ -3,7 +3,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, useWatch } from 'react-hook-form'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/ToastProvider'
@@ -208,213 +207,266 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
     return <CelebrationScreen name={displayName || 'friend'} />
   }
 
+  const stepLabels = ['YOUR ROLE', 'YOUR DETAILS', 'INTERESTS']
+
   return (
-    <section className="max-w-3xl mx-auto">
+    <section style={{ maxWidth: 860, margin: '0 auto', padding: '48px 48px 80px' }}>
       {showDraftChoice && (
-        <div className="mb-6 bg-surface border border-white/10 rounded-xl p-4">
-          <p className="text-text-primary font-medium">Resume your saved draft?</p>
-          <p className="text-text-muted text-sm mt-1">
+        <div style={{
+          marginBottom: 24, background: '#111111',
+          border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '16px 20px',
+        }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 14, color: '#f0f0f0' }}>
+            Resume your saved draft?
+          </p>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#555', marginTop: 4 }}>
             We found an unfinished profile draft from a previous session.
           </p>
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Button type="button" onClick={onUseSavedDraft}>
-              Continue Draft
-            </Button>
-            <Button type="button" variant="ghost" onClick={onDiscardSavedDraft}>
-              Start Fresh
-            </Button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <button type="button" onClick={onUseSavedDraft} style={{
+              background: '#9b7ff8', border: 'none', borderRadius: 3, padding: '10px 24px',
+              fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13, letterSpacing: '0.07em',
+              color: '#080808', cursor: 'pointer',
+            }}>
+              CONTINUE DRAFT
+            </button>
+            <button type="button" onClick={onDiscardSavedDraft} style={{
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
+              padding: '10px 24px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
+              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+            }}>
+              START FRESH
+            </button>
           </div>
         </div>
       )}
 
-      <div className="mb-8">
-        <div className="flex items-center justify-between text-sm text-text-muted">
-          <span>Step {step}/3</span>
-          <div className="flex items-center gap-4">
-            <span>{step === 1 ? 'Role' : step === 2 ? 'Identity' : 'Interests'}</span>
-            <button
-              type="button"
-              onClick={onSaveAndExit}
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              Save & Exit
-            </button>
-          </div>
+      {/* Step progress */}
+      <div style={{ maxWidth: 720, margin: '0 auto 56px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+          {[1, 2, 3].map((s, i) => (
+            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : undefined }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: step >= s ? '#9b7ff8' : 'transparent',
+                  border: `1px solid ${step >= s ? '#9b7ff8' : 'rgba(255,255,255,0.1)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--font-mono)', fontSize: 10,
+                  color: step >= s ? '#080808' : '#333', fontWeight: 700,
+                }}>
+                  {s}
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
+                  color: step >= s ? '#666' : '#2a2a2a',
+                }}>
+                  {stepLabels[i]}
+                </span>
+              </div>
+              {i < 2 && (
+                <div style={{ flex: 1, height: 1, background: step > s ? '#9b7ff8' : 'rgba(255,255,255,0.06)', margin: '0 12px' }} />
+              )}
+            </div>
+          ))}
         </div>
-        <div className="h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
-          <div className="h-full bg-accent transition-all" style={{ width: `${(step / 3) * 100}%` }} />
+
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#9b7ff8', marginBottom: 16 }}>
+          {`0${step} / ${stepLabels[step - 1]}`}
         </div>
+        <h2 style={{
+          fontFamily: 'var(--font-heading)', fontWeight: 800,
+          fontSize: 'clamp(32px,4vw,52px)', lineHeight: 1.05,
+          color: '#f0f0f0', margin: 0, letterSpacing: '-0.02em',
+        }}>
+          {step === 1 && <>Who are you in the<br /><span style={{ color: '#9b7ff8' }}>creative world?</span></>}
+          {step === 2 && <>Shape your<br /><span style={{ color: '#9b7ff8' }}>identity.</span></>}
+          {step === 3 && <>What<br /><span style={{ color: '#9b7ff8' }}>moves you?</span></>}
+        </h2>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button type="button" onClick={onSaveAndExit} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', color: '#3a3a3a',
+        }}>
+          SAVE & EXIT
+        </button>
       </div>
 
       {step === 1 && (
-        <div className="space-y-4">
-          <p className="text-text-muted">Your role shapes how others find you.</p>
-          {(Object.keys(ROLE_TAGLINES) as ProfileRole[]).map(roleName => (
-            <RoleCard
-              key={roleName}
-              role={roleName}
-              tagline={ROLE_TAGLINES[roleName]}
-              selected={role === roleName}
-              onSelect={onSelectRole}
-            />
-          ))}
+        <div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 40 }}>
+            {(Object.keys(ROLE_TAGLINES) as ProfileRole[]).map(roleName => (
+              <RoleCard
+                key={roleName}
+                role={roleName}
+                tagline={ROLE_TAGLINES[roleName]}
+                selected={role === roleName}
+                onSelect={onSelectRole}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {step === 2 && (
-        <div className="space-y-6">
-          <p className="text-text-muted">Tell the community who you are.</p>
-          <Input
-            id="display_name"
-            label="Display Name"
-            placeholder="Your name"
-            {...register('display_name', {
-              required: 'Required',
-              minLength: { value: 2, message: 'At least 2 characters' },
-              maxLength: { value: 50, message: 'Max 50 characters' },
-              validate: value => (value.trim().length >= 2 ? true : 'At least 2 characters'),
-            })}
-            error={errors.display_name?.message}
-          />
-          <Textarea
-            id="bio"
-            label="Bio"
-            placeholder="Tell us about your work"
-            maxLength={300}
-            {...register('bio', {
-              maxLength: { value: 300, message: 'Max 300 characters' },
-            })}
-            error={errors.bio?.message}
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 720 }}>
+          <div style={{ gridColumn: 'span 2' }}>
+            <Input
+              id="display_name"
+              label="Display Name"
+              placeholder="Your full name or alias"
+              {...register('display_name', {
+                required: 'Required',
+                minLength: { value: 2, message: 'At least 2 characters' },
+                maxLength: { value: 50, message: 'Max 50 characters' },
+                validate: value => (value.trim().length >= 2 ? true : 'At least 2 characters'),
+              })}
+              error={errors.display_name?.message}
+            />
+          </div>
+          <div style={{ gridColumn: 'span 2' }}>
+            <Textarea
+              id="bio"
+              label="Bio"
+              placeholder="A brief statement about your practice, approach, or institution…"
+              maxLength={300}
+              {...register('bio', { maxLength: { value: 300, message: 'Max 300 characters' } })}
+              error={errors.bio?.message}
+            />
+          </div>
 
           <div>
-            <p className="text-sm text-text-muted mb-2">Geography</p>
-            <div className="flex flex-wrap gap-2">
-              {GEOGRAPHY_PRESETS.map(city => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() =>
-                    setValue('geography', city, { shouldValidate: true, shouldDirty: true })
-                  }
-                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                    geography === city
-                      ? 'bg-accent text-white border-accent'
-                      : 'bg-white/5 border-white/10 text-text-muted hover:border-accent'
-                  }`}
-                >
-                  {city}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setValue('geography', '', { shouldValidate: true, shouldDirty: true })
-                }
-                className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                  !isGeographyPreset
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white/5 border-white/10 text-text-muted hover:border-accent'
-                }`}
-              >
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#555', marginBottom: 10, textTransform: 'uppercase' }}>
+              Geography
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {GEOGRAPHY_PRESETS.map(city => {
+                const active = geography === city
+                return (
+                  <button key={city} type="button"
+                    onClick={() => setValue('geography', city, { shouldValidate: true, shouldDirty: true })}
+                    style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+                      padding: '6px 14px', borderRadius: 100,
+                      border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
+                      background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
+                      color: active ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                    }}>
+                    {city}
+                  </button>
+                )
+              })}
+              <button type="button"
+                onClick={() => setValue('geography', '', { shouldValidate: true, shouldDirty: true })}
+                style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+                  padding: '6px 14px', borderRadius: 100,
+                  border: `1px solid ${!isGeographyPreset ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
+                  background: !isGeographyPreset ? 'rgba(155,127,248,0.12)' : 'transparent',
+                  color: !isGeographyPreset ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                }}>
                 Other
               </button>
             </div>
             {!isGeographyPreset && (
-              <Input
-                id="geography_custom"
-                className="mt-3"
-                placeholder="Enter city"
+              <Input id="geography_custom" className="mt-3" placeholder="Enter city"
                 value={geography}
-                onChange={e =>
-                  setValue('geography', e.target.value, { shouldValidate: true, shouldDirty: true })
-                }
-              />
+                onChange={e => setValue('geography', e.target.value, { shouldValidate: true, shouldDirty: true })} />
             )}
             {errors.geography?.message && (
-              <p className="text-red-400 text-xs mt-2">{errors.geography.message}</p>
+              <p style={{ color: '#f87171', fontFamily: 'var(--font-mono)', fontSize: 9, marginTop: 8 }}>{errors.geography.message}</p>
             )}
           </div>
 
           <div>
-            <p className="text-sm text-text-muted mb-2">Discipline</p>
-            <div className="flex flex-wrap gap-2">
-              {disciplinePresets.map(item => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() =>
-                    setValue('discipline', item, { shouldValidate: true, shouldDirty: true })
-                  }
-                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                    discipline === item
-                      ? 'bg-accent text-white border-accent'
-                      : 'bg-white/5 border-white/10 text-text-muted hover:border-accent'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setValue('discipline', '', { shouldValidate: true, shouldDirty: true })
-                }
-                className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                  !isDisciplinePreset
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white/5 border-white/10 text-text-muted hover:border-accent'
-                }`}
-              >
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#555', marginBottom: 10, textTransform: 'uppercase' }}>
+              Discipline / Focus
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {disciplinePresets.map(item => {
+                const active = discipline === item
+                return (
+                  <button key={item} type="button"
+                    onClick={() => setValue('discipline', item, { shouldValidate: true, shouldDirty: true })}
+                    style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+                      padding: '6px 14px', borderRadius: 100,
+                      border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
+                      background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
+                      color: active ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                    }}>
+                    {item}
+                  </button>
+                )
+              })}
+              <button type="button"
+                onClick={() => setValue('discipline', '', { shouldValidate: true, shouldDirty: true })}
+                style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+                  padding: '6px 14px', borderRadius: 100,
+                  border: `1px solid ${!isDisciplinePreset ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
+                  background: !isDisciplinePreset ? 'rgba(155,127,248,0.12)' : 'transparent',
+                  color: !isDisciplinePreset ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                }}>
                 Other
               </button>
             </div>
             {!isDisciplinePreset && (
-              <Input
-                id="discipline_custom"
-                className="mt-3"
-                placeholder="Enter discipline"
+              <Input id="discipline_custom" className="mt-3" placeholder="Enter discipline"
                 value={discipline}
-                onChange={e =>
-                  setValue('discipline', e.target.value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
+                onChange={e => setValue('discipline', e.target.value, { shouldValidate: true, shouldDirty: true })} />
             )}
             {errors.discipline?.message && (
-              <p className="text-red-400 text-xs mt-2">{errors.discipline.message}</p>
+              <p style={{ color: '#f87171', fontFamily: 'var(--font-mono)', fontSize: 9, marginTop: 8 }}>{errors.discipline.message}</p>
             )}
           </div>
 
-          <div className="flex justify-between">
-            <Button type="button" variant="ghost" onClick={onBack}>
-              Back
-            </Button>
-            <Button type="button" onClick={onNextIdentity}>
-              Next
-            </Button>
+          <div style={{ gridColumn: 'span 2', display: 'flex', gap: 12, marginTop: 8 }}>
+            <button type="button" onClick={onBack} style={{
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
+              padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
+              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+            }}>
+              ← BACK
+            </button>
+            <button type="button" onClick={onNextIdentity} style={{
+              background: '#9b7ff8', border: 'none', borderRadius: 3,
+              padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
+              letterSpacing: '0.07em', color: '#080808', cursor: 'pointer',
+            }}>
+              CONTINUE →
+            </button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="space-y-6">
-          <p className="text-text-muted">What moves you?</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 720 }}>
           <InterestPicker
             value={interests}
             onChange={next => setValue('interests', next, { shouldValidate: true, shouldDirty: true })}
             error={errors.interests?.message}
           />
-          {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
-          <div className="flex justify-between">
-            <Button type="button" variant="ghost" onClick={onBack}>
-              Back
-            </Button>
-            <Button type="button" onClick={onCompleteProfile} disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Complete Profile'}
-            </Button>
+          {submitError && (
+            <p style={{ color: '#f87171', fontFamily: 'var(--font-mono)', fontSize: 9 }}>{submitError}</p>
+          )}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button type="button" onClick={onBack} style={{
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
+              padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
+              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+            }}>
+              ← BACK
+            </button>
+            <button type="button" onClick={onCompleteProfile} disabled={isSubmitting} style={{
+              background: isSubmitting ? 'rgba(155,127,248,0.5)' : '#9b7ff8', border: 'none', borderRadius: 3,
+              padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
+              letterSpacing: '0.07em', color: '#080808', cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            }}>
+              {isSubmitting ? 'SAVING…' : 'CREATE PROFILE →'}
+            </button>
           </div>
         </div>
       )}

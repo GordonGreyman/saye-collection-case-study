@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, Inter } from 'next/font/google'
+import { Space_Grotesk, DM_Mono } from 'next/font/google'
 import { ToastProvider } from '@/components/ui/ToastProvider'
 import './globals.css'
 
@@ -9,9 +9,10 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 })
 
-const inter = Inter({
+const dmMono = DM_Mono({
   subsets: ['latin'],
-  variable: '--font-body',
+  weight: ['400', '500'],
+  variable: '--font-mono',
   display: 'swap',
 })
 
@@ -22,8 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
-      <body className="font-body bg-bg text-text-primary antialiased min-h-screen">
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmMono.variable}`}>
+      <body className="bg-bg text-text-primary antialiased min-h-screen" style={{ fontFamily: 'var(--font-heading)' }}>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

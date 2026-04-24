@@ -1,11 +1,18 @@
-import { HTMLAttributes } from 'react'
+import type { HTMLAttributes } from 'react'
 
 type CardProps = HTMLAttributes<HTMLDivElement>
 
-export function Card({ className = '', children, ...props }: CardProps) {
+export function Card({ className = '', style, children, ...props }: CardProps) {
   return (
     <div
-      className={`bg-surface border border-white/5 rounded-xl p-6 hover:shadow-[0_0_24px_rgba(157,0,255,0.15)] transition-shadow duration-300 ${className}`}
+      style={{
+        background: '#111111',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 8,
+        padding: '18px 20px',
+        ...style,
+      }}
+      className={className}
       {...props}
     >
       {children}

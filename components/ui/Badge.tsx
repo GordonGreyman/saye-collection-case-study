@@ -3,15 +3,27 @@ interface BadgeProps {
   variant?: 'role' | 'interest'
 }
 
+const variantStyles: Record<string, React.CSSProperties> = {
+  role: {
+    background: 'rgba(155,127,248,0.1)',
+    color: '#9b7ff8',
+    border: '1px solid rgba(155,127,248,0.2)',
+  },
+  interest: {
+    background: 'transparent',
+    color: '#555',
+    border: '1px solid rgba(255,255,255,0.07)',
+  },
+}
+
 export function Badge({ children, variant = 'interest' }: BadgeProps) {
-  const styles: Record<string, string> = {
-    role: 'bg-accent/20 text-accent border border-accent/30',
-    interest: 'bg-white/5 text-text-muted border border-white/10',
-  }
   return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles[variant]}`}
-    >
+    <span style={{
+      fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
+      padding: '3px 9px', borderRadius: 100, textTransform: 'uppercase',
+      display: 'inline-flex', alignItems: 'center',
+      ...variantStyles[variant],
+    }}>
       {children}
     </span>
   )

@@ -1,14 +1,8 @@
-import { LoginForm } from '@/features/auth/LoginForm'
-import { sanitizeNextPath } from '@/lib/auth/next-path'
+'use client'
 
-interface LoginPageProps {
-  searchParams: Promise<{ next?: string | string[] }>
-}
+import { SayeShell } from '@/features/handoff/shell'
+import { AuthScreen } from '@/features/handoff/screens'
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const params = await searchParams
-  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next
-  const nextPath = sanitizeNextPath(rawNext)
-
-  return <LoginForm nextPath={nextPath} />
+export default function LoginPage() {
+  return <SayeShell current="auth">{(navigate) => <AuthScreen navigate={navigate} />}</SayeShell>
 }

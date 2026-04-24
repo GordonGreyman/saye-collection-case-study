@@ -1,0 +1,1938 @@
+
+> saye@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://26.101.180.16:3000
+- Environments: .env.local
+✓ Ready in 630ms
+[next-config] import.meta.url= file:///C:/Users/MONSTER/Desktop/projects/saye/next.config.compiled.js
+[next-config] projectRoot= C:\Users\MONSTER\Desktop\projects\saye
+[next-config] process.cwd()= C:\Users\MONSTER\Desktop\projects\saye
+Creating turbopack project { dir: 'C:\\Users\\MONSTER\\Desktop\\projects\\saye', testMode: true }
+
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+○ Compiling / ...
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'C:\Users\MONSTER\Desktop\projects'
+    [2m[at finishWithoutResolve (C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\MONSTER\Desktop\projects\saye\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\MONSTER\Desktop\projects\saye\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'C:\\Users\\MONSTER\\Desktop\\projects'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in C:\\Users\\MONSTER\\Desktop\\projects or above\n' +
+    '  resolve as module\n' +
+    "    C:\\Users\\MONSTER\\Desktop\\projects\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\Desktop\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\MONSTER\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    C:\\node_modules doesn't exist or is not a directory"
+}
+
+
+<--- Last few GCs --->
+
+<--- Last few GCs --->
+[38372:0000021F8E7C6000]      334 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 9.10 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 4: 00007FF6508BC35B 
+ 3: 00007FF650923937 
+ 5: 00007FF6508E46CA 
+ 4: 00007FF6508E43D3 
+ 6: 00007FF650925D16 
+ 5: 00007FF650925D3A 
+ 7: 00007FF650925366 
+ 6: 00007FF650925366 
+ 8: 00007FF6509362F2 
+ 7: 00007FF6509362F2 
+ 9: 00007FF650935E1B 
+ 8: 00007FF650935E1B 
+10: 00007FF651DB4BAD 
+ 9: 00007FF651DB4BAD 
+11: 00007FF650921400 
+10: 00007FF650921400 
+12: 00007FF6509A50D9 
+11: 00007FF6504D99CE 
+13: 00007FF65051AB32 
+12: 00007FF6504D772C 
+14: 000002391FE7733A 
+13: 00007FF6504DC0B4 
+14: 00007FF6504D7E07 
+15: 00007FF6504D7CBA 
+16: 00007FF6504D5017 
+17: 00007FF6504D4F94 
+18: 00007FF6504E5BE5 
+19: 00007FF650AA36FE 
+20: 00007FF650B2C713 
+21: 00007FF64FF0B030 
+22: 00007FF64FF0BBE2 
+23: 00007FF64FF0DC56 
+24: 0000021FC664F64D 
+
+<--- Last few GCs --->
+
+[38616:0000020782039000]      318 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 1.86 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[38616:0000020782039000]      418 ms: Scavenge 9.5 (12.5) -> 8.9 (17.3) MB, pooled: 0 MB, 2.53 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[38528:000002431A867000]      652 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 2.41 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[38528:000002431A867000]      747 ms: Scavenge 9.5 (12.3) -> 8.8 (13.5) MB, pooled: 2 MB, 2.42 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6512B6085 
+ 5: 00007FF6512B688B 
+ 6: 00007FF6502CBFF1 
+ 7: 00007FF650375F83 
+ 8: 00007FF650373E8A 
+ 9: 00007FF650A96E8F 
+10: 00007FF65037596B 
+11: 00007FF6512FC7DF 
+12: 00007FF64FE2C76E 
+13: 00007FF650B785C6 
+14: 00007FF651DD0373 
+15: 00007FFF75037374 
+16: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[38608:0000023B57BB7000]       85 ms: Scavenge 3.9 (6.1) -> 3.6 (6.1) MB, pooled: 0 MB, 1.22 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF65093BC8A 
+12: 00007FF6504D9958 
+13: 00007FF6504D772C 
+14: 00007FF6504DD3D6 
+15: 00007FF6504D8418 
+16: 00007FF6504D790E 
+17: 00007FF6504DD3D6 
+18: 00007FF6504D8418 
+19: 00007FF6504D790E 
+20: 00007FF6504DD3D6 
+21: 00007FF6504D8418 
+22: 00007FF6504D790E 
+23: 00007FF6504DD3D6 
+24: 00007FF6504D8418 
+25: 00007FF6504D790E 
+26: 00007FF6504DC0B4 
+27: 00007FF6504D7E07 
+28: 00007FF6504D7CBA 
+29: 00007FF6504D5017 
+30: 00007FF6504D4F94 
+31: 00007FF6504E5BE5 
+32: 00007FF650AA36FE 
+33: 00007FF650B2C713 
+34: 00007FF64FF0B030 
+35: 00007FF64FF0BBE2 
+36: 00007FF64FF0DC56 
+37: 0000023B780CF64D 
+
+
+#
+# Fatal error in , line 0
+
+
+<--- Last few GCs --->
+# Out of memory: HashMap::Initialize
+<--- Last few GCs --->
+[38856:000002BAE6BE7000]      221 ms: Scavenge 6.0 (7.2) -> 5.3 (9.9) MB, pooled: 0 MB, 1.64 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+
+[2316:0000013104ABB000]      196 ms: Scavenge 6.0 (7.2) -> 5.4 (9.9) MB, pooled: 0 MB, 1.47 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+
+#
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+#FailureMessage Object: 00000068333FA810
+----- Native stack trace -----
+----- Native stack trace -----
+----- Native stack trace -----
+
+
+
+ 1: 00007FF64FEDB6AF 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 1: 00007FF64FE308AD 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 2: 00007FF651289BDF 
+ 3: 00007FF65049E096 
+ 4: 00007FF650B0A2C6 
+ 3: 00007FF650B212F6 
+ 4: 00007FF65002C49E 
+ 5: 00007FF6505B4D50 
+ 4: 00007FF650B209E2 
+ 5: 00007FF650564628 
+ 6: 00007FF6505B2CF5 
+ 5: 00007FF650B20810 
+ 6: 00007FF650564435 
+ 7: 00007FF6505B728B 
+ 6: 00007FF6505A8F6F 
+ 7: 00007FF650552489 
+ 8: 00007FF6505B6753 
+ 8: 00007FF650550850 
+ 7: 00007FF6505C9B96 
+ 9: 00007FF6505B61F4 
+ 8: 00007FF6505E028B 
+ 9: 00007FF650552702 
+10: 00007FF6505B3E17 
+ 9: 00007FF6505DF45E 
+10: 00007FF650552702 
+11: 00007FF6505B2CD5 
+10: 00007FF6505DF119 
+11: 00007FF650550062 
+12: 00007FF6505B728B 
+11: 00007FF6505E78E0 
+12: 00007FF650551F38 
+13: 00007FF6505B6753 
+12: 00007FF6505DEB86 
+13: 00007FF6505507CF 
+14: 00007FF6505B6DE7 
+13: 00007FF6505E028B 
+14: 00007FF65054B614 
+15: 00007FF6505B67CD 
+14: 00007FF6505DF45E 
+15: 00007FF650552702 
+17: 00007FF6505C1451 
+15: 00007FF6505DF119 
+16: 00007FF650552702 
+18: 00007FF6505B0A31 
+17: 00007FF650550062 
+16: 00007FF6505E78E0 
+19: 00007FF6505AFF9D 
+17: 00007FF6505DEB86 
+18: 00007FF650551F38 
+20: 00007FF6505BC17B 
+18: 00007FF6505E028B 
+19: 00007FF6505507CF 
+23: 00007FF6505BDC39 
+19: 00007FF6505DF45E 
+20: 00007FF650552702 
+25: 00007FF6505AFF9D 
+20: 00007FF6505F1332 
+21: 00007FF650552702 
+27: 00007FF6505B0A9F 
+21: 00007FF6505D0E05 
+22: 00007FF650550062 
+28: 00007FF6505AFF9D 
+22: 00007FF6505D9A0B 
+23: 00007FF650551F38 
+30: 00007FF6505B0A9F 
+23: 00007FF6505D8F0A 
+24: 00007FF6505507CF 
+33: 00007FF6505AEC5C 
+24: 00007FF6505CC607 
+25: 00007FF650552702 
+35: 00007FF6505B4E21 
+25: 00007FF6505CB7D4 
+26: 00007FF650552702 
+37: 00007FF6505B728B 
+26: 00007FF6505CAAC2 
+27: 00007FF650550062 
+38: 00007FF6505B6753 
+27: 00007FF6505CA76A 
+28: 00007FF650551F38 
+28: 00007FF6505C5D99 
+39: 00007FF6505B96C2 
+29: 00007FF6505507CF 
+40: 00007FF6505B4B5D 
+29: 00007FF650AA0BFF 
+30: 00007FF650552702 
+41: 00007FF6505B2D05 
+30: 00007FF650AA3A01 
+31: 00007FF650552702 
+42: 00007FF6505B728B 
+31: 00007FF650B2C713 
+32: 00007FF650550062 
+43: 00007FF6505B6753 
+33: 00007FF650551F38 
+32: 00007FF64FEF82C3 
+44: 00007FF6505B96C2 
+33: 00007FF64FEF6A6E 
+45: 00007FF6505B9CC1 
+34: 00007FF6505507CF 
+34: 0000025F37DCF64D 
+35: 00007FF650552702 
+46: 00007FF6505B4E21 
+36: 00007FF650551F38 
+47: 00007FF6505B2CF5 
+37: 00007FF6505507CF 
+48: 00007FF6505B728B 
+38: 00007FF650552702 
+49: 00007FF6505B6753 
+39: 00007FF650552702 
+50: 00007FF6505B51AA 
+40: 00007FF650551F38 
+51: 00007FF6505C02E4 
+41: 00007FF6505507CF 
+52: 00007FF6505B09BC 
+42: 00007FF65054B614 
+53: 00007FF6505AFF9D 
+43: 00007FF650552702 
+54: 00007FF6505AE6CB 
+44: 00007FF650552702 
+55: 00007FF6505ADA06 
+45: 00007FF65054E756 
+56: 00007FF6505D8568 
+46: 00007FF650551F38 
+57: 00007FF6505CC580 
+47: 00007FF6505507CF 
+58: 00007FF6505F0B03 
+48: 00007FF650552702 
+59: 00007FF6505D0F74 
+49: 00007FF650552702 
+60: 00007FF6505D9A0B 
+50: 00007FF650551F38 
+61: 00007FF6505D8F0A 
+51: 00007FF6505507CF 
+62: 00007FF6505CC607 
+52: 00007FF65054A978 
+63: 00007FF6505CB7D4 
+64: 00007FF6505CAAC2 
+53: 00007FF65052DE90 
+65: 00007FF6505CA76A 
+54: 00007FF65052D5B2 
+66: 00007FF6505C5D99 
+55: 00007FF65052BEA9 
+67: 00007FF650AA0BFF 
+56: 00007FF65052C13C 
+68: 00007FF650AA3A01 
+57: 00007FF65052C01B 
+69: 00007FF650B2C713 
+58: 00007FF650502D92 
+70: 00007FF64FEF82C3 
+59: 000001313C9F733A 
+71: 00007FF64FEF6A6E 
+72: 000002BA9FDCF64D 
+
+<--- Last few GCs --->
+
+[38340:000002050CF66000]      278 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 1.93 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[38340:000002050CF66000]      545 ms: Scavenge 9.5 (12.3) -> 8.9 (17.3) MB, pooled: 0 MB, 117.19 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65005F0C2 
+ 5: 00007FF651717217 
+ 6: 00007FF6517168F8 
+ 7: 00007FF65170E50F 
+ 8: 00007FF65170DFEF 
+ 9: 00007FF65170A04E 
+10: 00007FF651709B39 
+11: 00007FF651714329 
+12: 00007FF651712FF2 
+13: 00007FF65170E377 
+14: 00007FF65170D501 
+15: 00007FF65170A04E 
+16: 00007FF651709B39 
+17: 00007FF6517095F4 
+18: 00007FF651708B81 
+19: 00007FF6517088DF 
+20: 00007FF6515166A6 
+21: 00007FF65150EF16 
+22: 00007FF65150E390 
+23: 00007FF650A96E8F 
+24: 00007FF650A5BF1D 
+25: 00007FF650A5BC15 
+26: 00007FF6512FC7DF 
+27: 00007FF64FE2C76E 
+28: 00007FF650B785C6 
+29: 00007FF651DD0373 
+30: 00007FFF75037374 
+31: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+
+[38744:0000022FF56E6000]      271 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 2.14 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+<--- Last few GCs --->
+[38744:0000022FF56E6000]      363 ms: Scavenge 9.5 (12.5) -> 8.9 (17.5) MB, pooled: 0 MB, 2.56 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+[38376:000001D7F8447000]      276 ms: Scavenge 8.7 (11.3) -> 7.4 (11.0) MB, pooled: 0 MB, 2.63 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Zone Allocation failed - process out of memory
+[38376:000001D7F8447000]      346 ms: Scavenge 9.5 (12.3) -> 8.9 (17.5) MB, pooled: 0 MB, 2.23 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+----- Native stack trace -----
+
+
+ 1: 00007FF64FEDB6AF 
+FATAL ERROR: Zone Allocation failed - process out of memory
+ 2: 00007FF650B23257 
+----- Native stack trace -----
+ 3: 00007FF65049E096 
+
+ 4: 00007FF6502C7F98 
+ 1: 00007FF64FEDB6AF 
+ 5: 00007FF6502C2474 
+ 2: 00007FF650B23257 
+ 6: 00007FF6502CA52E 
+ 3: 00007FF65049E096 
+ 7: 00007FF6502CA2A3 
+ 4: 00007FF65005F51A 
+ 8: 00007FF65032CCF4 
+ 9: 00007FF65032D5F0 
+ 5: 00007FF651B08F3B 
+10: 00007FF65032C4EB 
+11: 00007FF650329807 
+ 6: 00007FF651B07370 
+12: 00007FF6502FF20B 
+ 7: 00007FF651B0617E 
+13: 00007FF650377376 
+ 8: 00007FF651B0589D 
+14: 00007FF650376090 
+ 9: 00007FF651B04C23 
+10: 00007FF651878F90 
+15: 00007FF650373E8A 
+11: 00007FF651878E3E 
+12: 00007FF651517E16 
+16: 00007FF650A96E8F 
+13: 00007FF65150EF2B 
+17: 00007FF65037596B 
+14: 00007FF65150E390 
+18: 00007FF6512FC7DF 
+15: 00007FF650A96E8F 
+19: 00007FF64FE2C76E 
+16: 00007FF650A5BF1D 
+20: 00007FF650B785C6 
+17: 00007FF650A5BC15 
+21: 00007FF651DD0373 
+18: 00007FF6512FC7DF 
+22: 00007FFF75037374 
+19: 00007FF64FE2C76E 
+23: 00007FFF75BDCC91 
+20: 00007FF650B785C6 
+21: 00007FF651DD0373 
+22: 00007FFF75037374 
+23: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[34532:000001AB75957000]      335 ms: Scavenge (interleaved) 6.9 (8.0) -> 5.9 (10.2) MB, pooled: 0 MB, 1.57 / 0.00 ms  (average mu = 0.836, current mu = 0.001) allocation failure; 
+[34532:000001AB75957000]      696 ms: Scavenge (interleaved) 8.7 (11.5) -> 7.9 (12.5) MB, pooled: 0 MB, 17.69 / 0.00 ms  (average mu = 0.836, current mu = 0.001) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6514B7D15 
+ 5: 00007FF6514B7BF8 
+ 6: 00007FF651AFFB3F 
+ 7: 00007FF65161195C 
+ 8: 00007FF65160D5C2 
+ 9: 00007FF65160A5AC 
+10: 00007FF6514C89FC 
+11: 00007FF65165466B 
+12: 00007FF651653DAD 
+13: 00007FF651654B8B 
+14: 00007FF6515384C3 
+15: 00007FF6515118E0 
+16: 00007FF65150E91D 
+17: 00007FF65150E2BD 
+18: 00007FF650A96E8F 
+19: 00007FF650A5BF1D 
+20: 00007FF650A5BC15 
+21: 00007FF6512FC7DF 
+22: 00007FF64FE2C76E 
+23: 00007FF650B785C6 
+24: 00007FF651DD0373 
+25: 00007FFF75037374 BaseThreadInitThunk+20
+26: 00007FFF75BDCC91 RtlUserThreadStart+33
+
+<--- Last few GCs --->
+
+[37068:000002BCB1C47000]      282 ms: Scavenge 8.7 (11.3) -> 7.5 (11.0) MB, pooled: 0 MB, 2.78 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[37068:000002BCB1C47000]      402 ms: Scavenge 9.5 (12.5) -> 8.8 (17.3) MB, pooled: 0 MB, 3.39 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65034E873 
+ 5: 00007FF6502F0510 
+ 6: 00007FF6502F081F 
+ 7: 00007FF65032954A 
+ 8: 00007FF6502FF20B 
+ 9: 00007FF650377376 
+10: 00007FF650376090 
+11: 00007FF650373E8A 
+12: 00007FF650A96E8F 
+13: 00007FF65037596B 
+14: 00007FF6512FC7DF 
+15: 00007FF64FE2C76E 
+16: 00007FF650B785C6 
+17: 00007FF651DD0373 
+18: 00007FFF75037374 
+19: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[4752:00000292BCBBA000]      435 ms: Scavenge 8.7 (11.3) -> 7.5 (11.5) MB, pooled: 0 MB, 2.89 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[4752:00000292BCBBA000]      567 ms: Scavenge 9.5 (12.3) -> 8.8 (13.5) MB, pooled: 3 MB, 2.77 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6500619D4 
+ 5: 00007FF651713995 
+ 6: 00007FF65171690D 
+ 7: 00007FF65170E50F 
+ 8: 00007FF65170DFEF 
+ 9: 00007FF65170A04E 
+10: 00007FF651709B39 
+11: 00007FF651714329 
+12: 00007FF651712FF2 
+13: 00007FF65170E377 
+14: 00007FF65170D501 
+15: 00007FF65170A04E 
+16: 00007FF651709B39 
+17: 00007FF6517095F4 
+18: 00007FF651708B81 
+19: 00007FF6517088DF 
+20: 00007FF6515166A6 
+21: 00007FF65150EF16 
+22: 00007FF65150E390 
+23: 00007FF650A96E8F 
+24: 00007FF650A5BF1D 
+25: 00007FF650A5BC15 
+26: 00007FF6512FC7DF 
+27: 00007FF64FE2C76E 
+28: 00007FF650B785C6 
+29: 00007FF651DD0373 
+30: 00007FFF75037374 
+31: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[38852:0000010BDD507000]      593 ms: Scavenge (interleaved) 8.7 (11.3) -> 7.5 (11.0) MB, pooled: 0 MB, 5.97 / 0.00 ms  (average mu = 0.634, current mu = 0.634) allocation failure; 
+[38852:0000010BDD507000]      645 ms: Scavenge (interleaved) 9.4 (12.3) -> 8.8 (17.3) MB, pooled: 0 MB, 2.97 / 0.00 ms  (average mu = 0.634, current mu = 0.634) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF650A1C70F 
+ 5: 00007FF650A1B592 
+ 6: 00007FF65039B7E6 
+ 7: 00007FF65039B5C5 
+ 8: 00007FF65039AE91 
+ 9: 00007FF650399DF0 
+10: 00007FF650398837 
+11: 00007FF650396C87 
+12: 00007FF650376E75 
+13: 00007FF650373E8A 
+14: 00007FF650A96E8F 
+15: 00007FF65037596B 
+16: 00007FF6512FC7DF 
+17: 00007FF64FE2C76E 
+18: 00007FF650B785C6 
+19: 00007FF651DD0373 
+20: 00007FFF75037374 
+21: 00007FFF75BDCC91 
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+ 1: 00007FF64FE308AD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 2: 00007FF651289646 v8::base::FatalOOM+54
+ 3: 00007FF650B23236 v8::Function::NewInstance+390
+ 4: 00007FF65098A1CE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 5: 00007FF6509BD7AF SSL_CTX_set_default_read_buffer_len+41247
+ 6: 00007FF6509BE262 SSL_CTX_set_default_read_buffer_len+43986
+ 7: 00007FF6509BEC42 SSL_CTX_set_default_read_buffer_len+46514
+ 8: 00007FF6504BC283 v8::internal::Version::GetSONAME+122307
+ 9: 00007FF650B4E416 v8::Isolate::Initialize+662
+10: 00007FF64FFE8CFD node::SetIsolateUpForNode+749
+11: 00007FF64FD45053 RSA_meth_get_flags+222691
+12: 00007FF64FD443E9 RSA_meth_get_flags+219513
+13: 00007FF64FD4DF70 RSA_meth_get_flags+259328
+14: 00007FF650B785C6 uv_thread_detach+150
+15: 00007FF651DD0373 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2903987
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 RtlUserThreadStart+33
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+ 1: 00007FF64FE308AD 
+ 2: 00007FF651289646 
+ 3: 00007FF650B23236 
+ 4: 00007FF65098A1CE 
+ 5: 00007FF6509BD7AF 
+ 6: 00007FF6509BE262 
+ 7: 00007FF6509BEC42 
+ 8: 00007FF6504BC283 
+ 9: 00007FF650B4E416 
+10: 00007FF64FFE8CFD 
+11: 00007FF64FD45053 
+12: 00007FF64FD443E9 
+13: 00007FF64FD4DF70 
+14: 00007FF650B785C6 
+15: 00007FF651DD0373 
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[38640:000001B2BBBD7000]      907 ms: Scavenge 8.7 (11.3) -> 7.4 (11.0) MB, pooled: 0 MB, 3.10 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[38640:000001B2BBBD7000]      962 ms: Scavenge 9.5 (12.5) -> 8.9 (17.0) MB, pooled: 0 MB, 3.16 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[39496:0000017D74297000]      432 ms: Mark-Compact (reduce) 5.3 (8.2) -> 5.0 (7.0) MB, pooled: 0 MB, 7.38 / 0.00 ms  (average mu = 0.983, current mu = 0.983) last resort; GC in old space requested
+[39496:0000017D74297000]      468 ms: Mark-Compact (reduce) 5.0 (7.0) -> 5.0 (6.7) MB, pooled: 0 MB, 35.53 / 0.00 ms  (average mu = 0.908, current mu = 0.001) last resort; GC in old space requested
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[39464:000001D6C44C6000]      838 ms: Scavenge 8.1 (11.0) -> 6.9 (10.9) MB, pooled: 0 MB, 31.61 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[39464:000001D6C44C6000]     1006 ms: Scavenge 9.4 (12.0) -> 8.7 (17.3) MB, pooled: 0 MB, 3.89 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65033567B 
+ 5: 00007FF6502CDB40 
+ 6: 00007FF650377177 
+ 7: 00007FF650376090 
+ 8: 00007FF650373E8A 
+ 9: 00007FF650A96E8F 
+10: 00007FF65037596B 
+11: 00007FF6512FC7DF 
+12: 00007FF64FE2C76E 
+13: 00007FF650B785C6 
+14: 00007FF651DD0373 
+15: 00007FFF75037374 
+16: 00007FFF75BDCC91 
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+ 1: 00007FF64FE308AD 
+ 2: 00007FF651289646 
+ 3: 00007FF650B23236 
+ 4: 00007FF65098A1CE 
+ 5: 00007FF6509BD7AF 
+ 6: 00007FF6509BE262 
+ 7: 00007FF6509BEC42 
+ 8: 00007FF6504BC283 
+ 9: 00007FF650B4E416 
+10: 00007FF64FFE8CFD 
+11: 00007FF64FD45053 
+12: 00007FF64FD443E9 
+13: 00007FF64FD4DF70 
+14: 00007FF650B785C6 
+15: 00007FF651DD0373 
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 RtlUserThreadStart+33
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505CC9C9 
+ 5: 00007FF6505E998F 
+ 6: 00007FF6505CFFA5 
+ 7: 00007FF6505E6B82 
+ 8: 00007FF6505E52A3 
+ 9: 00007FF6505E028B 
+10: 00007FF6505DF45E 
+11: 00007FF6505DFCC6 
+12: 00007FF6505DF4A4 
+13: 00007FF6505E4E24 
+14: 00007FF6505F023F 
+15: 00007FF6505D9A0B 
+16: 00007FF6505D8F0A 
+17: 00007FF6505CC607 
+18: 00007FF6505CB7D4 
+19: 00007FF6505CAAC2 
+20: 00007FF6505CA76A 
+21: 00007FF6505C5D99 
+22: 00007FF650AA0BFF 
+23: 00007FF650AA3A01 
+24: 00007FF650B2C713 
+25: 00007FF64FEF82C3 
+26: 00007FF64FEF6A6E 
+27: 000001B2F3A8F64D 
+ 1: 00007FF64FE308AD 
+ 2: 00007FF651289646 
+ 3: 00007FF650B23236 
+ 4: 00007FF65098A1CE 
+ 5: 00007FF6509BD7AF 
+ 6: 00007FF6509BE262 
+ 7: 00007FF6509BEC42 
+ 8: 00007FF6504BC283 
+ 9: 00007FF650B4E416 
+10: 00007FF64FFE8CFD 
+11: 00007FF64FD45053 
+12: 00007FF64FD443E9 
+13: 00007FF64FD4DF70 
+14: 00007FF650B785C6 
+15: 00007FF651DD0373 
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 RtlUserThreadStart+33
+
+<--- Last few GCs --->
+
+[32152:0000021A47165000]      492 ms: Scavenge 6.4 (8.5) -> 6.2 (10.7) MB, pooled: 0 MB, 1.11 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[32152:0000021A47165000]      601 ms: Scavenge 10.0 (12.8) -> 9.0 (13.3) MB, pooled: 0 MB, 1.46 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[32152:0000021A47165000]      716 ms: Scavenge 10.5 (13.3) -> 9.6 (14.3) MB, pooled: 0 MB, 26.86 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508BC35B 
+ 5: 00007FF6508E46CA 
+ 6: 00007FF650925D16 
+ 7: 00007FF650925366 
+ 8: 00007FF6509362F2 
+ 9: 00007FF650935E1B 
+10: 00007FF651DB4BAD 
+11: 00007FF650921400 
+12: 00007FF65093BF7F 
+13: 00007FF650947AE8 
+14: 00007FF65095F14A 
+15: 00007FF65080C98E 
+16: 00007FF6508332DC 
+17: 00007FF650835686 
+18: 00007FF650811169 
+19: 00007FF65080A14F 
+20: 00007FF650809FC2 
+21: 00007FF650AA6E4C 
+22: 00007FF650A9E8E1 
+23: 00007FF650A9E09D 
+24: 00007FF650A9EB2C 
+25: 00007FF6506F1657 
+26: 00007FF6506F12DF 
+27: 00007FF6506F1833 
+28: 00007FF6506CE568 
+29: 00007FF650511E14 
+30: 0000021A7F0B733A 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508BC35B 
+ 5: 00007FF650893DAE 
+ 6: 00007FF6509263D2 
+ 7: 00007FF650925387 
+ 8: 00007FF6509362F2 
+ 9: 00007FF650935E1B 
+10: 00007FF651DB4BAD 
+11: 00007FF650921400 
+12: 00007FF65093BC8A 
+13: 00007FF650948126 
+14: 00007FF65051B207 
+15: 0000017D2FE7733A 
+
+<--- Last few GCs --->
+[39032:00000213657A5000]      299 ms: Scavenge 6.0 (7.2) -> 5.4 (9.9) MB, pooled: 0 MB, 106.37 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[27192:000001FD533A6000]      832 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 2.06 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[27192:000001FD533A6000]     1078 ms: Scavenge 9.5 (12.5) -> 8.9 (13.3) MB, pooled: 0 MB, 102.34 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505E8324 
+ 5: 00007FF6505DEB86 
+ 6: 00007FF6505E028B 
+ 7: 00007FF6505DF45E 
+ 8: 00007FF6505DF119 
+ 9: 00007FF6505E78E0 
+10: 00007FF6505DEB86 
+11: 00007FF6505E028B 
+12: 00007FF6505DF45E 
+ 1: 00007FF64FEDB6AF 
+13: 00007FF6505F1332 
+14: 00007FF6505D0E05 
+ 2: 00007FF650B23257 
+15: 00007FF6505D9A0B 
+ 3: 00007FF650923937 
+16: 00007FF6505D8F0A 
+ 4: 00007FF6508BC35B 
+17: 00007FF6505CC607 
+ 5: 00007FF650893DAE 
+18: 00007FF6505CB7D4 
+ 6: 00007FF6509263D2 
+19: 00007FF6505CAAC2 
+ 7: 00007FF650925387 
+20: 00007FF6505CA76A 
+ 8: 00007FF6509362F2 
+21: 00007FF6505C5D99 
+ 9: 00007FF650935E1B 
+22: 00007FF650AA0BFF 
+10: 00007FF651DB4BAD 
+23: 00007FF650AA3A01 
+11: 00007FF650921400 
+24: 00007FF650B2C713 
+12: 00007FF65093BC8A 
+25: 00007FF64FEF82C3 
+13: 00007FF650948126 
+26: 00007FF64FEF6A6E 
+14: 00007FF65051B207 
+27: 000002131FDCF64D 
+15: 000001FD1FE7733A 
+
+
+#
+# Fatal error in , line 0
+# Out of memory: HashMap::Initialize
+#
+#
+#
+#FailureMessage Object: 0000005E52BFB3D0
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[38388:000002098F6B6000]      326 ms: Scavenge (interleaved) 5.2 (7.9) -> 5.1 (9.9) MB, pooled: 0 MB, 0.51 / 0.00 ms  (average mu = 0.723, current mu = 0.723) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[4752:000001B0610E8000]       53 ms: Scavenge 3.9 (6.1) -> 3.6 (6.3) MB, pooled: 0 MB, 1.23 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[4752:000001B0610E8000]       70 ms: Scavenge 5.1 (6.8) -> 4.8 (7.6) MB, pooled: 0 MB, 2.56 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65005F2C3 
+ 5: 00007FF651879031 
+ 6: 00007FF651878E3E 
+ 7: 00007FF651517E16 
+ 8: 00007FF65150EF2B 
+ 9: 00007FF65150E390 
+10: 00007FF650A96E8F 
+11: 00007FF650A5BF1D 
+12: 00007FF650A5BC15 
+13: 00007FF6512FC7DF 
+14: 00007FF64FE2C76E 
+15: 00007FF650B785C6 
+16: 00007FF651DD0373 
+17: 00007FFF75037374 BaseThreadInitThunk+20
+18: 00007FFF75BDCC91 
+ 1: 00007FF64FE308AD 
+ 2: 00007FF651289BDF 
+ 3: 00007FF650B212F6 
+ 4: 00007FF650B209E2 
+ 5: 00007FF650B20810 
+ 6: 00007FF6505A8F6F 
+ 7: 00007FF6505E8767 
+ 8: 00007FF6505E7596 
+ 9: 00007FF6505DEB86 
+10: 00007FF6505E028B 
+11: 00007FF6505DF45E 
+12: 00007FF6505F1332 
+13: 00007FF6505D0E05 
+14: 00007FF6505D9A0B 
+15: 00007FF6505D8F0A 
+16: 00007FF6505CC607 
+17: 00007FF6505CB7D4 
+18: 00007FF6505CAAC2 
+19: 00007FF6505CA76A 
+20: 00007FF6505C5D99 
+21: 00007FF650AA0BFF 
+22: 00007FF650AA3A01 
+23: 00007FF650B2C713 
+24: 00007FF64FEF82C3 
+25: 00007FF64FEF6A6E 
+26: 000001D2BC54F64D 
+ 1: 00007FF64FEDB6AF node::OnFatalError+1343
+ 2: 00007FF650B23257 v8::Function::NewInstance+423
+ 3: 00007FF650923937 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 4: 00007FF6508BC35B v8::Platform::SystemClockTimeMillis+491051
+ 5: 00007FF6508E46CA v8::base::AddressSpaceReservation::AddressSpaceReservation+63402
+ 6: 00007FF650925D16 v8::base::AddressSpaceReservation::AddressSpaceReservation+331254
+ 7: 00007FF650925366 v8::base::AddressSpaceReservation::AddressSpaceReservation+328774
+ 8: 00007FF6509362F2 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 9: 00007FF650935E1B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+10: 00007FF651DB4BAD v8::base::UnsignedDivisionByConstant<unsigned __int64>+2791405
+11: 00007FF650921400 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+12: 00007FF6504D99CE v8::internal::Version::GetSONAME+242958
+13: 00007FF6504D772C v8::internal::Version::GetSONAME+234092
+14: 00007FF6504DD3D6 v8::internal::Version::GetSONAME+257814
+15: 00007FF6504D8418 v8::internal::Version::GetSONAME+237400
+16: 00007FF6504D790E v8::internal::Version::GetSONAME+234574
+17: 00007FF6504DD3D6 v8::internal::Version::GetSONAME+257814
+18: 00007FF6504D8418 v8::internal::Version::GetSONAME+237400
+19: 00007FF6504D790E v8::internal::Version::GetSONAME+234574
+20: 00007FF6504DD3D6 v8::internal::Version::GetSONAME+257814
+21: 00007FF6504D8418 v8::internal::Version::GetSONAME+237400
+22: 00007FF6504D790E v8::internal::Version::GetSONAME+234574
+23: 00007FF6504DD3D6 v8::internal::Version::GetSONAME+257814
+24: 00007FF6504D8418 v8::internal::Version::GetSONAME+237400
+25: 00007FF6504D790E v8::internal::Version::GetSONAME+234574
+26: 00007FF6504DC0B4 v8::internal::Version::GetSONAME+252916
+27: 00007FF6504D7E07 v8::internal::Version::GetSONAME+235847
+28: 00007FF6504D7CBA v8::internal::Version::GetSONAME+235514
+29: 00007FF6504D5017 v8::internal::Version::GetSONAME+224087
+30: 00007FF6504D4F94 v8::internal::Version::GetSONAME+223956
+31: 00007FF6504E5BE5 v8::internal::Version::GetSONAME+292645
+32: 00007FF650AA36FE X509_STORE_set_get_issuer+251870
+33: 00007FF650B2C713 v8::ScriptCompiler::CompileFunction+1011
+34: 00007FF64FF0B030 node::GetCurrentEnvironment+98048
+35: 00007FF64FF0BBE2 node::GetCurrentEnvironment+101042
+36: 00007FF64FF0DC56 node::GetCurrentEnvironment+109350
+37: 000001B01FDCF64D 
+
+<--- Last few GCs --->
+[28504:0000017813437000]      255 ms: Scavenge 6.0 (7.2) -> 5.3 (9.9) MB, pooled: 0 MB, 3.05 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[39408:000002BCF9646000]      849 ms: Scavenge 8.7 (11.8) -> 7.4 (11.8) MB, pooled: 0 MB, 1.57 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[39408:000002BCF9646000]     1012 ms: Scavenge 9.5 (12.8) -> 8.9 (13.5) MB, pooled: 0 MB, 5.50 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF650396947 
+ 5: 00007FF65049FC4E 
+ 6: 00007FF6504A0596 
+ 7: 00007FF6504A0661 
+ 8: 00007FF6512939C3 
+ 9: 00007FF6512C1CB8 
+10: 00007FF6512E2B1B 
+11: 00007FF6512E0D94 
+12: 00007FF6503772DB 
+13: 00007FF650376090 
+14: 00007FF650373E8A 
+15: 00007FF650A96E8F 
+16: 00007FF65037596B 
+17: 00007FF6512FC7DF 
+18: 00007FF64FE2C76E 
+19: 00007FF650B785C6 
+20: 00007FF651DD0373 
+21: 00007FFF75037374 
+22: 00007FFF75BDCC91 
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[15760:00000201EE666000]      398 ms: Scavenge 8.7 (11.3) -> 7.4 (11.0) MB, pooled: 0 MB, 4.66 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[15760:00000201EE666000]      616 ms: Scavenge 9.5 (12.5) -> 8.9 (17.3) MB, pooled: 0 MB, 2.50 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[39576:000002171C1C7000]     1747 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 2.07 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[39576:000002171C1C7000]     1814 ms: Scavenge 9.5 (12.3) -> 8.9 (17.5) MB, pooled: 0 MB, 3.92 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF650296F90 
+ 5: 00007FF65038EB59 
+ 6: 00007FF65038E957 
+ 7: 00007FF650379183 
+ 8: 00007FF650376ACD 
+ 9: 00007FF650373E8A 
+10: 00007FF650A96E8F 
+11: 00007FF65037596B 
+12: 00007FF6512FC7DF 
+13: 00007FF64FE2C76E 
+14: 00007FF650B785C6 
+15: 00007FF651DD0373 
+16: 00007FFF75037374 
+
+ 1: 00007FF64FEDB6AF 
+17: 00007FFF75BDCC91 
+
+ 2: 00007FF650B23257 
+#
+ 3: 00007FF65049E096 
+# Fatal process out of memory: Re-embedded builtins: set permissions
+ 4: 00007FF6505D394E 
+#
+ 5: 00007FF6505D90AE 
+----- Native stack trace -----
+ 6: 00007FF6505DA12D 
+
+ 7: 00007FF6505CF3D5 
+ 1: 00007FF64FE308AD 
+ 8: 00007FF6505E0180 
+ 2: 00007FF651289646 
+ 9: 00007FF6505DF4A4 
+ 3: 00007FF650B23236 
+10: 00007FF6505DF119 
+ 4: 00007FF65098A1CE 
+11: 00007FF6505E78E0 
+ 5: 00007FF6509BD7AF 
+12: 00007FF6505DEB86 
+ 6: 00007FF6509BE262 
+13: 00007FF6505E028B 
+ 7: 00007FF6509BEC42 
+14: 00007FF6505DF45E 
+ 8: 00007FF6504BC283 
+15: 00007FF6505F1332 
+ 9: 00007FF650B4E416 
+16: 00007FF6505D0E05 
+10: 00007FF64FFE8CFD 
+17: 00007FF6505D9A0B 
+11: 00007FF64FD45053 
+18: 00007FF6505D8F0A 
+12: 00007FF64FD443E9 
+19: 00007FF6505CC607 
+13: 00007FF64FD4DF70 
+20: 00007FF6505CB7D4 
+14: 00007FF650B785C6 
+21: 00007FF6505CAAC2 
+15: 00007FF651DD0373 
+22: 00007FF6505CA76A 
+16: 00007FFF75037374 
+23: 00007FF6505C5D99 
+17: 00007FFF75BDCC91 
+24: 00007FF650AA0BFF 
+ 1: 00007FF64FE308AD node::MultiIsolatePlatform::DisposeIsolate+5341
+25: 00007FF650AA3A01 
+ 2: 00007FF651289646 v8::base::FatalOOM+54
+26: 00007FF650B2C713 
+ 3: 00007FF650B23236 v8::Function::NewInstance+390
+27: 00007FF64FEF82C3 
+ 4: 00007FF65098A1CE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+28: 00007FF64FEF6A6E 
+ 5: 00007FF6509BD7AF SSL_CTX_set_default_read_buffer_len+41247
+29: 000001784B2CF64D 
+ 6: 00007FF6509BE262 SSL_CTX_set_default_read_buffer_len+43986
+ 7: 00007FF6509BEC42 SSL_CTX_set_default_read_buffer_len+46514
+ 8: 00007FF6504BC283 v8::internal::Version::GetSONAME+122307
+ 9: 00007FF650B4E416 v8::Isolate::Initialize+662
+10: 00007FF64FFE8CFD node::SetIsolateUpForNode+749
+11: 00007FF64FD45053 RSA_meth_get_flags+222691
+12: 00007FF64FD443E9 RSA_meth_get_flags+219513
+13: 00007FF64FD4DF70 RSA_meth_get_flags+259328
+14: 00007FF650B785C6 uv_thread_detach+150
+15: 00007FF651DD0373 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2903987
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 RtlUserThreadStart+33
+ 1: 00007FF64FEDB6AF node::OnFatalError+1343
+ 2: 00007FF650B23257 v8::Function::NewInstance+423
+ 3: 00007FF65049E096 v8::SnapshotCreator::GetIsolate+56566
+ 4: 00007FF65005F51A X509_get0_tbs_sigalg+9818
+ 5: 00007FF65080DDDA v8::Promise::MarkAsSilent+538666
+ 6: 00007FF65080D700 v8::Promise::MarkAsSilent+536912
+ 7: 00007FF65083B51D v8::Promise::MarkAsSilent+724845
+ 8: 00007FF650825A1C v8::Promise::MarkAsSilent+636012
+ 9: 00007FF650826269 v8::Promise::MarkAsSilent+638137
+10: 00007FF650817675 v8::Promise::MarkAsSilent+577733
+11: 00007FF6508158EB v8::Promise::MarkAsSilent+570171
+12: 00007FF650815C70 v8::Promise::MarkAsSilent+571072
+13: 00007FF650814E8B v8::Promise::MarkAsSilent+567515
+14: 00007FF6508142FF v8::Promise::MarkAsSilent+564559
+15: 00007FF650812993 v8::Promise::MarkAsSilent+558051
+16: 00007FF650809DB6 v8::Promise::MarkAsSilent+522246
+17: 00007FF650AA7F4F X509_STORE_set_get_issuer+270383
+18: 00007FF650A9E868 X509_STORE_set_get_issuer+231752
+19: 00007FF650A9E09D X509_STORE_set_get_issuer+229757
+20: 00007FF650A9EB2C X509_STORE_set_get_issuer+232460
+21: 00007FF65052227B v8::String::Utf8Value::~Utf8Value+172283
+22: 00000201A7E7733A 
+
+<--- Last few GCs --->
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[39372:000001D67F17E000]      160 ms: Mark-Compact 4.9 (9.1) -> 4.5 (9.1) MB, pooled: 0 MB, 7.94 / 0.00 ms  (average mu = 0.556, current mu = 0.568) background allocation failure; GC in old space requested
+[39372:000001D67F17E000]      167 ms: Mark-Compact 4.6 (9.1) -> 4.5 (9.1) MB, pooled: 0 MB, 7.47 / 0.00 ms  (average mu = 0.455, current mu = 0.034) background allocation failure; GC in old space requested
+
+FATAL ERROR: MarkCompactCollector: young object promotion failed Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF65090324E 
+ 5: 00007FF6508F890D 
+ 6: 00007FF6508F85BC 
+ 7: 00007FF6508F8201 
+ 8: 00007FF65090A4E8 
+ 9: 00007FF6512FBF8D 
+10: 00007FF6512FC432 
+11: 00007FF6508FB244 
+12: 00007FF6508E296D 
+13: 00007FF6508DC9E4 
+14: 00007FF650925D3A 
+15: 00007FF650925366 
+16: 00007FF6509362F2 
+17: 00007FF650935E1B 
+18: 00007FF651DB4BAD 
+19: 00007FF650921400 
+20: 00007FF65093BC8A 
+21: 00007FF6504D9958 
+22: 00007FF6504D772C 
+23: 00007FF6504DD3D6 
+24: 00007FF6504D8418 
+25: 00007FF6504D790E 
+26: 00007FF6504DD3D6 
+27: 00007FF6504D8418 
+28: 00007FF6504D790E 
+29: 00007FF6504DD3D6 
+30: 00007FF6504D8418 
+31: 00007FF6504D790E 
+32: 00007FF6504DC0B4 
+33: 00007FF6504D7E07 
+34: 00007FF6504D7CBA 
+35: 00007FF6504D5017 
+36: 00007FF6504D4F94 
+37: 00007FF6504E5BE5 
+38: 00007FF650AA36FE 
+39: 00007FF650B2C713 
+40: 00007FF64FF0B030 
+41: 00007FF64FF0BBE2 
+42: 00007FF64FF0DC56 
+43: 000001D64FDCF64D 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508BC35B 
+ 5: 00007FF6508E46CA 
+ 6: 00007FF650925D16 
+ 7: 00007FF650925366 
+ 8: 00007FF6509362F2 
+ 9: 00007FF650935E1B 
+10: 00007FF651DB4BAD 
+11: 00007FF650921400 
+12: 00007FF6509A50D9 
+13: 00007FF65051AB32 
+14: 000001C03FE7733A 
+
+<--- Last few GCs --->
+
+[38456:000001A6F4D46000]      411 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 3.06 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF65094C5B7 
+12: 00007FF65094DCE5 
+13: 00007FF6504FDCB2 
+14: 000001A6AFE7733A 
+
+<--- Last few GCs --->
+
+[9276:00000211B2B2A000]      249 ms: Scavenge 8.7 (11.8) -> 7.5 (11.5) MB, pooled: 0 MB, 2.18 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[9276:00000211B2B2A000]      303 ms: Scavenge 9.5 (12.5) -> 8.8 (17.5) MB, pooled: 0 MB, 2.62 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65036B184 
+ 5: 00007FF65036AFE4 
+ 6: 00007FF65031C8ED 
+ 7: 00007FF65032A62A 
+ 8: 00007FF6502FF20B 
+ 9: 00007FF6502FEDE2 
+10: 00007FF650300D95 
+11: 00007FF65030023E 
+12: 00007FF6503137A1 
+13: 00007FF6502E8605 
+14: 00007FF650303D32 
+15: 00007FF6503153F6 
+16: 00007FF6503161F7 
+17: 00007FF65032A5CA 
+18: 00007FF6502FF20B 
+19: 00007FF650377376 
+20: 00007FF650376090 
+21: 00007FF650373E8A 
+22: 00007FF650A96E8F 
+23: 00007FF65037596B 
+24: 00007FF6512FC7DF 
+25: 00007FF64FE2C76E 
+26: 00007FF650B785C6 
+27: 00007FF651DD0373 
+28: 00007FFF75037374 
+29: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[21392:0000020C15647000]      403 ms: Scavenge (interleaved) 8.6 (11.5) -> 7.8 (12.8) MB, pooled: 0 MB, 61.45 / 0.00 ms  (average mu = 0.772, current mu = 0.001) allocation failure; 
+[21392:0000020C15647000]      579 ms: Scavenge (interleaved) 10.2 (13.0) -> 9.3 (13.5) MB, pooled: 0 MB, 1.99 / 0.00 ms  (average mu = 0.772, current mu = 0.001) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6502C8152 
+ 5: 00007FF6502C8112 
+ 6: 00007FF6502C8013 
+ 7: 00007FF6502C7F5D 
+ 8: 00007FF6502C2474 
+ 9: 00007FF6502CA52E 
+10: 00007FF65032BC02 
+11: 00007FF650329A91 
+12: 00007FF6502FF20B 
+13: 00007FF650377376 
+14: 00007FF650376090 
+15: 00007FF650373E8A 
+16: 00007FF650A96E8F 
+17: 00007FF65037596B 
+18: 00007FF6512FC7DF 
+19: 00007FF64FE2C76E 
+20: 00007FF650B785C6 
+21: 00007FF651DD0373 
+22: 00007FFF75037374 
+23: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[24776:000001B8D1C06000]      375 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 1.83 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF6509A50D9 
+12: 00007FF65051AB32 
+13: 000001B89FE7733A 
+
+<--- Last few GCs --->
+
+[39124:0000027697DA7000]      402 ms: Scavenge (interleaved) 9.2 (12.0) -> 7.6 (11.8) MB, pooled: 0 MB, 2.39 / 0.00 ms  (average mu = 0.911, current mu = 0.911) allocation failure; 
+[39124:0000027697DA7000]      463 ms: Scavenge (interleaved) 9.4 (12.0) -> 8.9 (17.3) MB, pooled: 0 MB, 2.38 / 0.00 ms  (average mu = 0.911, current mu = 0.911) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF650367257 
+ 5: 00007FF650313932 
+ 6: 00007FF6503137D3 
+ 7: 00007FF6502E8605 
+ 8: 00007FF650303D32 
+ 9: 00007FF6503153F6 
+10: 00007FF6503161F7 
+11: 00007FF65032A5CA 
+12: 00007FF6502FF20B 
+13: 00007FF6502FEDE2 
+14: 00007FF650300D95 
+15: 00007FF65030023E 
+16: 00007FF6503137A1 
+17: 00007FF6502E8605 
+18: 00007FF650303D32 
+19: 00007FF6503153F6 
+20: 00007FF6503161F7 
+21: 00007FF65032A5CA 
+22: 00007FF6502FF20B 
+23: 00007FF6502FEDE2 
+24: 00007FF650300D95 
+25: 00007FF65030023E 
+26: 00007FF6503137A1 
+27: 00007FF6502E8605 
+28: 00007FF650303D32 
+29: 00007FF6503153F6 
+30: 00007FF6503161F7 
+31: 00007FF65032A5CA 
+32: 00007FF6502FF20B 
+33: 00007FF650377376 
+34: 00007FF650376090 
+35: 00007FF650373E8A 
+36: 00007FF650A96E8F 
+37: 00007FF65037596B 
+38: 00007FF6512FC7DF 
+39: 00007FF64FE2C76E 
+40: 00007FF650B785C6 
+41: 00007FF651DD0373 
+42: 00007FFF75037374 
+43: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+[32244:000002BD956C7000]      171 ms: Scavenge 6.0 (7.7) -> 5.3 (10.5) MB, pooled: 0 MB, 27.94 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505E9BEB 
+ 5: 00007FF6505DA15E 
+ 6: 00007FF6505CF3D5 
+ 7: 00007FF6505E0180 
+ 8: 00007FF6505DF4A4 
+ 9: 00007FF6505DF119 
+10: 00007FF6505E78E0 
+11: 00007FF6505DEB86 
+12: 00007FF6505E028B 
+13: 00007FF6505DF45E 
+14: 00007FF6505F1332 
+15: 00007FF6505D0E05 
+16: 00007FF6505D9A0B 
+17: 00007FF6505D8F0A 
+18: 00007FF6505CC607 
+19: 00007FF6505CB7D4 
+20: 00007FF6505CAAC2 
+21: 00007FF6505CA76A 
+22: 00007FF6505C5D99 
+23: 00007FF650AA0BFF 
+24: 00007FF650AA3A01 
+25: 00007FF650B2C713 
+26: 00007FF64FEF82C3 
+27: 00007FF64FEF6A6E 
+28: 000002BDCD5CF64D 
+
+<--- Last few GCs --->
+
+[28092:000001FDF9DFD000]      428 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 2.31 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF6509A50D9 
+12: 00007FF65051AB32 
+13: 000001FDB7E7733A 
+
+<--- Last few GCs --->
+
+
+
+#
+# Fatal JavaScript out of memory: MemoryChunk allocation failed during deserialization.
+#
+----- Native stack trace -----
+
+ 1: 00007FF64FE308AD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 2: 00007FF651289646 v8::base::FatalOOM+54
+ 3: 00007FF650B23236 v8::Function::NewInstance+390
+ 4: 00007FF650923937 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 5: 00007FF6508D5B8A v8::base::AddressSpaceReservation::AddressSpaceReservation+3178
+ 6: 00007FF6508D5C4C v8::base::AddressSpaceReservation::AddressSpaceReservation+3372
+ 7: 00007FF6508D653B v8::base::AddressSpaceReservation::AddressSpaceReservation+5659
+ 8: 00007FF6508AD791 v8::Platform::SystemClockTimeMillis+430689
+ 9: 00007FF650913643 v8::base::AddressSpaceReservation::AddressSpaceReservation+255779
+10: 00007FF6509133AE v8::base::AddressSpaceReservation::AddressSpaceReservation+255118
+11: 00007FF650912198 v8::base::AddressSpaceReservation::AddressSpaceReservation+250488
+12: 00007FF65091211A v8::base::AddressSpaceReservation::AddressSpaceReservation+250362
+13: 00007FF6504D98E3 v8::internal::Version::GetSONAME+242723
+14: 00007FF6504D772C v8::internal::Version::GetSONAME+234092
+15: 00007FF6504DE9AE v8::internal::Version::GetSONAME+263406
+16: 00007FF6504D815D v8::internal::Version::GetSONAME+236701
+17: 00007FF6504B5B94 v8::internal::Version::GetSONAME+95956
+18: 00007FF6504D3141 v8::internal::Version::GetSONAME+216193
+19: 00007FF6504B664F v8::internal::Version::GetSONAME+98703
+20: 00007FF6509BE84C SSL_CTX_set_default_read_buffer_len+45500
+21: 00007FF6509BEC42 SSL_CTX_set_default_read_buffer_len+46514
+22: 00007FF6504BC283 v8::internal::Version::GetSONAME+122307
+23: 00007FF650B4E416 v8::Isolate::Initialize+662
+24: 00007FF64FFE8CFD node::SetIsolateUpForNode+749
+25: 00007FF64FD45053 RSA_meth_get_flags+222691
+26: 00007FF64FD443E9 RSA_meth_get_flags+219513
+27: 00007FF64FD4DF70 RSA_meth_get_flags+259328
+28: 00007FF650B785C6 uv_thread_detach+150
+29: 00007FF651DD0373 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2903987
+30: 00007FFF75037374 BaseThreadInitThunk+20
+31: 00007FFF75BDCC91 RtlUserThreadStart+33
+
+
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+
+ 1: 00007FF64FE308AD 
+ 2: 00007FF651289646 
+ 3: 00007FF650B23236 
+ 4: 00007FF65098A1CE 
+ 5: 00007FF6509BD7AF 
+ 6: 00007FF6509BE262 
+ 7: 00007FF6509BEC42 
+ 8: 00007FF6504BC283 
+ 9: 00007FF650B4E416 
+10: 00007FF64FFE8CFD 
+11: 00007FF64FD45053 
+12: 00007FF64FD443E9 
+13: 00007FF64FD4DF70 
+14: 00007FF650B785C6 
+15: 00007FF651DD0373 
+16: 00007FFF75037374 BaseThreadInitThunk+20
+17: 00007FFF75BDCC91 
+
+<--- Last few GCs --->
+
+[20276:000002DDA84F7000]      252 ms: Scavenge 8.7 (11.3) -> 7.4 (11.0) MB, pooled: 0 MB, 3.10 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[20276:000002DDA84F7000]      341 ms: Scavenge 9.5 (12.5) -> 8.9 (13.3) MB, pooled: 2 MB, 2.70 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF65005F2C3 
+ 5: 00007FF651713995 
+ 6: 00007FF65171690D 
+ 7: 00007FF65170E50F 
+ 8: 00007FF65170DFEF 
+ 9: 00007FF65170A04E 
+10: 00007FF651709B39 
+11: 00007FF651714329 
+12: 00007FF651712FF2 
+13: 00007FF65170E377 
+14: 00007FF65170D501 
+15: 00007FF65170A04E 
+16: 00007FF651709B39 
+17: 00007FF6517095F4 
+18: 00007FF651708B81 
+19: 00007FF6517088DF 
+20: 00007FF6515166A6 
+21: 00007FF65150EF16 
+
+22: 00007FF65150E390 
+<--- Last few GCs --->
+23: 00007FF650A96E8F 
+[6304:00000165E3E36000]      196 ms: Scavenge 6.0 (7.2) -> 5.4 (9.9) MB, pooled: 0 MB, 2.31 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+24: 00007FF650A5BF1D 
+
+25: 00007FF650A5BC15 
+26: 00007FF6512FC7DF 
+27: 00007FF64FE2C76E 
+28: 00007FF650B785C6 
+29: 00007FF651DD0373 
+30: 00007FFF75037374 
+31: 00007FFF75BDCC91 
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF650947B66 
+12: 00007FF650962346 
+13: 00007FF6509621D8 
+14: 00007FF650618EF0 
+15: 00007FF65095E617 
+16: 00007FF650B19851 
+17: 00007FF650B1A4FB 
+18: 00007FF6505C6A57 
+19: 00007FF6505CD3A6 
+20: 00007FF6505C601E 
+21: 00007FF650A9E040 
+22: 00007FF650A9EB2C 
+23: 00007FF65052227B 
+24: 000001659FE7733A 
+
+<--- Last few GCs --->
+
+[19252:0000020469B65000]      377 ms: Scavenge 8.7 (11.3) -> 7.5 (11.5) MB, pooled: 0 MB, 2.39 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[19252:0000020469B65000]      476 ms: Scavenge 9.5 (12.3) -> 8.8 (17.0) MB, pooled: 0 MB, 3.42 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: NewSpace::EnsureCurrentCapacity Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[9008:000001C7E10E8000]      450 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 1.88 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[9008:000001C7E10E8000]      545 ms: Scavenge 9.5 (12.3) -> 8.9 (17.5) MB, pooled: 0 MB, 46.22 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505C3B4D 
+ 5: 00007FF6505AD847 
+ 6: 00007FF6505D8568 
+ 7: 00007FF6505CC580 
+ 8: 00007FF6505F0B03 
+ 9: 00007FF6505D0F74 
+10: 00007FF6505D9A0B 
+11: 00007FF6505D8F0A 
+12: 00007FF6505CC607 
+13: 00007FF6505E4703 
+14: 00007FF6505E028B 
+15: 00007FF6505DF45E 
+16: 00007FF6505E4E24 
+17: 00007FF6505E32AE 
+18: 00007FF6505E028B 
+19: 00007FF6505DF45E 
+20: 00007FF6505E4E24 
+21: 00007FF6505F023F 
+22: 00007FF6505D9A0B 
+23: 00007FF6505D8F0A 
+24: 00007FF6505CC607 
+25: 00007FF6505CB7D4 
+26: 00007FF6505CAAC2 
+27: 00007FF6505CA76A 
+28: 00007FF6505C5D99 
+29: 00007FF650AA0BFF 
+30: 00007FF650AA3A01 
+31: 00007FF650B2C713 
+32: 00007FF64FEF82C3 
+33: 00007FF64FEF6A6E 
+34: 000001C79FDCF64D 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF650923937 
+ 4: 00007FF6508E43D3 
+ 5: 00007FF650925D3A 
+ 6: 00007FF650925366 
+ 7: 00007FF6509362F2 
+ 8: 00007FF650935E1B 
+ 9: 00007FF651DB4BAD 
+10: 00007FF650921400 
+11: 00007FF6509A50D9 
+12: 00007FF65051AB32 
+13: 0000020427E7733A 
+
+<--- Last few GCs --->
+
+[38348:000002044BAA9000]      256 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 2.00 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[38348:000002044BAA9000]      308 ms: Scavenge 9.5 (12.5) -> 8.9 (17.5) MB, pooled: 0 MB, 3.49 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+[33064:000001D968758000]      212 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 1.83 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[33064:000001D968758000]      319 ms: Scavenge 9.5 (12.5) -> 8.9 (13.5) MB, pooled: 0 MB, 2.43 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505CB2EA 
+ 5: 00007FF6505CA76A 
+ 6: 00007FF6505C5D99 
+ 7: 00007FF650AA0BFF 
+ 8: 00007FF650AA3A01 
+ 9: 00007FF650B2C713 
+10: 00007FF64FEF82C3 
+11: 00007FF64FEF6A6E 
+12: 000002041FDCF64D 
+
+<--- Last few GCs --->
+
+[35768:000001DC2494A000]      305 ms: Scavenge 8.7 (11.3) -> 7.5 (11.3) MB, pooled: 0 MB, 1.70 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[35768:000001DC2494A000]      479 ms: Scavenge 9.5 (12.3) -> 8.9 (17.5) MB, pooled: 0 MB, 54.22 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF651A02522 
+ 5: 00007FF651A02390 
+ 6: 00007FF6515385EA 
+ 7: 00007FF651511A70 
+ 8: 00007FF65150E96F 
+ 9: 00007FF65150E2BD 
+10: 00007FF650A96E8F 
+11: 00007FF650A5BF1D 
+12: 00007FF650A5BC15 
+13: 00007FF6512FC7DF 
+14: 00007FF64FE2C76E 
+15: 00007FF650B785C6 
+16: 00007FF651DD0373 
+17: 00007FFF75037374 
+18: 00007FFF75BDCC91 
+ 1: 00007FF64FEDB6AF 
+ 2: 00007FF650B23257 
+ 3: 00007FF65049E096 
+ 4: 00007FF6505B1232 
+ 5: 00007FF6505C19B9 
+ 6: 00007FF6505BDC39 
+ 7: 00007FF6505B09C6 
+ 8: 00007FF6505AFF9D 
+ 9: 00007FF6505AE6CB 
+10: 00007FF6505ADA06 
+11: 00007FF6505D8568 
+12: 00007FF6505CC580 
+13: 00007FF6505E4703 
+14: 00007FF6505E028B 
+15: 00007FF6505DF45E 
+16: 00007FF6505DFCC6 
+17: 00007FF6505DF4A4 
+18: 00007FF6505E4E24 
+19: 00007FF6505F023F 
+20: 00007FF6505D9A0B 
+21: 00007FF6505D8F0A 
+22: 00007FF6505CC607 
+23: 00007FF6505CB7D4 
+24: 00007FF6505CAAC2 
+25: 00007FF6505CA76A 
+26: 00007FF6505C5D99 
+27: 00007FF650AA0BFF 
+28: 00007FF650AA3A01 
+29: 00007FF650B2C713 
+30: 00007FF64FEF82C3 
+31: 00007FF64FEF6A6E 
+32: 000001D927DCF64D 
+[?25h
