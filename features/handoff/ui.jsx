@@ -273,10 +273,11 @@ export function DiscoverCard2({ name, role, discipline, location, tags, onClick 
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         background: T.surf, border: `1px solid ${h ? T.lineB : T.line}`,
-        borderLeft: `3px solid ${h || false ? r.color : 'transparent'}`,
         borderRadius: 4, overflow: 'hidden', cursor: 'pointer',
         transition: 'all 0.18s', transform: h ? 'translateY(-2px)' : 'none',
-        boxShadow: h ? '0 8px 32px rgba(0,0,0,0.4)' : 'none',
+        boxShadow: h
+          ? `inset 3px 0 0 ${r.color}, 0 8px 32px rgba(0,0,0,0.4)`
+          : `inset 3px 0 0 ${r.border}`,
       }}>
       {/* Header strip */}
       <div style={{ height: 64, background: `linear-gradient(135deg,${bkg},${T.surf})`, display: 'flex', alignItems: 'center', padding: '0 18px', gap: 14, position: 'relative' }}>
@@ -308,8 +309,7 @@ export function ArchiveCard2({ type, title, content, author, authorRole, date, l
         borderRadius: 4, overflow: 'hidden', cursor: 'pointer',
         transition: 'all 0.18s', transform: h ? 'translateY(-2px)' : 'none',
         boxShadow: h ? '0 10px 36px rgba(0,0,0,0.45)' : 'none',
-        gridColumn: span ? 'span 2' : 'span 1',
-        display: 'flex', flexDirection: 'column',
+        display: 'flex', flexDirection: 'column', height: '100%',
       }}>
 
       {/* IMAGE CARD — magazine overlay style */}

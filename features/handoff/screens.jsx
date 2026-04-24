@@ -40,6 +40,61 @@ export function LandingScreen2({ navigate }) {
     },
   ];
 
+  const featureVis = [
+    // 1 — Smart Profiles: identity network
+    <svg key="f1" width="100%" viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: 400, opacity: 0.75 }}>
+      <circle cx="220" cy="150" r="110" stroke={T.artist} strokeWidth="0.5" opacity="0.1"/>
+      <circle cx="220" cy="150" r="60" stroke={T.artist} strokeWidth="0.5" opacity="0.15"/>
+      <line x1="220" y1="150" x2="118" y2="80"  stroke={T.artist} strokeWidth="0.75" strokeDasharray="5 9" opacity="0.22"/>
+      <line x1="220" y1="150" x2="338" y2="88"  stroke={T.artist} strokeWidth="0.75" strokeDasharray="5 9" opacity="0.22"/>
+      <line x1="220" y1="150" x2="108" y2="234" stroke={T.artist} strokeWidth="0.75" strokeDasharray="5 9" opacity="0.22"/>
+      <line x1="220" y1="150" x2="338" y2="232" stroke={T.artist} strokeWidth="0.75" strokeDasharray="5 9" opacity="0.22"/>
+      <line x1="220" y1="150" x2="220" y2="44"  stroke={T.artist} strokeWidth="0.75" strokeDasharray="5 9" opacity="0.18"/>
+      <line x1="118" y1="80"  x2="220" y2="44"  stroke={T.artist} strokeWidth="0.5"  opacity="0.1"/>
+      <line x1="338" y1="88"  x2="338" y2="232" stroke={T.artist} strokeWidth="0.5"  opacity="0.1"/>
+      <circle cx="220" cy="150" r="22" fill={T.artistDim} stroke={T.artist} strokeWidth="1"/>
+      <circle cx="220" cy="150" r="7"  fill={T.artist} opacity="0.8"/>
+      <circle cx="118" cy="80"  r="14" fill="rgba(155,127,248,0.06)" stroke={T.artist} strokeWidth="0.75" opacity="0.65"/>
+      <text x="118" y="84"  textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="9" fill={T.artist} opacity="0.5">A</text>
+      <circle cx="338" cy="88"  r="12" fill="rgba(155,127,248,0.06)" stroke={T.artist} strokeWidth="0.75" opacity="0.55"/>
+      <text x="338" y="92"  textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="9" fill={T.artist} opacity="0.45">C</text>
+      <circle cx="108" cy="234" r="16" fill="rgba(155,127,248,0.06)" stroke={T.artist} strokeWidth="0.75" opacity="0.5"/>
+      <text x="108" y="238" textAnchor="middle" fontFamily="DM Mono,monospace" fontSize="9" fill={T.artist} opacity="0.4">I</text>
+      <circle cx="338" cy="232" r="10" fill="rgba(155,127,248,0.06)" stroke={T.artist} strokeWidth="0.75" opacity="0.45"/>
+      <circle cx="220" cy="44"  r="8"  fill="rgba(155,127,248,0.06)" stroke={T.artist} strokeWidth="0.75" opacity="0.4"/>
+    </svg>,
+    // 2 — Triple-Filter: converging filter bars
+    <svg key="f2" width="100%" viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: 400, opacity: 0.75 }}>
+      <rect x="58"  y="72"  width="324" height="38" rx="3" stroke={T.curator} strokeWidth="0.75" fill={T.curator} fillOpacity="0.03" opacity="0.5"/>
+      <text x="78"  y="96"  fontFamily="DM Mono,monospace" fontSize="10" fill={T.curator} opacity="0.28" letterSpacing="3">GEOGRAPHY</text>
+      <circle cx="362" cy="91" r="9" fill={T.curator} opacity="0.28"/>
+      <rect x="98"  y="134" width="244" height="38" rx="3" stroke={T.curator} strokeWidth="0.75" fill={T.curator} fillOpacity="0.05" opacity="0.6"/>
+      <text x="118" y="158" fontFamily="DM Mono,monospace" fontSize="10" fill={T.curator} opacity="0.33" letterSpacing="3">DISCIPLINE</text>
+      <circle cx="322" cy="153" r="9" fill={T.curator} opacity="0.36"/>
+      <rect x="152" y="196" width="136" height="38" rx="3" stroke={T.curator} strokeWidth="0.75" fill={T.curator} fillOpacity="0.07" opacity="0.7"/>
+      <text x="168" y="220" fontFamily="DM Mono,monospace" fontSize="10" fill={T.curator} opacity="0.38" letterSpacing="3">INTEREST</text>
+      <circle cx="268" cy="215" r="9" fill={T.artist} opacity="0.85"/>
+      <line x1="58"  y1="91"  x2="152" y2="215" stroke={T.curator} strokeWidth="0.5" opacity="0.1" strokeDasharray="3 7"/>
+      <line x1="382" y1="91"  x2="288" y2="215" stroke={T.curator} strokeWidth="0.5" opacity="0.1" strokeDasharray="3 7"/>
+      <line x1="220" y1="234" x2="220" y2="270" stroke={T.artist} strokeWidth="0.75" opacity="0.5"/>
+      <circle cx="220" cy="278" r="6" fill={T.artist} opacity="0.9"/>
+    </svg>,
+    // 3 — Archive: editorial grid
+    <svg key="f3" width="100%" viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: 400, opacity: 0.75 }}>
+      <rect x="58"  y="58"  width="196" height="128" rx="3" stroke={T.inst} strokeWidth="0.75" fill={T.inst} fillOpacity="0.02" opacity="0.45"/>
+      <line x1="58"  y1="148" x2="254" y2="148" stroke={T.inst} strokeWidth="0.5" opacity="0.15"/>
+      <text x="76" y="142" fontFamily="DM Mono,monospace" fontSize="9" fill={T.inst} opacity="0.18" letterSpacing="2">IMAGE</text>
+      <rect x="270" y="58"  width="112" height="56" rx="3" stroke={T.inst} strokeWidth="0.75" fill={T.inst} fillOpacity="0.02" opacity="0.4"/>
+      <text x="287" y="91"  fontFamily="DM Mono,monospace" fontSize="9" fill={T.inst} opacity="0.18" letterSpacing="2">TEXT</text>
+      <rect x="270" y="130" width="112" height="56" rx="3" stroke={T.inst} strokeWidth="0.75" fill={T.inst} fillOpacity="0.02" opacity="0.4"/>
+      <text x="287" y="163" fontFamily="DM Mono,monospace" fontSize="9" fill={T.inst} opacity="0.18" letterSpacing="2">LINK</text>
+      <rect x="58"  y="204" width="96"  height="52" rx="3" stroke={T.inst} strokeWidth="0.75" opacity="0.3"/>
+      <rect x="168" y="204" width="96"  height="52" rx="3" stroke={T.inst} strokeWidth="0.75" opacity="0.3"/>
+      <rect x="278" y="204" width="104" height="52" rx="3" stroke={T.inst} strokeWidth="0.75" opacity="0.3"/>
+      <circle cx="382" cy="58" r="5" fill={T.artist} opacity="0.65"/>
+    </svg>,
+  ];
+
   return (
     <div style={{ background: T.bg }}>
       {/* ── Hero ── */}
@@ -58,7 +113,7 @@ export function LandingScreen2({ navigate }) {
         <div style={{ position: 'absolute', left: 0, top: '15%', bottom: '15%', width: 3, background: `linear-gradient(to bottom, transparent, ${T.artist}, transparent)` }} />
 
         {/* Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48, animation: 'fadeUp 0.5s ease both', animationDelay: '60ms' }}>
           <Label size={12} color={T.artist} tracking="0.16em">Discovery Engine · Open Beta</Label>
         </div>
 
@@ -73,14 +128,20 @@ export function LandingScreen2({ navigate }) {
           margin: '0 0 48px',
           maxWidth: 1100,
         }}>
-          Where the<br />
-          <span style={{ color: T.artist, WebkitTextStroke: '0px' }}>creative</span><br />
-          world finds<br />
-          <span style={{ color: T.muted }}>itself.</span>
+          {[
+            { text: 'Where the',   color: T.text   },
+            { text: 'creative',    color: T.artist  },
+            { text: 'world finds', color: T.text   },
+            { text: 'itself.',     color: T.muted   },
+          ].map((line, i) => (
+            <span key={i} style={{ display: 'block', color: line.color, animation: 'fadeUp 0.55s ease both', animationDelay: `${120 + i * 85}ms` }}>
+              {line.text}
+            </span>
+          ))}
         </h1>
 
         {/* Descriptor + CTAs — two column */}
-        <div style={{ display: 'flex', gap: 64, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 64, flexWrap: 'wrap', alignItems: 'flex-start', animation: 'fadeUp 0.5s ease both', animationDelay: '480ms' }}>
           <div style={{ maxWidth: 420 }}>
             <p style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 17, color: T.sub, lineHeight: 1.7, margin: '0 0 32px' }}>
               A platform for artists, curators, and institutions to discover, connect, and build — across disciplines, borders, and media.
@@ -117,14 +178,14 @@ export function LandingScreen2({ navigate }) {
             background: hov === i ? T.bg2 : T.bg,
             transition: 'background 0.2s',
           }}>
-          {i % 2 !== 0 && <div />}
+          {i % 2 !== 0 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{featureVis[i]}</div>}
           <div>
             <SectionMark n={f.n} label={f.label} color={f.color} />
             <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 'clamp(32px,4vw,48px)', lineHeight: 1.1, color: T.text, margin: '28px 0 16px', letterSpacing: '-0.02em' }}>{f.title}</h2>
             <p style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, color: T.sub, lineHeight: 1.7, margin: '0 0 28px', maxWidth: 380 }}>{f.body}</p>
             <Btn2 variant="ghost" onClick={() => navigate(f.screen)}>{f.cta} →</Btn2>
           </div>
-          {i % 2 === 0 && <div />}
+          {i % 2 === 0 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{featureVis[i]}</div>}
         </section>
       ))}
     </div>
@@ -191,7 +252,7 @@ export function AuthScreen2({ navigate }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '28px 0' }}>
             <div style={{ flex: 1, height: 1, background: T.line }} />
-            <Label size={12} color={T.faint}>or</Label>
+            <Label size={12} color={T.muted}>or</Label>
             <div style={{ flex: 1, height: 1, background: T.line }} />
           </div>
 
@@ -295,6 +356,7 @@ export function DiscoverScreen2({ navigate }) {
   const [disc, setDisc] = React.useState([]);
   const [int_, setInt]  = React.useState([]);
   const [search, setSearch] = React.useState('');
+  const [searchFoc, setSearchFoc] = React.useState(false);
   const [roleFilter, setRoleFilter] = React.useState('All');
 
   const geos  = ['New York','London','Paris','Berlin','Lagos','Tokyo','São Paulo','Cairo','Seoul','Amsterdam','Nairobi','Mexico City'];
@@ -316,7 +378,12 @@ export function DiscoverScreen2({ navigate }) {
     { name:'Yaw Darko',     role:'Artist',      discipline:'Drawing',       location:'Accra',       tags:['narrative','ink','mythology'] },
   ];
 
-  const filtered = people.filter(p => roleFilter === 'All' || p.role === roleFilter);
+  const q = search.trim().toLowerCase();
+  const filtered = people.filter(p => {
+    if (roleFilter !== 'All' && p.role !== roleFilter) return false;
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || p.discipline.toLowerCase().includes(q) || p.location.toLowerCase().includes(q) || p.tags.some(t => t.includes(q));
+  });
 
   const FilterCol = ({ label, chips, active, set }) => (
     <div style={{ flex: 1 }}>
@@ -343,7 +410,8 @@ export function DiscoverScreen2({ navigate }) {
       <div style={{ position:'relative', maxWidth:560, marginBottom:36 }}>
         <input placeholder="Search by name, discipline, keyword…"
           value={search} onChange={e => setSearch(e.target.value)}
-          style={{ width:'100%', background:T.surf, border:`1px solid ${T.line}`, borderRadius:3, padding:'13px 48px 13px 18px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:15, outline:'none', boxSizing:'border-box' }} />
+          onFocus={() => setSearchFoc(true)} onBlur={() => setSearchFoc(false)}
+          style={{ width:'100%', background:T.surf, border:`1px solid ${searchFoc ? 'rgba(155,127,248,0.4)' : T.line}`, borderRadius:3, padding:'13px 48px 13px 18px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:15, outline:'none', boxSizing:'border-box', transition:'border-color 0.15s', boxShadow: searchFoc ? '0 0 0 3px rgba(155,127,248,0.05)' : 'none' }} />
         <span style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)', fontFamily:"'DM Mono',monospace", fontSize:12, color:T.muted }}>⌘K</span>
       </div>
 
@@ -382,9 +450,29 @@ export function DiscoverScreen2({ navigate }) {
       </div>
 
       {/* Cards */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
-        {filtered.map(p => <DiscoverCard2 key={p.name} {...p} onClick={() => navigate('profile')} />)}
-      </div>
+      {filtered.length > 0 ? (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
+          {filtered.map((p, i) => (
+            <div key={p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 55}ms` }}>
+              <DiscoverCard2 {...p} onClick={() => navigate('profile')} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding:'80px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
+          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
+          <Label size={13} color={T.muted}>No results</Label>
+          <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
+            Try different filters or clear your search.
+          </p>
+          {(total > 0 || q) && (
+            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); }}
+              style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+              Clear everything
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -431,7 +519,11 @@ export function ArchiveScreen2({ navigate }) {
 
       {/* Grid — editorial, mixed sizes */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, gridAutoRows:'auto' }}>
-        {filtered.map((p,i) => <ArchiveCard2 key={i} {...p} />)}
+        {filtered.map((p, i) => (
+          <div key={p.title} style={{ gridColumn: p.span ? 'span 2' : 'span 1', display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 60}ms` }}>
+            <ArchiveCard2 {...p} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -497,7 +589,11 @@ export function ProfileScreen2({ navigate }) {
       <div style={{ padding:'36px 48px 80px' }}>
         {tab==='work' && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-            {work.map((w,i) => <ArchiveCard2 key={i} {...w} />)}
+            {work.map((w, i) => (
+              <div key={w.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
+                <ArchiveCard2 {...w} />
+              </div>
+            ))}
           </div>
         )}
         {tab==='about' && (
@@ -520,7 +616,11 @@ export function ProfileScreen2({ navigate }) {
               { name:'Lena Richter',   role:'Curator',     discipline:'Contemporary', location:'Berlin',   tags:['new-media','feminist'] },
               { name:'The Serpentine', role:'Institution', discipline:'Cross-discipl.',location:'London',   tags:['residency','public'] },
               { name:'Marcus Webb',    role:'Curator',     discipline:'Photography',  location:'New York',  tags:['street','identity'] },
-            ].map(p => <DiscoverCard2 key={p.name} {...p} onClick={() => {}} />)}
+            ].map((p, i) => (
+              <div key={p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
+                <DiscoverCard2 {...p} onClick={() => {}} />
+              </div>
+            ))}
           </div>
         )}
       </div>
