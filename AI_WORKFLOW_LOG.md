@@ -179,3 +179,14 @@
 **What it produced:** Implemented all requested Phase 7 gap tasks end-to-end: (1) account lifecycle controls with nav logout, `/settings/account`, and secure `/api/account/delete` flow (confirmation + password reauth + admin deletion + storage cleanup), (2) local image upload from device with validation/preview and Supabase Storage helper + storage RLS migration, (3) onboarding improvements with Back navigation, Save & Exit, and explicit draft resume/discard choice, (4) liveliness upgrades via global toast feedback and discover vitality indicator, (5) robust website baseline features including privacy/terms/community-guidelines/report-abuse pages, security headers, and discover search/sort/pagination, plus profile share metadata/copy-link UX.
 
 **Verification:** `npm test` (11 suites, 44 tests), `npm run lint`, `npx tsc --noEmit`, `npm run build` all passing.
+
+---
+
+## 17. Post Detail Overlay & Interaction Polish — Design + Plan
+
+**Tool:** Claude Opus 4.6 (plan mode) + Claude Sonnet 4.6 via Claude Code
+
+**Key Prompt:**
+> "I believe the posts shared by the artists curators etc which we see as rectangles, and that's all, should be interactable and when clicked they might act like how Notion or Dribbble handles the designs, a new page or a window opened on top right? If you believe so too, write the specs and implementation plans. But do not limit yourself to that specific feature only we are trying to make better what we currently have, in other words polishing. Research all art gallery, artist hub pages you deem important to check and then suggest improvements on our website."
+
+**What it produced:** Full brainstorming session researching Dribbble, Are.na, ArtStation, Behance interaction patterns. Agreed on: (1) client-side overlay/lightbox (no URL routing), (2) interaction + discovery UX polish only — no visual changes. Produced `docs/superpowers/specs/2026-04-25-post-detail-overlay-and-interaction-polish-design.md` covering PostDetailOverlay component, hover affordances, ⌘K search focus, image URL upload bug fix, archive skeleton loading, Discover filter pulse, connections tab with real `getSuggestedProfiles` query. Followed by `docs/superpowers/plans/2026-04-25-post-detail-overlay-and-interaction-polish.md` — 12-task TDD implementation plan. Implementation via subagent-driven development in progress.
