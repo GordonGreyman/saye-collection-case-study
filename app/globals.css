@@ -50,7 +50,7 @@ input, textarea, button, select {
 }
 
 input::placeholder, textarea::placeholder {
-  color: #2f2f2f;
+  color: #8a8a8a;
 }
 
 @keyframes fadeUp {

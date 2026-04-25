@@ -16,7 +16,7 @@ export function AccountMenu() {
 
   const linkStyle: React.CSSProperties = {
     fontFamily: 'var(--font-heading)', fontSize: 13, fontWeight: 400,
-    color: '#555', textDecoration: 'none', transition: 'color 0.18s',
+    color: '#9a9a9a', textDecoration: 'none', transition: 'color 0.18s',
   }
 
   return (

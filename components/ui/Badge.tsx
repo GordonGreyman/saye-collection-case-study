@@ -11,8 +11,8 @@ const variantStyles: Record<string, React.CSSProperties> = {
   },
   interest: {
     background: 'transparent',
-    color: '#555',
-    border: '1px solid rgba(255,255,255,0.07)',
+    color: '#9a9a9a',
+    border: '1px solid rgba(255,255,255,0.14)',
   },
 }
 

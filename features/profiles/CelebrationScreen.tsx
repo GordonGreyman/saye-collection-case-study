@@ -39,7 +39,7 @@ export function CelebrationScreen({ name }: CelebrationScreenProps) {
       <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(40px,6vw,72px)', color: '#9b7ff8', letterSpacing: '-0.02em', lineHeight: 1, marginTop: 8 }}>
         {name}.
       </div>
-      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#555', marginTop: 24 }}>
+      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#9a9a9a', marginTop: 24 }}>
         Your identity is live. Taking you to Discover…
       </p>
     </div>

@@ -65,18 +65,26 @@ export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
       className="relative"
       onClick={onExpand}
       style={{ cursor: onExpand ? 'pointer' : undefined }}
-      {...(onExpand ? {
-        role: 'button' as const,
-        tabIndex: 0,
-        onKeyDown: (e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onExpand() }
-        },
-      } : {})}
+      {...(onExpand
+        ? {
+            role: 'button' as const,
+            tabIndex: 0,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onExpand()
+              }
+            },
+          }
+        : {})}
     >
       {isOwner && !confirming && (
         <button
           type="button"
-          onClick={e => { e.stopPropagation(); setConfirming(true) }}
+          onClick={e => {
+            e.stopPropagation()
+            setConfirming(true)
+          }}
           className="absolute right-2 top-2 z-10 bg-black/40 p-1.5 rounded-full text-text-muted hover:text-white"
           aria-label="Delete archive item"
         >
@@ -120,25 +128,56 @@ export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
 
       {item.type === 'text' && (
         <Card>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '0.12em', color: '#9b7ff8', marginBottom: 8 }}>TEXT</div>
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#ddd', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{item.content}</p>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 8,
+              letterSpacing: '0.12em',
+              color: '#9b7ff8',
+              marginBottom: 8,
+            }}
+          >
+            TEXT
+          </div>
+          <p
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 14,
+              color: '#ddd',
+              lineHeight: 1.65,
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {item.content}
+          </p>
           {createdAt && (
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 12 }}>{createdAt}</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#7a7a7a', marginTop: 12 }}>
+              {createdAt}
+            </p>
           )}
         </Card>
       )}
 
       {item.type === 'link' && (
         <Card style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{
-            padding: '12px 18px', background: 'rgba(155,127,248,0.04)',
-            borderBottom: '1px solid rgba(155,127,248,0.09)',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
+          <div
+            style={{
+              padding: '12px 18px',
+              background: 'rgba(155,127,248,0.04)',
+              borderBottom: '1px solid rgba(155,127,248,0.09)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b7ff8', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', color: '#9b7ff8' }}>LINK</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', color: '#9b7ff8' }}>
+              LINK
+            </span>
             {domain && (
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', marginLeft: 'auto' }}>{domain} →</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', marginLeft: 'auto' }}>
+                {domain} {'->'}
+              </span>
             )}
           </div>
           <div style={{ padding: '14px 18px' }}>
@@ -152,11 +191,15 @@ export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
                   style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}
-                >{item.content}</a>
+                >
+                  {item.content}
+                </a>
               )}
             </span>
             {createdAt && (
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 10 }}>{createdAt}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#7a7a7a', marginTop: 10 }}>
+                {createdAt}
+              </p>
             )}
           </div>
         </Card>

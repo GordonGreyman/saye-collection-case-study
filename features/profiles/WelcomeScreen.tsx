@@ -24,7 +24,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.2em', color: '#9b7ff8', marginTop: 4 }}>
         COLLECTIVE
       </div>
-      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 15, color: '#555', lineHeight: 1.7, maxWidth: 380, marginTop: 32 }}>
+      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 15, color: '#9a9a9a', lineHeight: 1.7, maxWidth: 380, marginTop: 32 }}>
         A discovery engine for artists, curators, and institutions.
         Build your identity and join the collective.
       </p>

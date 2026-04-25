@@ -70,7 +70,7 @@ export function ProfileCard({ profile, index }: ProfileCardProps) {
             {profile.display_name}
           </div>
           {(profile.discipline || profile.geography) && (
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#4a4a4a', marginBottom: 14, letterSpacing: '0.04em' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#9a9a9a', marginBottom: 14, letterSpacing: '0.04em' }}>
               {[profile.discipline, profile.geography].filter(Boolean).join(' · ')}
             </div>
           )}
@@ -78,8 +78,8 @@ export function ProfileCard({ profile, index }: ProfileCardProps) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {profile.interests.slice(0, 4).map(t => (
                 <span key={t} style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 9, color: '#444',
-                  padding: '3px 7px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 2,
+                  fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a',
+                  padding: '3px 7px', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 2,
                 }}>
                   #{t}
                 </span>

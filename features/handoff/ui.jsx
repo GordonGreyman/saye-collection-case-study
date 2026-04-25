@@ -16,8 +16,8 @@ export const T = {
   lineB:   'rgba(255,255,255,0.12)',
   text:    '#f2f2f2',
   sub:     '#aaa',
-  muted:   '#555',
-  faint:   '#2a2a2a',
+  muted:   '#9a9a9a',
+  faint:   '#7a7a7a',
   // Role palette
   artist:  '#9b7ff8',   // purple
   curator: '#c8c8c8',   // silver

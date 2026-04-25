@@ -35,7 +35,7 @@ export function ProfileContent({ profile, archiveItems, isOwner }: ProfileConten
               padding: '16px 24px', background: 'none', border: 'none',
               borderBottom: `2px solid ${active === tab ? '#9b7ff8' : 'transparent'}`,
               marginBottom: -1, fontFamily: 'var(--font-mono)', fontSize: 9,
-              letterSpacing: '0.1em', color: active === tab ? '#9b7ff8' : '#333',
+              letterSpacing: '0.1em', color: active === tab ? '#9b7ff8' : '#9a9a9a',
               cursor: 'pointer', transition: 'all 0.18s',
             }}
           >
@@ -64,7 +64,7 @@ export function ProfileContent({ profile, archiveItems, isOwner }: ProfileConten
               </div>
             )}
             {archiveItems.length === 0 && (
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.1em' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.1em' }}>
                 NO WORKS YET
               </p>
             )}
@@ -103,8 +103,8 @@ export function ProfileContent({ profile, archiveItems, isOwner }: ProfileConten
                       style={{
                         fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
                         padding: '6px 14px', borderRadius: 100,
-                        border: '1px solid rgba(255,255,255,0.07)',
-                        color: '#555',
+                        border: '1px solid rgba(255,255,255,0.14)',
+                        color: '#9a9a9a',
                       }}
                     >
                       {t}
@@ -118,7 +118,7 @@ export function ProfileContent({ profile, archiveItems, isOwner }: ProfileConten
 
         {active === 'CONNECTIONS' && (
           <div style={{ textAlign: 'center', paddingTop: 48 }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.1em' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.1em' }}>
               CONNECTIONS COMING SOON
             </p>
             <Link

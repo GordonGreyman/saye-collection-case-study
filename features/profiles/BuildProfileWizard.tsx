@@ -219,7 +219,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
           <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 14, color: '#f0f0f0' }}>
             Resume your saved draft?
           </p>
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#555', marginTop: 4 }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#9a9a9a', marginTop: 4 }}>
             We found an unfinished profile draft from a previous session.
           </p>
           <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
@@ -233,7 +233,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
             <button type="button" onClick={onDiscardSavedDraft} style={{
               background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
               padding: '10px 24px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
-              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+              letterSpacing: '0.07em', color: '#9a9a9a', cursor: 'pointer',
             }}>
               START FRESH
             </button>
@@ -253,13 +253,13 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
                   border: `1px solid ${step >= s ? '#9b7ff8' : 'rgba(255,255,255,0.1)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: 'var(--font-mono)', fontSize: 10,
-                  color: step >= s ? '#080808' : '#333', fontWeight: 700,
+                  color: step >= s ? '#080808' : '#9a9a9a', fontWeight: 700,
                 }}>
                   {s}
                 </div>
                 <span style={{
                   fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
-                  color: step >= s ? '#666' : '#2a2a2a',
+                  color: step >= s ? '#9a9a9a' : '#7a7a7a',
                 }}>
                   {stepLabels[i]}
                 </span>
@@ -288,7 +288,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
         <button type="button" onClick={onSaveAndExit} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', color: '#3a3a3a',
+          fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', color: '#9a9a9a',
         }}>
           SAVE & EXIT
         </button>
@@ -338,7 +338,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
           </div>
 
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#555', marginBottom: 10, textTransform: 'uppercase' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#9a9a9a', marginBottom: 10, textTransform: 'uppercase' }}>
               Geography
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -352,7 +352,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
                       padding: '6px 14px', borderRadius: 100,
                       border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                       background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
-                      color: active ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                      color: active ? '#9b7ff8' : '#9a9a9a', cursor: 'pointer', transition: 'all 0.15s',
                     }}>
                     {city}
                   </button>
@@ -365,7 +365,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
                   padding: '6px 14px', borderRadius: 100,
                   border: `1px solid ${!isGeographyPreset ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                   background: !isGeographyPreset ? 'rgba(155,127,248,0.12)' : 'transparent',
-                  color: !isGeographyPreset ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                  color: !isGeographyPreset ? '#9b7ff8' : '#9a9a9a', cursor: 'pointer', transition: 'all 0.15s',
                 }}>
                 Other
               </button>
@@ -381,7 +381,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
           </div>
 
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#555', marginBottom: 10, textTransform: 'uppercase' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#9a9a9a', marginBottom: 10, textTransform: 'uppercase' }}>
               Discipline / Focus
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -395,7 +395,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
                       padding: '6px 14px', borderRadius: 100,
                       border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                       background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
-                      color: active ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                      color: active ? '#9b7ff8' : '#9a9a9a', cursor: 'pointer', transition: 'all 0.15s',
                     }}>
                     {item}
                   </button>
@@ -408,7 +408,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
                   padding: '6px 14px', borderRadius: 100,
                   border: `1px solid ${!isDisciplinePreset ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                   background: !isDisciplinePreset ? 'rgba(155,127,248,0.12)' : 'transparent',
-                  color: !isDisciplinePreset ? '#9b7ff8' : '#555', cursor: 'pointer', transition: 'all 0.15s',
+                  color: !isDisciplinePreset ? '#9b7ff8' : '#9a9a9a', cursor: 'pointer', transition: 'all 0.15s',
                 }}>
                 Other
               </button>
@@ -427,7 +427,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
             <button type="button" onClick={onBack} style={{
               background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
               padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
-              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+              letterSpacing: '0.07em', color: '#9a9a9a', cursor: 'pointer',
             }}>
               ← BACK
             </button>
@@ -456,7 +456,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
             <button type="button" onClick={onBack} style={{
               background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 3,
               padding: '13px 32px', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 13,
-              letterSpacing: '0.07em', color: '#555', cursor: 'pointer',
+              letterSpacing: '0.07em', color: '#9a9a9a', cursor: 'pointer',
             }}>
               ← BACK
             </button>

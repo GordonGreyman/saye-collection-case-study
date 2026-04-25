@@ -38,7 +38,7 @@ export function ArchiveTypeFilter({ current }: { current: string }) {
               padding: '7px 16px', borderRadius: 2,
               background: active ? '#9b7ff8' : 'transparent',
               border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.08)'}`,
-              color: active ? '#080808' : '#444',
+              color: active ? '#080808' : '#9a9a9a',
               cursor: 'pointer', transition: 'all 0.15s', fontWeight: active ? 700 : 400,
             }}
           >

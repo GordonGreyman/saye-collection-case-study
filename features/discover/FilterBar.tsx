@@ -110,7 +110,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
         />
         <span style={{
           position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)',
-          fontFamily: 'var(--font-mono)', fontSize: 10, color: '#333', pointerEvents: 'none',
+          fontFamily: 'var(--font-mono)', fontSize: 10, color: '#9a9a9a', pointerEvents: 'none',
         }}>
           ⌘K
         </span>
@@ -133,7 +133,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
                 style={{
                   padding: '12px 24px', background: 'none', border: 'none', cursor: 'pointer',
                   fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em',
-                  color: isOpen ? '#9b7ff8' : '#444',
+                  color: isOpen ? '#9b7ff8' : '#8f8f8f',
                   borderBottom: `2px solid ${isOpen ? '#9b7ff8' : 'transparent'}`,
                   marginBottom: -1, transition: 'all 0.18s',
                   display: 'flex', alignItems: 'center', gap: 8,
@@ -159,7 +159,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
               style={{
                 marginLeft: 'auto', padding: '12px 20px', background: 'none', border: 'none',
                 cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 9,
-                letterSpacing: '0.08em', color: '#3a3a3a',
+                letterSpacing: '0.08em', color: '#9a9a9a',
               }}
             >
               CLEAR ALL ×
@@ -182,7 +182,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
                   padding: '6px 14px', borderRadius: 100,
                   border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                   background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
-                  color: active ? '#9b7ff8' : '#555',
+                  color: active ? '#9b7ff8' : '#9a9a9a',
                   cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
                 }}
               >
@@ -191,7 +191,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
             )
           })}
           {optionsMap[openGroup].length === 0 && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.08em' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.08em' }}>
               No options yet
             </span>
           )}
@@ -201,7 +201,7 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
       {/* Active filter summary */}
       {totalActive > 0 && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.08em' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.08em' }}>
             FILTERING:
           </span>
           {[...filters.geography, ...filters.discipline, ...filters.interests].map(f => (

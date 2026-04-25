@@ -39,7 +39,7 @@ export function InterestPicker({ value, onChange, error }: InterestPickerProps) 
                 padding: '6px 14px', borderRadius: 100,
                 border: `1px solid ${active ? '#9b7ff8' : 'rgba(255,255,255,0.07)'}`,
                 background: active ? 'rgba(155,127,248,0.12)' : 'transparent',
-                color: active ? '#9b7ff8' : '#555',
+                color: active ? '#9b7ff8' : '#9a9a9a',
                 cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
               }}
             >

@@ -89,7 +89,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
                 border: `1px solid ${mode === m ? 'rgba(155,127,248,0.25)' : 'transparent'}`,
                 borderRadius: 3,
                 fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em',
-                color: mode === m ? '#9b7ff8' : '#444',
+                color: mode === m ? '#9b7ff8' : '#9a9a9a',
                 cursor: 'pointer', transition: 'all 0.18s',
               }}
             >
@@ -127,7 +127,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           />
           {mode === 'signin' && (
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#3a3a3a', cursor: 'pointer', letterSpacing: '0.06em' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 Forgot password?
               </span>
             </div>
@@ -155,7 +155,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '28px 0' }}>
           <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.08em' }}>OR</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.08em' }}>OR</span>
           <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
         </div>
 
@@ -166,19 +166,19 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           style={{
             width: '100%', padding: '12px',
             background: 'transparent', border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 3, color: '#555',
+            borderRadius: 3, color: '#9a9a9a',
             fontFamily: 'var(--font-heading)', fontSize: 13,
             cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.18s',
           }}
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.color = '#c8c8c8' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#555' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#9a9a9a' }}
         >
           Continue with Google
         </button>
 
         {/* Footer switch */}
         <div style={{ textAlign: 'center', marginTop: 36 }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#333', letterSpacing: '0.06em' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#9a9a9a', letterSpacing: '0.06em' }}>
             {mode === 'signin' ? 'New here? ' : 'Already a member? '}
           </span>
           <button
@@ -211,7 +211,7 @@ function SayeInput({
   const [focused, setFocused] = useState(false)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#555', textTransform: 'uppercase' }}>
+      <label style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#9a9a9a', textTransform: 'uppercase' }}>
         {label}
       </label>
       <input

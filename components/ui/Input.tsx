@@ -16,7 +16,7 @@ export function Input({ label, error, id, mono, className = '', ...props }: Inpu
       {label && (
         <label htmlFor={id} style={{
           fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em',
-          color: '#555', textTransform: 'uppercase',
+          color: '#9a9a9a', textTransform: 'uppercase',
         }}>
           {label}
         </label>

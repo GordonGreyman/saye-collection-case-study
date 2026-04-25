@@ -16,7 +16,7 @@ export function EmptyState({ variant }: EmptyStateProps) {
         <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 40, color: 'rgba(255,255,255,0.1)', letterSpacing: '-0.02em' }}>
           Be the first to join Saye.
         </h2>
-        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#555', marginTop: 12 }}>
+        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#9a9a9a', marginTop: 12 }}>
           Build your profile and get discovered.
         </p>
         <Link href="/build-profile" style={{
@@ -36,7 +36,7 @@ export function EmptyState({ variant }: EmptyStateProps) {
       <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 56, color: 'rgba(255,255,255,0.06)', letterSpacing: '-0.03em' }}>
         Nothing found.
       </h2>
-      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#555', marginTop: 12 }}>
+      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#9a9a9a', marginTop: 12 }}>
         Try removing a filter.
       </p>
       <button

@@ -15,7 +15,7 @@ const T = {
   surf: '#141414',
   line: 'rgba(255,255,255,0.07)',
   text: '#f2f2f2',
-  muted: '#555',
+  muted: '#9a9a9a',
   artist: '#9b7ff8',
 }
 
@@ -118,7 +118,7 @@ export function PostDetailOverlay({ item: initialItem, items, onClose }: PostDet
                 minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '24px', background: 'rgba(255,255,255,0.02)',
               }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#555', wordBreak: 'break-all' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#9a9a9a', wordBreak: 'break-all' }}>
                   {item.content}
                 </p>
               </div>

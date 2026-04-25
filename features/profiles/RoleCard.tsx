@@ -47,7 +47,7 @@ export function RoleCard({ role, tagline, selected, onSelect }: RoleCardProps) {
       }}>
         {role}
       </div>
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#555', lineHeight: 1.65 }}>
+      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#9a9a9a', lineHeight: 1.65 }}>
         {tagline}
       </div>
       {selected && (
