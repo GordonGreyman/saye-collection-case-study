@@ -1,26 +1,11 @@
 export default function ArchiveLoading() {
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', padding: '88px 48px 80px' }}>
-      <div style={{ marginBottom: 40 }}>
-        <div style={{
-          width: 80, height: 10, background: '#141414', borderRadius: 2,
-          marginBottom: 14, animation: 'shimmer 1.4s ease-in-out infinite',
-        }} />
-        <div style={{
-          width: 340, height: 52, background: '#141414', borderRadius: 2,
-          animation: 'shimmer 1.4s ease-in-out infinite', animationDelay: '0.1s',
-        }} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+    <div className="max-w-6xl mx-auto animate-pulse">
+      <div className="h-2.5 w-20 bg-surface rounded mb-3.5" />
+      <div className="h-14 w-80 bg-surface rounded mb-10" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              background: '#141414', borderRadius: 4, height: 200,
-              animation: 'shimmer 1.4s ease-in-out infinite',
-              animationDelay: `${i * 0.08}s`,
-            }}
-          />
+          <div key={i} className="bg-surface rounded-xl h-48 border border-white/5" />
         ))}
       </div>
     </div>
