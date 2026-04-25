@@ -64,48 +64,12 @@ input::placeholder, textarea::placeholder {
   }
 }
 
+@keyframes shimmer {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+
 .screen {
   animation: fadeUp 0.25s ease forwards;
-}
-
-.demo-nav {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(14, 14, 14, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 100px;
-  padding: 4px;
-  z-index: 300;
-}
-
-.demo-nav button {
-  padding: 7px 16px;
-  border-radius: 100px;
-  border: none;
-  cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.demo-nav button.active {
-  background: #9b7ff8;
-  color: #080808;
-  font-weight: 700;
-}
-
-.demo-nav button:not(.active) {
-  background: transparent;
-  color: #444;
-}
-
-.demo-nav button:not(.active):hover {
-  color: #aaa;
 }
