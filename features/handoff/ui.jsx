@@ -305,6 +305,11 @@ export function DiscoverCard2({ name, role, discipline, location, tags, onClick 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
           {tags.slice(0,3).map(t => <span key={t} style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, color: T.faint, padding: '2px 7px', border: `1px solid ${T.line}`, borderRadius: 2 }}>#{t}</span>)}
         </div>
+        <div style={{
+          marginTop: 12,
+          fontFamily: "'Space Grotesk',sans-serif", fontSize: 12, color: T.muted,
+          opacity: h ? 1 : 0, transition: 'opacity 0.15s',
+        }}>View profile →</div>
       </div>
     </div>
   );
