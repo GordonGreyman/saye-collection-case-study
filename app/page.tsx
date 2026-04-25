@@ -1,8 +1,8 @@
-'use client'
-
 import { SayeShell } from '@/features/handoff/shell'
-import { LandingScreen } from '@/features/handoff/screens'
+import { getHandoffNavState } from '@/features/handoff/server'
 
-export default function LandingPage() {
-  return <SayeShell current="landing">{(navigate) => <LandingScreen navigate={navigate} />}</SayeShell>
+export default async function LandingPage() {
+  const navState = await getHandoffNavState()
+
+  return <SayeShell current="landing" navState={navState} />
 }

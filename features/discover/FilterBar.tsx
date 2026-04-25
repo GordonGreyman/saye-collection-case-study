@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { buildDiscoverUrl, type DiscoverFilters } from '@/features/discover/filters'
 import type { FilterOptions } from '@/features/discover/queries'
@@ -26,6 +26,37 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const [openGroup, setOpenGroup] = useState<GroupId>('geo')
+  const [search, setSearch] = useState(filters.q)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setSearch(filters.q)
+  }, [filters.q])
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      if (filters.q === search.trim()) return
+      window.history.replaceState(
+        null,
+        '',
+        buildDiscoverUrl({ ...filters, q: search.trim(), page: 1 }),
+      )
+    }, 350)
+
+    return () => window.clearTimeout(timeout)
+  }, [filters, search])
 
   const updateFilters = (nextFilters: DiscoverFilters) => {
     startTransition(() => {
@@ -60,15 +91,15 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
         style={{ position: 'relative', marginBottom: 28, maxWidth: 600 }}
         onSubmit={e => {
           e.preventDefault()
-          const fd = new FormData(e.currentTarget)
-          updateFilters({ ...filters, q: String(fd.get('q') ?? '').trim(), page: 1 })
+          updateFilters({ ...filters, q: search.trim(), page: 1 })
         }}
       >
         <input
+          ref={searchInputRef}
           name="q"
-          key={filters.q}
           type="search"
-          defaultValue={filters.q}
+          value={search}
+          onChange={event => setSearch(event.target.value)}
           placeholder="Search by name, discipline, keyword…"
           style={{
             width: '100%', boxSizing: 'border-box', background: '#111111',

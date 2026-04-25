@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/types'
 import { DISCOVER_PAGE_SIZE, type DiscoverFilters } from '@/features/discover/filters'
+import { GEOGRAPHY_PRESETS } from '@/lib/constants'
 
 export type DiscoverProfile = Pick<
   Profile,
@@ -120,7 +121,10 @@ export async function getFilterOptions(): Promise<FilterOptions> {
   ])
 
   const geographies = Array.from(
-    new Set((geographiesRaw ?? []).map(row => row.geography).filter((value): value is string => !!value))
+    new Set([
+      ...GEOGRAPHY_PRESETS,
+      ...(geographiesRaw ?? []).map(row => row.geography).filter((value): value is string => !!value),
+    ])
   ).sort((a, b) => a.localeCompare(b))
 
   const disciplines = Array.from(

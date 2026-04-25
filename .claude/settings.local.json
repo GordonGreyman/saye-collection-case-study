@@ -5,7 +5,14 @@
       "Bash(taskkill /PID 14432 /F)",
       "Bash(timeout 8 npm run dev)",
       "Bash(wmic process *)",
-      "PowerShell(Stop-Process *)"
+      "PowerShell(Stop-Process *)",
+      "WebSearch",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npx jest *)",
+      "Bash(git -C /c/Users/MONSTER/Desktop/projects/saye add features/archive/PostDetailOverlay.tsx __tests__/components/PostDetailOverlay.test.tsx)",
+      "Bash(git -C /c/Users/MONSTER/Desktop/projects/saye commit -m ' *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

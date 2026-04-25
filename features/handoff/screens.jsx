@@ -1,14 +1,89 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/static-components */
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/static-components, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { ArchiveCard2, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
+import { addArchiveItem, deleteArchiveItem } from '@/features/archive/actions'
+import { uploadArchiveImage } from '@/features/archive/upload'
+import { buildDiscoverUrl } from '@/features/discover/filters'
+import { upsertProfile } from '@/features/profiles/actions'
+import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS } from '@/lib/constants'
+import { AnimatePresence, motion } from 'framer-motion'
+import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
+
+function formatArchiveDate(value) {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(new Date(value))
+}
+
+function domainFromUrl(value) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, '')
+  } catch {
+    return value
+  }
+}
+
+function archiveTitle(item) {
+  if (item.type === 'link') return domainFromUrl(item.content)
+  if (item.type === 'image') return 'Archive image'
+  return item.content.length > 70 ? `${item.content.slice(0, 70)}...` : item.content
+}
+
+const ROLE_PROFILE_COPY = {
+  Artist: {
+    heading: 'Shape your',
+    accent: 'practice.',
+    bio: 'Describe your practice, materials, questions, or current body of work...',
+    location: 'Where your practice is based',
+    submit: 'Create Artist Profile',
+  },
+  Curator: {
+    heading: 'Frame your',
+    accent: 'curatorial lens.',
+    bio: 'Describe your research interests, exhibition focus, or the conversations you are building...',
+    location: 'Where you curate from',
+    submit: 'Create Curator Profile',
+  },
+  Institution: {
+    heading: 'Present your',
+    accent: 'program.',
+    bio: 'Describe your space, program, residency, collection, or public mission...',
+    location: 'City, region, or communities served',
+    submit: 'Create Institution Profile',
+  },
+}
+
+function profileCopyFor(role) {
+  return ROLE_PROFILE_COPY[role] ?? {
+    heading: 'Shape your',
+    accent: 'identity.',
+    bio: 'A brief statement about your practice, approach, or institution...',
+    location: 'City, Country',
+    submit: 'Create Profile',
+  }
+}
+
+function hasUsefulContent(value) {
+  return Boolean(value && String(value).trim())
+}
+
+function isLikelyHttpUrl(value) {
+  if (!hasUsefulContent(value)) return false
+  try {
+    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`)
+    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname)
+  } catch {
+    return false
+  }
+}
 
 // SAYE Collective v2 — Screen Components
 // Font sizes: Hero 96-140px · H1 56-72px · H2 32-48px · Body 15-17px · Label 13px · Meta 12px (min)
 
-// ─── LANDING ───────────────────────────────────────────────────────────────
+// --- LANDING ---------------------------------------------------------------
 export function LandingScreen2({ navigate }) {
   const [hov, setHov] = React.useState(null);
 
@@ -97,7 +172,7 @@ export function LandingScreen2({ navigate }) {
 
   return (
     <div style={{ background: T.bg }}>
-      {/* ── Hero ── */}
+      {/* -- Hero -- */}
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '80px 48px 64px', position: 'relative', overflow: 'hidden' }}>
         {/* Subtle background grid */}
         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.025, pointerEvents: 'none' }}>
@@ -164,7 +239,7 @@ export function LandingScreen2({ navigate }) {
         </div>
       </section>
 
-      {/* ── Feature Sections ── */}
+      {/* -- Feature Sections -- */}
       {features.map((f, i) => (
         <section key={i}
           onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
@@ -192,16 +267,56 @@ export function LandingScreen2({ navigate }) {
   );
 }
 
-// ─── AUTH ──────────────────────────────────────────────────────────────────
-export function AuthScreen2({ navigate }) {
+// --- AUTH ------------------------------------------------------------------
+export function AuthScreen2({ navigate, nextPath = '/discover' }) {
+  const router = useRouter();
   const [mode, setMode] = React.useState('in');
   const [email, setEmail] = React.useState('');
   const [pass, setPass]   = React.useState('');
   const [name, setName]   = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const handleGoogle = async () => {
     const supabase = createClient()
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/auth/callback` } })
+    const callbackUrl = new URL('/auth/callback', location.origin)
+    callbackUrl.searchParams.set('next', nextPath)
+    setLoading(true)
+    setError('')
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: callbackUrl.toString() },
+    })
+    if (authError) {
+      setError(authError.message)
+      setLoading(false)
+    }
+  };
+
+  const handleEmail = async () => {
+    const supabase = createClient()
+    const callbackUrl = new URL('/auth/callback', location.origin)
+    callbackUrl.searchParams.set('next', nextPath)
+    setLoading(true)
+    setError('')
+
+    const { error: authError } = mode === 'in'
+      ? await supabase.auth.signInWithPassword({ email, password: pass })
+      : await supabase.auth.signUp({
+          email,
+          password: pass,
+          options: { data: { full_name: name }, emailRedirectTo: callbackUrl.toString() },
+        })
+
+    if (authError) {
+      setError(authError.message)
+      setLoading(false)
+      return
+    }
+
+    setLoading(false)
+    router.replace(nextPath)
+    router.refresh()
   };
 
   return (
@@ -247,7 +362,8 @@ export function AuthScreen2({ navigate }) {
             <Input2 label="Email" placeholder="hello@example.com" type="email" value={email} onChange={e => setEmail(e.target.value)} />
             <Input2 label="Password" placeholder="Min. 8 characters" type="password" value={pass} onChange={e => setPass(e.target.value)} />
             {mode === 'in' && <div style={{ textAlign: 'right', marginTop: -4 }}><span style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.muted, cursor: 'pointer' }}>Forgot password?</span></div>}
-            <div style={{ marginTop: 4 }}><Btn2 full onClick={() => navigate('discover')}>{mode==='in' ? 'Sign In →' : 'Create Account →'}</Btn2></div>
+            {error && <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171' }}>{error}</div>}
+            <div style={{ marginTop: 4 }}><Btn2 full disabled={loading} onClick={handleEmail}>{loading ? 'Working...' : mode==='in' ? 'Sign In →' : 'Create Account →'}</Btn2></div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '28px 0' }}>
@@ -278,21 +394,82 @@ export function AuthScreen2({ navigate }) {
   );
 }
 
-// ─── BUILD PROFILE ─────────────────────────────────────────────────────────
-export function BuildProfileScreen2({ navigate }) {
+// --- BUILD PROFILE ---------------------------------------------------------
+export function BuildProfileScreen2({ navigate, defaultValues = null }) {
+  const router = useRouter();
+  const isEditMode = Boolean(defaultValues);
   const [step, setStep] = React.useState(1);
-  const [role, setRole] = React.useState(null);
-  const [form, setForm] = React.useState({ name:'', bio:'', location:'', website:'' });
-  const [disc, setDisc] = React.useState([]);
+  const [role, setRole] = React.useState(defaultValues?.role ?? null);
+  const [form, setForm] = React.useState({
+    name: defaultValues?.display_name ?? '',
+    bio: defaultValues?.bio ?? '',
+    location: defaultValues?.geography ?? '',
+    website: '',
+  });
+  const [disc, setDisc] = React.useState(() => {
+    const values = [defaultValues?.discipline, ...(defaultValues?.interests ?? [])].filter(Boolean)
+    return Array.from(new Set(values))
+  });
+  const [customLocationOpen, setCustomLocationOpen] = React.useState(
+    () => Boolean(defaultValues?.geography && !GEOGRAPHY_PRESETS.includes(defaultValues.geography))
+  );
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const roles = [
     { role:'Artist',      desc:'You create. Build a portfolio that travels — across galleries, institutions, and collections.' },
     { role:'Curator',     desc:'You shape context. Connect with artists, build exhibition concepts, find institutional partners.' },
     { role:'Institution', desc:'You hold space. List your programs, find artists for residencies, connect with aligned curators.' },
   ];
-  const disciplines = ['Painting','Sculpture','Photography','Video','Performance','Installation','Digital Art','Ceramics','Textile','Sound','Drawing','Print','Mixed Media'];
+  const disciplines = role && DISCIPLINE_PRESETS[role] ? DISCIPLINE_PRESETS[role] : ['Painting','Sculpture','Photography','Video','Performance','Installation','Digital Art','Ceramics','Textile','Sound','Drawing','Print','Mixed Media'];
+  const profileCopy = profileCopyFor(role);
+  const geographyOptions = Array.from(new Set([
+    ...GEOGRAPHY_PRESETS,
+    ...(form.location && !GEOGRAPHY_PRESETS.includes(form.location) ? [form.location] : []),
+  ]));
 
   const setD = v => setDisc(d => d.includes(v) ? d.filter(x=>x!==v) : [...d,v]);
+  const saveDraft = () => {
+    if (!isEditMode) localStorage.setItem('saye_profile_draft', JSON.stringify({ role, form, disc }))
+  }
+  const completeProfile = async () => {
+    setError('')
+    if (!role || !form.name.trim() || !form.location.trim() || disc.length === 0) {
+      setError('Choose a role, name, location, and at least one discipline.')
+      return
+    }
+    setSaving(true)
+    const result = await upsertProfile({
+      role,
+      display_name: form.name,
+      bio: form.bio,
+      geography: form.location,
+      discipline: disc[0],
+      interests: disc.length ? disc : [disc[0]],
+    })
+    setSaving(false)
+    if ('error' in result) {
+      setError(result.error)
+      return
+    }
+    localStorage.removeItem('saye_profile_draft')
+    router.push('/discover')
+    router.refresh()
+  }
+
+  React.useEffect(() => {
+    if (isEditMode) return
+    const saved = localStorage.getItem('saye_profile_draft')
+    if (!saved) return
+    try {
+      const draft = JSON.parse(saved)
+      if (draft.role) setRole(draft.role)
+      if (draft.form) setForm(current => ({ ...current, ...draft.form }))
+      if (Array.isArray(draft.disc)) setDisc(draft.disc)
+    } catch {
+      localStorage.removeItem('saye_profile_draft')
+    }
+  }, [isEditMode])
 
   return (
     <div style={{ minHeight: '100vh', background: T.bg, padding: '88px 48px 80px' }}>
@@ -320,18 +497,46 @@ export function BuildProfileScreen2({ navigate }) {
           <div style={{ display:'flex', gap:16, flexWrap:'wrap', marginBottom:36 }}>
             {roles.map(r => <RoleCard2 key={r.role} {...r} selected={role===r.role} onClick={() => setRole(r.role)} />)}
           </div>
-          <Btn2 disabled={!role} onClick={() => setStep(2)}>Continue as {role||'...'} →</Btn2>
+          <Btn2 disabled={!role} onClick={() => { saveDraft(); setStep(2); }}>Continue as {role||'...'} →</Btn2>
         </>}
 
         {step === 2 && <>
           <Label size={12} color={role ? ROLE_CONFIG[role]?.color : T.artist} tracking="0.14em">Step 02 / {role} Profile</Label>
           <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(36px,4vw,56px)', lineHeight:1.0, color:T.text, margin:'16px 0 40px', letterSpacing:'-0.03em' }}>
-            Shape your<br /><span style={{ color:role ? ROLE_CONFIG[role]?.color : T.artist }}>identity.</span>
+            {profileCopy.heading}<br /><span style={{ color:role ? ROLE_CONFIG[role]?.color : T.artist }}>{profileCopy.accent}</span>
           </h1>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
             <div style={{ gridColumn:'span 2' }}><Input2 label="Display Name" placeholder="Your name or alias" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} /></div>
-            <div style={{ gridColumn:'span 2' }}><Input2 label="Bio" placeholder="A brief statement about your practice, approach, or institution…" textarea value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})} rows={4} /></div>
-            <Input2 label="Location" placeholder="City, Country" value={form.location} onChange={e=>setForm({...form,location:e.target.value})} />
+            <div style={{ gridColumn:'span 2' }}><Input2 label="Bio" placeholder={profileCopy.bio} textarea value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})} rows={4} /></div>
+            <div>
+              <Label size={12} color={T.muted} style={{ display:'block', marginBottom:10 }}>Location</Label>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:8, maxHeight:150, overflow:'auto', paddingRight:4 }}>
+                {geographyOptions.map(place => (
+                  <Chip2
+                    key={place}
+                    label={place}
+                    active={!customLocationOpen && form.location === place}
+                    onClick={() => {
+                      setCustomLocationOpen(false)
+                      setForm({ ...form, location: place })
+                    }}
+                  />
+                ))}
+                <Chip2
+                  label="Other"
+                  active={customLocationOpen}
+                  onClick={() => {
+                    setCustomLocationOpen(true)
+                    if (GEOGRAPHY_PRESETS.includes(form.location)) setForm({ ...form, location: '' })
+                  }}
+                />
+              </div>
+              {customLocationOpen && (
+                <div style={{ marginTop:12 }}>
+                  <Input2 label="Custom location" placeholder={profileCopy.location} value={form.location} onChange={e=>setForm({...form,location:e.target.value})} />
+                </div>
+              )}
+            </div>
             <Input2 label="Website" placeholder="yoursite.com" value={form.website} onChange={e=>setForm({...form,website:e.target.value})} />
             <div style={{ gridColumn:'span 2' }}>
               <Label size={12} color={T.muted} style={{ display:'block', marginBottom:10 }}>Disciplines</Label>
@@ -341,8 +546,9 @@ export function BuildProfileScreen2({ navigate }) {
             </div>
             <div style={{ gridColumn:'span 2', display:'flex', gap:12, marginTop:8 }}>
               <Btn2 variant="outline" onClick={() => setStep(1)}>← Back</Btn2>
-              <Btn2 onClick={() => navigate('profile')}>Create Profile →</Btn2>
+              <Btn2 disabled={saving} onClick={completeProfile}>{saving ? 'Saving...' : isEditMode ? 'Save Profile →' : `${profileCopy.submit} →`}</Btn2>
             </div>
+            {error && <div style={{ gridColumn:'span 2', fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171' }}>{error}</div>}
           </div>
         </>}
       </div>
@@ -350,20 +556,123 @@ export function BuildProfileScreen2({ navigate }) {
   );
 }
 
-// ─── DISCOVER ─────────────────────────────────────────────────────────────
-export function DiscoverScreen2({ navigate }) {
-  const [geo, setGeo]   = React.useState([]);
-  const [disc, setDisc] = React.useState([]);
-  const [int_, setInt]  = React.useState([]);
-  const [search, setSearch] = React.useState('');
+// --- DISCOVER -------------------------------------------------------------
+function DiscoverFilterCol({ label, chips, active, filterKey, filterSearch, setFilterSearch, onToggle }) {
+  const filterTerm = filterSearch[filterKey] ?? '';
+  const normalized = filterTerm.trim().toLowerCase();
+  const matching = chips.filter(chip => !normalized || String(chip).toLowerCase().includes(normalized));
+  const activeSet = new Set(active);
+  const ordered = [
+    ...matching.filter(chip => activeSet.has(chip)),
+    ...matching.filter(chip => !activeSet.has(chip)),
+  ];
+  const visible = ordered.slice(0, 12);
+  const hiddenCount = Math.max(0, ordered.length - visible.length);
+
+  return (
+    <div style={{ flex: '1 1 220px' }}>
+      <div style={{ paddingBottom: 12, marginBottom: 14, borderBottom: `1px solid ${T.line}` }}>
+        <Label size={12} color={T.muted}>{label}</Label>
+        {active.length > 0 && <span style={{ marginLeft: 8, fontFamily:"'DM Mono',monospace", fontSize:11, color: T.artist }}>({active.length})</span>}
+        <input
+          placeholder={`Find ${label.toLowerCase()}`}
+          value={filterTerm}
+          onChange={event => setFilterSearch(current => ({ ...current, [filterKey]: event.target.value }))}
+          style={{ marginTop:10, width:'100%', background:T.bg2, border:`1px solid ${T.line}`, borderRadius:3, padding:'8px 10px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, outline:'none', boxSizing:'border-box' }}
+        />
+      </div>
+      <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+        {visible.map(c => (
+          <motion.div key={c} whileTap={{ scale: 1.06 }} style={{ display: 'inline-flex' }}>
+            <Chip2 label={c} active={active.includes(c)} onClick={() => onToggle(active, filterKey, c)} />
+          </motion.div>
+        ))}
+      </div>
+      {hiddenCount > 0 && (
+        <div style={{ marginTop:10, fontFamily:"'DM Mono',monospace", fontSize:11, color:T.faint }}>
+          {hiddenCount} more - keep typing
+        </div>
+      )}
+      {visible.length === 0 && (
+        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
+          No matching filters
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null, filters = null, totalProfiles = 0 }) {
+  const router = useRouter();
+  const [geo, setGeo]   = React.useState(filters?.geography ?? []);
+  const [disc, setDisc] = React.useState(filters?.discipline ?? []);
+  const [int_, setInt]  = React.useState(filters?.interests ?? []);
+  const [search, setSearch] = React.useState(filters?.q ?? '');
   const [searchFoc, setSearchFoc] = React.useState(false);
   const [roleFilter, setRoleFilter] = React.useState('All');
+  const [filterSearch, setFilterSearch] = React.useState({ geography: '', discipline: '', interests: '' });
+  const searchInputRef = React.useRef(null);
 
   const geos  = ['New York','London','Paris','Berlin','Lagos','Tokyo','São Paulo','Cairo','Seoul','Amsterdam','Nairobi','Mexico City'];
   const discs = ['Painting','Sculpture','Photography','Video','Performance','Installation','Digital Art','Sound','Ceramics','Drawing'];
   const ints  = ['Collaboration','Residency','Exhibition','Commission','Research','Publication','Mentorship','Collection'];
+  const filterGeos = filterOptions?.geographies?.length ? filterOptions.geographies : GEOGRAPHY_PRESETS;
+  const filterDiscs = filterOptions?.disciplines?.length ? filterOptions.disciplines : discs;
+  const filterInts = filterOptions?.interests?.length ? filterOptions.interests : ints;
 
-  const tog = (arr, set, v) => set(a => a.includes(v) ? a.filter(x=>x!==v) : [...a,v]);
+  React.useEffect(() => {
+    setGeo(filters?.geography ?? [])
+    setDisc(filters?.discipline ?? [])
+    setInt(filters?.interests ?? [])
+    setSearch(filters?.q ?? '')
+  }, [filters?.geography, filters?.discipline, filters?.interests, filters?.q])
+
+  React.useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      if ((filters?.q ?? '') === search.trim()) return
+      window.history.replaceState(null, '', buildDiscoverUrl({
+        geography: geo,
+        discipline: disc,
+        interests: int_,
+        q: search.trim(),
+        sort: filters?.sort ?? 'newest',
+        page: 1,
+      }))
+    }, 350)
+    return () => window.clearTimeout(timeout)
+  }, [disc, filters?.q, filters?.sort, geo, int_, search])
+
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const updateFilters = (next) => {
+    const merged = {
+      geography: geo,
+      discipline: disc,
+      interests: int_,
+      q: search.trim(),
+      sort: filters?.sort ?? 'newest',
+      page: 1,
+      ...next,
+    }
+    setGeo(merged.geography)
+    setDisc(merged.discipline)
+    setInt(merged.interests)
+    router.replace(buildDiscoverUrl(merged))
+  }
+
+  const tog = (arr, key, v) => {
+    const next = arr.includes(v) ? arr.filter(x=>x!==v) : [...arr,v]
+    updateFilters({ [key]: next })
+  };
   const total = geo.length + disc.length + int_.length;
 
   const people = [
@@ -378,24 +687,21 @@ export function DiscoverScreen2({ navigate }) {
     { name:'Yaw Darko',     role:'Artist',      discipline:'Drawing',       location:'Accra',       tags:['narrative','ink','mythology'] },
   ];
 
+  const realPeople = profiles.length ? profiles.map(profile => ({
+    id: profile.id,
+    name: profile.display_name,
+    role: profile.role,
+    discipline: profile.discipline || 'Unspecified',
+    location: profile.geography || 'Global',
+    tags: profile.interests?.length ? profile.interests : [profile.role.toLowerCase()],
+  })) : people;
+
   const q = search.trim().toLowerCase();
-  const filtered = people.filter(p => {
+  const filtered = realPeople.filter(p => {
     if (roleFilter !== 'All' && p.role !== roleFilter) return false;
     if (!q) return true;
-    return p.name.toLowerCase().includes(q) || p.discipline.toLowerCase().includes(q) || p.location.toLowerCase().includes(q) || p.tags.some(t => t.includes(q));
+    return p.name.toLowerCase().includes(q) || p.discipline.toLowerCase().includes(q) || p.location.toLowerCase().includes(q) || p.tags.some(t => String(t).toLowerCase().includes(q));
   });
-
-  const FilterCol = ({ label, chips, active, set }) => (
-    <div style={{ flex: 1 }}>
-      <div style={{ paddingBottom: 12, marginBottom: 14, borderBottom: `1px solid ${T.line}` }}>
-        <Label size={12} color={T.muted}>{label}</Label>
-        {active.length > 0 && <span style={{ marginLeft: 8, fontFamily:"'DM Mono',monospace", fontSize:11, color: T.artist }}>({active.length})</span>}
-      </div>
-      <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-        {chips.map(c => <Chip2 key={c} label={c} active={active.includes(c)} onClick={() => tog(active, set, c)} />)}
-      </div>
-    </div>
-  );
 
   return (
     <div style={{ minHeight:'100vh', background:T.bg, padding:'88px 48px 80px' }}>
@@ -408,7 +714,7 @@ export function DiscoverScreen2({ navigate }) {
 
       {/* Search */}
       <div style={{ position:'relative', maxWidth:560, marginBottom:36 }}>
-        <input placeholder="Search by name, discipline, keyword…"
+        <input ref={searchInputRef} placeholder="Search by name, discipline, keyword…"
           value={search} onChange={e => setSearch(e.target.value)}
           onFocus={() => setSearchFoc(true)} onBlur={() => setSearchFoc(false)}
           style={{ width:'100%', background:T.surf, border:`1px solid ${searchFoc ? 'rgba(155,127,248,0.4)' : T.line}`, borderRadius:3, padding:'13px 48px 13px 18px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:15, outline:'none', boxSizing:'border-box', transition:'border-color 0.15s', boxShadow: searchFoc ? '0 0 0 3px rgba(155,127,248,0.05)' : 'none' }} />
@@ -416,12 +722,36 @@ export function DiscoverScreen2({ navigate }) {
       </div>
 
       {/* Triple-filter shelf */}
-      <div style={{ marginBottom:12, padding:'28px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40 }}>
-        <FilterCol label="Geography" chips={geos}  active={geo}  set={setGeo} />
+      <div style={{ marginBottom:12, padding:'28px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40, flexWrap:'wrap' }}>
+        <DiscoverFilterCol
+          label="Geography"
+          chips={filterGeos}
+          active={geo}
+          filterKey="geography"
+          filterSearch={filterSearch}
+          setFilterSearch={setFilterSearch}
+          onToggle={tog}
+        />
         <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <FilterCol label="Discipline" chips={discs} active={disc} set={setDisc} />
+        <DiscoverFilterCol
+          label="Discipline"
+          chips={filterDiscs}
+          active={disc}
+          filterKey="discipline"
+          filterSearch={filterSearch}
+          setFilterSearch={setFilterSearch}
+          onToggle={tog}
+        />
         <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <FilterCol label="Interest"   chips={ints}  active={int_} set={setInt} />
+        <DiscoverFilterCol
+          label="Interest"
+          chips={filterInts}
+          active={int_}
+          filterKey="interests"
+          filterSearch={filterSearch}
+          setFilterSearch={setFilterSearch}
+          onToggle={tog}
+        />
       </div>
 
       {/* Active + clear */}
@@ -431,7 +761,7 @@ export function DiscoverScreen2({ navigate }) {
           {[...geo,...disc,...int_].map(f => (
             <span key={f} style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.artist, background:T.artistDim, border:`1px solid rgba(155,127,248,0.2)`, padding:'3px 12px', borderRadius:2 }}>{f}</span>
           ))}
-          <button onClick={() => { setGeo([]); setDisc([]); setInt([]); }}
+          <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setFilterSearch({ geography: '', discipline: '', interests: '' }); router.replace('/discover'); }}
             style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
             Clear all ×
           </button>
@@ -446,15 +776,17 @@ export function DiscoverScreen2({ navigate }) {
             {r}
           </button>
         ))}
-        <Label size={12} color={T.muted} style={{ marginLeft:'auto', alignSelf:'center', paddingRight:4 }}>{filtered.length} results</Label>
+        <Label size={12} color={T.muted} style={{ marginLeft:'auto', alignSelf:'center', paddingRight:4 }}>{profiles.length ? totalProfiles : filtered.length} results</Label>
       </div>
 
       {/* Cards */}
       {filtered.length > 0 ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
+        <div
+          key={JSON.stringify([geo, disc, int_, roleFilter])}
+          style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
           {filtered.map((p, i) => (
-            <div key={p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 55}ms` }}>
-              <DiscoverCard2 {...p} onClick={() => navigate('profile')} />
+            <div key={p.id || p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 55}ms` }}>
+              <DiscoverCard2 {...p} onClick={() => p.id ? router.push(`/profile/${p.id}`) : navigate('profile')} />
             </div>
           ))}
         </div>
@@ -466,7 +798,7 @@ export function DiscoverScreen2({ navigate }) {
             Try different filters or clear your search.
           </p>
           {(total > 0 || q) && (
-            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); }}
+            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); setFilterSearch({ geography: '', discipline: '', interests: '' }); router.replace('/discover'); }}
               style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
               Clear everything
             </button>
@@ -477,34 +809,53 @@ export function DiscoverScreen2({ navigate }) {
   );
 }
 
-// ─── ARCHIVE ───────────────────────────────────────────────────────────────
-export function ArchiveScreen2({ navigate }) {
+// --- ARCHIVE ---------------------------------------------------------------
+export function ArchiveScreen2({ navigate, items = [], userProfileId = null, profile = null, state = 'ready' }) {
+  const router = useRouter();
   const [typeFilter, setTypeFilter] = React.useState('all');
+  const [selectedItem, setSelectedItem] = React.useState(null);
 
-  const posts = [
-    { type:'image', title:'Untitled (After the Rain)', author:'Amara Osei', authorRole:'Artist', date:'Apr 2026', hint:'large format · silver gelatin', span:true, tall:true },
-    { type:'text',  title:'On the failure of documentation', content:'Every archive is a betrayal. The photograph reduces the duration of a performance to a single breath. The catalog translates color into language. And yet—', author:'Lena Richter', authorRole:'Curator', date:'Apr 2026' },
-    { type:'link',  title:'Open Call: Serpentine Summer Residency 2026', content:'Applications open for artists working at the intersection of ecology and digital media.', author:'The Serpentine', authorRole:'Institution', date:'Mar 2026', link:'serpentinegalleries.org' },
-    { type:'image', title:'Study #7 — Sound / Space', author:'Kenji Tanaka', authorRole:'Artist', date:'Mar 2026', hint:'installation view' },
-    { type:'text',  title:'Why I stopped making work for institutions', content:'The question is not whether the institution can hold the work. The question is whether the work survives the institution.', author:'Sofia Marín', authorRole:'Artist', date:'Mar 2026' },
-    { type:'link',  title:'Reading: Decolonizing the Museum', content:'A collection of critical texts on curatorial practice and institutional power.', author:'Marcus Webb', authorRole:'Curator', date:'Feb 2026', link:'are.na' },
-    { type:'image', title:'Thread Series IV', author:'Priya Nair', authorRole:'Artist', date:'Feb 2026', hint:'natural dye on cotton' },
-    { type:'text',  title:'The archive as living body', content:'To archive is not to preserve. It is to make decisions about what endures and what dissolves.', author:'Yaw Darko', authorRole:'Artist', date:'Feb 2026' },
-  ];
+  const ownerName = profile?.display_name || 'Your profile';
+  const ownerRole = profile?.role || 'Artist';
+  const isSignedOut = state === 'signedOut';
+  const isMissingProfile = state === 'missingProfile';
+  const archiveItems = items.map(item => ({
+    id: item.id,
+    type: item.type,
+    title: archiveTitle(item),
+    content: item.content,
+    author: ownerName,
+    authorRole: ownerRole,
+    date: formatArchiveDate(item.created_at),
+    link: item.type === 'link' ? domainFromUrl(item.content) : undefined,
+    hint: item.type === 'image' ? 'image' : undefined,
+  }));
 
-  const filtered = typeFilter==='all' ? posts : posts.filter(p=>p.type===typeFilter);
+  const filtered = typeFilter==='all' ? archiveItems : archiveItems.filter(p=>p.type===typeFilter);
+  const ctaLabel = isSignedOut ? 'Join to Build Archive' : isMissingProfile ? 'Complete Profile' : '+ Add to Archive';
+  const onPrimaryAction = () => {
+    if (isSignedOut) {
+      router.push('/login?next=/build-profile')
+      return
+    }
+    if (isMissingProfile) {
+      router.push('/build-profile')
+      return
+    }
+    router.push(userProfileId ? `/profile/${userProfileId}` : '/build-profile')
+  };
 
   return (
     <div style={{ minHeight:'100vh', background:T.bg, padding:'88px 48px 80px' }}>
       {/* Header */}
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:40, gap:20, flexWrap:'wrap' }}>
         <div>
-          <Label size={12} color={T.artist} tracking="0.14em">The Archive</Label>
+          <Label size={12} color={T.artist} tracking="0.14em">{profile ? `${ownerName}'s Archive` : 'Your Archive'}</Label>
           <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5.5vw,72px)', color:T.text, margin:'12px 0 0', letterSpacing:'-0.03em', lineHeight:1.0 }}>
             A living<br /><span style={{ color:T.artist }}>exhibition wall.</span>
           </h1>
         </div>
-        <Btn2 variant="ghost" onClick={() => navigate('build-profile')}>+ Add to Archive</Btn2>
+        <Btn2 variant="ghost" onClick={onPrimaryAction}>{ctaLabel}</Btn2>
       </div>
 
       {/* Type filter — text tabs style */}
@@ -517,21 +868,65 @@ export function ArchiveScreen2({ navigate }) {
         ))}
       </div>
 
-      {/* Grid — editorial, mixed sizes */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, gridAutoRows:'auto' }}>
-        {filtered.map((p, i) => (
-          <div key={p.title} style={{ gridColumn: p.span ? 'span 2' : 'span 1', display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 60}ms` }}>
-            <ArchiveCard2 {...p} />
-          </div>
-        ))}
-      </div>
+      {filtered.length > 0 ? (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, gridAutoRows:'auto' }}>
+          {filtered.map((p, i) => (
+            <div key={p.id || p.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 60}ms` }}>
+              <ArchiveCard2
+                {...p}
+                itemId={p.id}
+                onExpand={() => {
+                  const raw = items.find(item => item.id === p.id)
+                  if (raw) setSelectedItem(raw)
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding:'80px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
+          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
+          <Label size={13} color={T.muted}>
+            {isSignedOut ? 'Sign in to build your archive' : isMissingProfile ? 'Create a profile first' : 'No archive entries yet'}
+          </Label>
+          <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
+            {isSignedOut
+              ? 'Archives are attached to individual profiles, not a global feed.'
+              : isMissingProfile
+                ? 'Your archive unlocks once your role and profile are live.'
+                : 'Add text, images, or links from your profile page.'}
+          </p>
+          <button onClick={onPrimaryAction}
+            style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+            {ctaLabel}
+          </button>
+        </div>
+      )}
+      <AnimatePresence>
+        {selectedItem && (
+          <PostDetailOverlay
+            key={selectedItem.id}
+            item={selectedItem}
+            items={items.filter(item => typeFilter === 'all' || item.type === typeFilter)}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-// ─── PROFILE ───────────────────────────────────────────────────────────────
-export function ProfileScreen2({ navigate }) {
+// --- PROFILE ---------------------------------------------------------------
+export function ProfileScreen2({ navigate, profile = null, archiveItems = [], isOwner = false, viewerIsAuthenticated = false, suggestedProfiles = [] }) {
+  const router = useRouter();
   const [tab, setTab] = React.useState('work');
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [addType, setAddType] = React.useState('text');
+  const [addContent, setAddContent] = React.useState('');
+  const [selectedFile, setSelectedFile] = React.useState(null);
+  const [savingArchive, setSavingArchive] = React.useState(false);
+  const [archiveError, setArchiveError] = React.useState('');
+  const [selectedArchiveItem, setSelectedArchiveItem] = React.useState(null);
 
   const work = [
     { type:'image', title:'Untitled (After the Rain)', authorRole:'Artist', date:'Apr 2026', hint:'photograph', author:'Amara Osei' },
@@ -539,34 +934,149 @@ export function ProfileScreen2({ navigate }) {
     { type:'image', title:'Borrowed Light Series I–III', authorRole:'Artist', date:'Feb 2026', hint:'triptych', author:'Amara Osei' },
     { type:'link',  title:'Artist Statement — 2026', author:'Amara Osei', authorRole:'Artist', date:'Jan 2026', link:'amaraosei.com' },
   ];
+  const currentProfile = profile ?? {
+    id: 'demo',
+    role: 'Artist',
+    display_name: 'Amara Osei',
+    bio: 'Amara Osei is a Lagos-based photographer working at the intersection of documentary practice and conceptual art. Her work explores the gap between presence and record — what photographs preserve, and what they inevitably destroy.',
+    geography: 'Lagos, Nigeria',
+    discipline: 'Photography',
+    interests: ['conceptual','documentary','large-format','silver-gelatin','africa','diaspora'],
+  };
+  const mappedArchiveItems = archiveItems.map(item => ({
+    id: item.id,
+    type: item.type,
+    title: archiveTitle(item),
+    content: item.content,
+    author: currentProfile.display_name,
+    authorRole: currentProfile.role,
+    date: formatArchiveDate(item.created_at),
+    link: item.type === 'link' ? domainFromUrl(item.content) : undefined,
+    hint: item.type === 'image' ? 'image' : undefined,
+  }));
+  const profileWork = archiveItems.length ? mappedArchiveItems : profile ? [] : work;
+  const initials = currentProfile.display_name?.charAt(0)?.toUpperCase() || 'S';
+  const roleNoun = currentProfile.role === 'Curator'
+    ? 'research note'
+    : currentProfile.role === 'Institution'
+      ? 'program'
+      : 'work';
+  const stats = [
+    [String(archiveItems.length), currentProfile.role === 'Institution' ? 'Programs' : currentProfile.role === 'Curator' ? 'Notes' : 'Works'],
+    [String(currentProfile.interests?.length ?? 0), 'Interests'],
+    [currentProfile.discipline ? '1' : '0', 'Focus'],
+    [currentProfile.geography ? '1' : '0', 'Place'],
+  ];
+  const connectionsByRole = {
+    Artist: [
+      { name:'Lena Richter',   role:'Curator',     discipline:'Contemporary', location:'Berlin',   tags:['new-media','feminist'] },
+      { name:'The Serpentine', role:'Institution', discipline:'Cross-discipl.',location:'London',   tags:['residency','public'] },
+      { name:'Marcus Webb',    role:'Curator',     discipline:'Photography',  location:'New York', tags:['street','identity'] },
+    ],
+    Curator: [
+      { name:'Amara Osei',     role:'Artist',      discipline:'Photography',  location:'Lagos',    tags:['documentary','archive'] },
+      { name:'Dar Al Funun',   role:'Institution', discipline:'Visual Art',   location:'Cairo',    tags:['residency','education'] },
+      { name:'Priya Nair',     role:'Artist',      discipline:'Textile',      location:'Mumbai',   tags:['craft','decolonial'] },
+    ],
+    Institution: [
+      { name:'Kenji Tanaka',   role:'Artist',      discipline:'Installation', location:'Tokyo',    tags:['sound','space'] },
+      { name:'Sofia Marin',    role:'Artist',      discipline:'Performance',  location:'Mexico City', tags:['body','ritual'] },
+      { name:'Lena Richter',   role:'Curator',     discipline:'Contemporary', location:'Berlin',   tags:['programming','research'] },
+    ],
+  };
+  const connectionSuggestions = connectionsByRole[currentProfile.role] ?? connectionsByRole.Artist;
+
+  const submitArchiveItem = async () => {
+    setArchiveError('')
+    setSavingArchive(true)
+    let content = addContent.trim()
+    if (addType !== 'image' && !hasUsefulContent(content)) {
+      setArchiveError(addType === 'link' ? 'Add a link before saving.' : 'Add text before saving.')
+      setSavingArchive(false)
+      return
+    }
+    if (addType === 'image' && !selectedFile && !hasUsefulContent(content)) {
+      setArchiveError('Add an image URL or choose an image file before saving.')
+      setSavingArchive(false)
+      return
+    }
+    if (addType === 'image' && !selectedFile && hasUsefulContent(content)) {
+      const normalized = /^https?:\/\//i.test(content) ? content : `https://${content}`
+      if (!isLikelyHttpUrl(normalized)) {
+        setArchiveError('Add a valid image URL (e.g. https://example.com/image.jpg)')
+        setSavingArchive(false)
+        return
+      }
+      content = normalized
+    }
+    if (addType === 'link' && !isLikelyHttpUrl(content)) {
+      setArchiveError('Add a valid web link.')
+      setSavingArchive(false)
+      return
+    }
+    if (addType === 'image' && selectedFile) {
+      const uploadResult = await uploadArchiveImage(selectedFile, currentProfile.id)
+      if ('error' in uploadResult) {
+        setArchiveError(uploadResult.error)
+        setSavingArchive(false)
+        return
+      }
+      content = uploadResult.url
+    }
+    const result = await addArchiveItem({ type: addType, content })
+    setSavingArchive(false)
+    if ('error' in result) {
+      setArchiveError(result.error)
+      return
+    }
+    setAddContent('')
+    setSelectedFile(null)
+    setAddOpen(false)
+    router.refresh()
+  }
+
+  const removeArchiveItem = async (id) => {
+    const result = await deleteArchiveItem(id)
+    if ('error' in result) {
+      setArchiveError(result.error)
+      return
+    }
+    router.refresh()
+  }
+
+  const openArchiveComposer = () => {
+    setTab('work')
+    setArchiveError('')
+    setAddOpen(true)
+  }
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh' }}>
       {/* Hero */}
       <div style={{ padding:'80px 48px 48px', borderBottom:`1px solid ${T.line}`, position:'relative', overflow:'hidden' }}>
-        <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.02 }}>
+        <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.02, pointerEvents:'none' }}>
           <defs><pattern id="prof-grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.5"/></pattern></defs>
           <rect width="100%" height="100%" fill="url(#prof-grid)"/>
         </svg>
         {/* Left accent bar */}
-        <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)` }} />
+        <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)`, pointerEvents:'none' }} />
 
-        <div style={{ display:'flex', alignItems:'flex-start', gap:32, flexWrap:'wrap' }}>
-          <div style={{ width:80, height:80, borderRadius:'50%', background:T.artistDim, border:`2px solid ${T.artist}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:28, color:T.artist, flexShrink:0 }}>A</div>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:32, flexWrap:'wrap', position:'relative', zIndex:1 }}>
+          <div style={{ width:80, height:80, borderRadius:'50%', background:T.artistDim, border:`2px solid ${T.artist}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:28, color:T.artist, flexShrink:0 }}>{initials}</div>
           <div style={{ flex:1, minWidth:280 }}>
-            <div style={{ marginBottom:12 }}><RoleBadge role="Artist" size={13} /></div>
-            <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5vw,64px)', color:T.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1 }}>Amara Osei</h1>
-            <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.muted, margin:0 }}>Photography · Lagos, Nigeria</p>
+            <div style={{ marginBottom:12 }}><RoleBadge role={currentProfile.role} size={13} /></div>
+            <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5vw,64px)', color:T.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1 }}>{currentProfile.display_name}</h1>
+            <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.muted, margin:0 }}>{currentProfile.discipline || 'Unspecified'} · {currentProfile.geography || 'Global'}</p>
           </div>
           <div style={{ display:'flex', gap:10, alignItems:'flex-start', paddingTop:8 }}>
-            <Btn2 variant="outline">Message</Btn2>
-            <Btn2>Connect →</Btn2>
+            {isOwner ? <Btn2 variant="outline" onClick={() => router.push('/build-profile')}>Edit Profile</Btn2> : <Btn2 variant="outline" onClick={() => navigator.clipboard?.writeText(window.location.href)}>Copy Link</Btn2>}
+            {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 onClick={() => viewerIsAuthenticated ? router.push('/discover') : router.push(`/login?next=/profile/${currentProfile.id}`)}>{viewerIsAuthenticated ? 'Discover More ->' : 'Join to Connect ->'}</Btn2>}
           </div>
         </div>
 
         {/* Stats */}
         <div style={{ display:'flex', gap:0, marginTop:40, borderTop:`1px solid ${T.line}`, paddingTop:28 }}>
-          {[['28','Works'],['140','Connections'],['6','Exhibitions'],['3','Residencies']].map(([n,l],i) => (
+          {stats.map(([n,l],i) => (
             <div key={l} style={{ paddingRight:40, marginRight:40, borderRight: i<3 ? `1px solid ${T.line}` : 'none' }}>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:24, color:T.text }}>{n}</div>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, marginTop:2 }}>{l}</div>
@@ -588,41 +1098,123 @@ export function ProfileScreen2({ navigate }) {
       {/* Tab content */}
       <div style={{ padding:'36px 48px 80px' }}>
         {tab==='work' && (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-            {work.map((w, i) => (
-              <div key={w.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
-                <ArchiveCard2 {...w} />
+          <>
+          {isOwner && addOpen && (
+            <div style={{ background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, padding:20, marginBottom:20 }}>
+              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+                {['text','image','link'].map(type => (
+                  <Chip2 key={type} label={type === 'image' ? 'Image' : type} active={addType===type} onClick={() => { setAddType(type); setArchiveError(''); }} />
+                ))}
               </div>
-            ))}
-          </div>
+              {addType === 'text' && <Input2 label="Text" textarea rows={4} placeholder="Write something..." value={addContent} onChange={e=>setAddContent(e.target.value)} />}
+              {addType === 'link' && <Input2 label="Link" placeholder="https://example.com" value={addContent} onChange={e=>setAddContent(e.target.value)} />}
+              {addType === 'image' && (
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  <Input2 label="Image URL" placeholder="https://example.com/image.jpg" value={addContent} onChange={e=>setAddContent(e.target.value)} />
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>setSelectedFile(e.target.files?.[0] ?? null)} style={{ color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13 }} />
+                </div>
+              )}
+              {archiveError && <div style={{ marginTop:12, fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171' }}>{archiveError}</div>}
+              <div style={{ display:'flex', justifyContent:'flex-end', gap:10, marginTop:16 }}>
+                <Btn2 variant="outline" disabled={savingArchive} onClick={() => setAddOpen(false)}>Cancel</Btn2>
+                <Btn2 disabled={savingArchive} onClick={submitArchiveItem}>{savingArchive ? 'Adding...' : 'Add'}</Btn2>
+              </div>
+            </div>
+          )}
+          {profileWork.length > 0 ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
+              {profileWork.map((w, i) => (
+                <div key={w.id || w.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
+                  <ArchiveCard2
+                    {...w}
+                    itemId={w.id}
+                    isOwner={isOwner}
+                    onDelete={removeArchiveItem}
+                    onExpand={() => {
+                      const raw = archiveItems.find(item => item.id === w.id)
+                      if (raw) setSelectedArchiveItem(raw)
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding:'72px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
+              <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
+              <Label size={13} color={T.muted}>{isOwner ? 'Your archive is empty' : 'No archive entries yet'}</Label>
+              <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
+                {isOwner ? `Add your first ${roleNoun}.` : `${currentProfile.display_name} has not added archive entries yet.`}
+              </p>
+              {isOwner && (
+                <button onClick={openArchiveComposer}
+                  style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+                  {`Add ${roleNoun}`}
+                </button>
+              )}
+            </div>
+          )}
+          <AnimatePresence>
+            {selectedArchiveItem && (
+              <PostDetailOverlay
+                key={selectedArchiveItem.id}
+                item={selectedArchiveItem}
+                items={archiveItems}
+                onClose={() => setSelectedArchiveItem(null)}
+              />
+            )}
+          </AnimatePresence>
+          </>
         )}
         {tab==='about' && (
           <div style={{ maxWidth:560 }}>
             <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.sub, lineHeight:1.75, marginBottom:32 }}>
-              Amara Osei is a Lagos-based photographer working at the intersection of documentary practice and conceptual art. Her work explores the gap between presence and record — what photographs preserve, and what they inevitably destroy.
+              {currentProfile.bio || `${currentProfile.display_name} is part of the Saye collective.`}
             </p>
             <RuleLine margin="0 0 28px" />
             <Label size={12} color={T.muted} style={{ display:'block', marginBottom:12 }}>Disciplines</Label>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-              {['conceptual','documentary','large-format','silver-gelatin','africa','diaspora'].map(t => (
+              {(currentProfile.interests?.length ? currentProfile.interests : [currentProfile.discipline].filter(Boolean)).map(t => (
                 <Chip2 key={t} label={t} active={false} onClick={() => {}} />
               ))}
             </div>
           </div>
         )}
-        {tab==='connections' && (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))', gap:14 }}>
-            {[
-              { name:'Lena Richter',   role:'Curator',     discipline:'Contemporary', location:'Berlin',   tags:['new-media','feminist'] },
-              { name:'The Serpentine', role:'Institution', discipline:'Cross-discipl.',location:'London',   tags:['residency','public'] },
-              { name:'Marcus Webb',    role:'Curator',     discipline:'Photography',  location:'New York',  tags:['street','identity'] },
-            ].map((p, i) => (
-              <div key={p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
-                <DiscoverCard2 {...p} onClick={() => {}} />
+        {tab==='connections' && (() => {
+          const toShow = suggestedProfiles.length ? suggestedProfiles : connectionSuggestions
+          if (toShow.length === 0) {
+            return (
+              <div style={{ padding:'72px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
+                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
+                <Label size={13} color={T.muted}>No connections yet</Label>
+                <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
+                  Discover profiles to find people with similar interests.
+                </p>
+                <button onClick={() => navigate('discover')}
+                  style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+                  Discover profiles →
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+            )
+          }
+          return (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))', gap:14 }}>
+              {toShow.map((p, i) => (
+                <div key={p.id || p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
+                  <DiscoverCard2
+                    name={p.display_name || p.name}
+                    role={p.role}
+                    discipline={p.discipline || 'Unspecified'}
+                    location={p.geography || 'Global'}
+                    tags={p.interests?.length ? p.interests.slice(0,3) : p.tags || []}
+                    onClick={() => {
+                      if (p.id) router.push(`/profile/${p.id}`)
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )
+        })()}
       </div>
     </div>
   );

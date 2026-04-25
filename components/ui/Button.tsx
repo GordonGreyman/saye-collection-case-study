@@ -32,6 +32,7 @@ const variants: Record<Variant, { default: React.CSSProperties; hover: React.CSS
 export function Button({ variant = 'primary', full, className = '', style, children, disabled, ...props }: ButtonProps) {
   const [hov, setHov] = useState(false)
   const v = variants[variant]
+  const mergedClassName = [variant === 'ghost' ? 'border' : '', className].filter(Boolean).join(' ')
 
   return (
     <button
@@ -55,7 +56,7 @@ export function Button({ variant = 'primary', full, className = '', style, child
         ...(hov && !disabled ? v.hover : v.default),
         ...style,
       }}
-      className={className}
+      className={mergedClassName}
       {...props}
     >
       {children}

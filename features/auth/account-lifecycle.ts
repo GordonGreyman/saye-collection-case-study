@@ -24,7 +24,7 @@ export type AccountDeleteResult = { success: true } | { error: string }
 export async function deleteAccountWithCleanup(
   adminClient: AdminClient,
   userId: string,
-  bucketName = 'archive-media'
+  bucketName = process.env.NEXT_PUBLIC_ARCHIVE_BUCKET || 'archive-media'
 ): Promise<AccountDeleteResult> {
   const storage = adminClient.storage.from(bucketName)
   const { data: objects, error: listError } = await storage.list(userId, {

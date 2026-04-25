@@ -2,7 +2,9 @@
 
 import { createClient } from '@/lib/supabase/client'
 
-const ARCHIVE_BUCKET = 'archive-media'
+const DEFAULT_ARCHIVE_BUCKET = 'archive-media'
+const ARCHIVE_BUCKET = process.env.NEXT_PUBLIC_ARCHIVE_BUCKET || DEFAULT_ARCHIVE_BUCKET
+const ARCHIVE_BUCKET_FALLBACKS = ['archive-media', 'archive', 'archive_images']
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -34,26 +36,38 @@ export async function uploadArchiveImage(file: File, userId: string): Promise<Up
 
   const path = buildArchiveImagePath(userId, file.name)
   const supabase = createClient()
+  const bucketCandidates = Array.from(new Set([ARCHIVE_BUCKET, ...ARCHIVE_BUCKET_FALLBACKS]))
 
-  const { error: uploadError } = await supabase.storage.from(ARCHIVE_BUCKET).upload(path, file, {
-    upsert: false,
-    contentType: file.type,
-  })
+  for (const bucket of bucketCandidates) {
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
+      upsert: false,
+      contentType: file.type,
+    })
 
-  if (uploadError) {
-    return { error: uploadError.message }
+    if (!uploadError) {
+      const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+      if (!data.publicUrl) {
+        return { error: 'Unable to generate image URL.' }
+      }
+      return { success: true, url: data.publicUrl }
+    }
+
+    const message = uploadError.message || ''
+    const isMissingBucket = /bucket.*not.*found/i.test(message)
+    if (!isMissingBucket) {
+      return { error: message }
+    }
   }
 
-  const { data } = supabase.storage.from(ARCHIVE_BUCKET).getPublicUrl(path)
-  if (!data.publicUrl) {
-    return { error: 'Unable to generate image URL.' }
+  return {
+    error:
+      'Image upload is not configured. Create a Supabase storage bucket named "archive-media" (or set NEXT_PUBLIC_ARCHIVE_BUCKET in .env.local).',
   }
-
-  return { success: true, url: data.publicUrl }
 }
 
 export const uploadConfig = {
   bucket: ARCHIVE_BUCKET,
+  fallbackBuckets: ARCHIVE_BUCKET_FALLBACKS,
   maxBytes: MAX_UPLOAD_BYTES,
   allowedMimeTypes: ALLOWED_MIME_TYPES,
 }
