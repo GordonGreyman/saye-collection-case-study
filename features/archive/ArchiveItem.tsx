@@ -65,6 +65,13 @@ export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
       className="relative"
       onClick={onExpand}
       style={{ cursor: onExpand ? 'pointer' : undefined }}
+      {...(onExpand ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onExpand() }
+        },
+      } : {})}
     >
       {isOwner && !confirming && (
         <button
@@ -136,7 +143,17 @@ export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
           </div>
           <div style={{ padding: '14px 18px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#9b7ff8', wordBreak: 'break-all' }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}>{item.content}</span>
+              {onExpand ? (
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}>{item.content}</span>
+              ) : (
+                <a
+                  href={item.content}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}
+                >{item.content}</a>
+              )}
             </span>
             {createdAt && (
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 10 }}>{createdAt}</p>
