@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/types'
 import { DISCOVER_PAGE_SIZE, type DiscoverFilters } from '@/features/discover/filters'
 import { GEOGRAPHY_PRESETS } from '@/lib/constants'
+import { getAllMockPersonas, getFilteredMockPersonas } from '@/features/discover/mockPersonas'
 
 export type DiscoverProfile = Pick<
   Profile,
@@ -92,9 +93,21 @@ export async function getProfiles(filters: DiscoverFilters): Promise<DiscoverPro
     throw new Error(error.message)
   }
 
+  const mockProfiles = getFilteredMockPersonas(filters).map(persona => ({
+    id: persona.id,
+    display_name: persona.display_name,
+    role: persona.role,
+    geography: persona.geography,
+    discipline: persona.discipline,
+    interests: persona.interests,
+  }))
+
+  const baseProfiles = (data ?? []) as DiscoverProfile[]
+  const profilesWithMocks = filters.page === 1 ? [...baseProfiles, ...mockProfiles] : baseProfiles
+
   return {
-    profiles: data ?? [],
-    total: totalCount ?? 0,
+    profiles: profilesWithMocks,
+    total: (totalCount ?? 0) + mockProfiles.length,
   }
 }
 
@@ -123,27 +136,39 @@ export async function getFilterOptions(): Promise<FilterOptions> {
   const geographies = Array.from(
     new Set([
       ...GEOGRAPHY_PRESETS,
+      ...getAllMockPersonas().map(persona => persona.geography).filter((value): value is string => !!value),
       ...(geographiesRaw ?? []).map(row => row.geography).filter((value): value is string => !!value),
     ])
   ).sort((a, b) => a.localeCompare(b))
 
   const disciplines = Array.from(
-    new Set((disciplinesRaw ?? []).map(row => row.discipline).filter((value): value is string => !!value))
+    new Set([
+      ...getAllMockPersonas().map(persona => persona.discipline).filter((value): value is string => !!value),
+      ...(disciplinesRaw ?? []).map(row => row.discipline).filter((value): value is string => !!value),
+    ])
   ).sort((a, b) => a.localeCompare(b))
 
   const interests = Array.from(
     new Set(
-      (interestsRaw ?? [])
+      [
+        ...getAllMockPersonas().flatMap(persona => persona.interests),
+        ...(interestsRaw ?? [])
         .flatMap(row => row.interests ?? [])
-        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+          .filter((value): value is string => typeof value === 'string' && value.length > 0),
+      ]
     )
   ).sort((a, b) => a.localeCompare(b))
+
+  const mockProfiles = getAllMockPersonas()
+  const mockNewThisWeek = mockProfiles.filter(
+    persona => new Date(persona.created_at).getTime() >= new Date(oneWeekAgo).getTime()
+  ).length
 
   return {
     geographies,
     disciplines,
     interests,
-    totalProfiles: count ?? 0,
-    newThisWeek: newThisWeek ?? 0,
+    totalProfiles: (count ?? 0) + mockProfiles.length,
+    newThisWeek: (newThisWeek ?? 0) + mockNewThisWeek,
   }
 }

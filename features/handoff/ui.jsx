@@ -319,7 +319,6 @@ export function DiscoverCard2({ name, role, discipline, location, tags, onClick 
 
 export function ArchiveCard2({ type, title, content, author, authorRole, date, link, hint, span, tall, itemId, isOwner, onDelete, onExpand }) {
   const [h, setH] = React.useState(false);
-  const [confirming, setConfirming] = React.useState(false);
   const r = ROLE_CONFIG[authorRole] || ROLE_CONFIG.Artist;
   const linkHref = type === 'link' && content
     ? (/^https?:\/\//i.test(content) ? content : `https://${content}`)
@@ -337,23 +336,6 @@ export function ArchiveCard2({ type, title, content, author, authorRole, date, l
         display: 'flex', flexDirection: 'column', height: '100%', position: 'relative',
       }}>
 
-      {isOwner && itemId && (
-        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 10, right: 10, zIndex: 3, display: 'flex', gap: 8, alignItems: 'center' }}>
-          {confirming && (
-            <button
-              onClick={(event) => { event.stopPropagation(); onDelete?.(itemId); setConfirming(false); }}
-              style={{ background: '#2a0808', border: '1px solid rgba(248,113,113,0.35)', color: '#f87171', borderRadius: 3, padding: '5px 9px', cursor: 'pointer', fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
-              Delete
-            </button>
-          )}
-          <button
-            onClick={(event) => { event.stopPropagation(); setConfirming(value => !value); }}
-            style={{ background: 'rgba(8,8,8,0.8)', border: `1px solid ${T.lineB}`, color: T.muted, borderRadius: 3, padding: '5px 9px', cursor: 'pointer', fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
-            {confirming ? 'Cancel' : 'Remove'}
-          </button>
-        </div>
-      )}
-
       {/* Expand hint */}
       <div style={{
         position: 'absolute', bottom: 10, right: 12, zIndex: 2,
@@ -366,21 +348,44 @@ export function ArchiveCard2({ type, title, content, author, authorRole, date, l
       {type === 'image' && (
         <div style={{ flex: 1, minHeight: tall ? 320 : 220, background: `linear-gradient(160deg, #18082e 0%, #0a0a14 100%)`, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
           {content && /^https?:\/\//i.test(content) && (
-            <img src={content} alt={title || 'Archive item'} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75 }} />
+            <img src={content} alt={title || 'Archive item'} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.68 }} />
           )}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(6,6,6,0.8) 0%, rgba(8,8,8,0.34) 38%, rgba(6,6,6,0.9) 100%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 85% at 50% 20%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.5) 100%)', pointerEvents: 'none' }} />
           {/* Diagonal stripe texture */}
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06 }} xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id={`stripe-${title.slice(0,4)}`} width="20" height="20" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="white" strokeWidth="1"/></pattern></defs>
             <rect width="100%" height="100%" fill={`url(#stripe-${title.slice(0,4)})`}/>
           </svg>
           {/* Hint label */}
-          {hint && <div style={{ position: 'absolute', top: 14, right: 14, fontFamily: "'DM Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em' }}>{hint}</div>}
+          {hint && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                fontFamily: "'DM Mono',monospace",
+                fontSize: 11,
+                color: 'rgba(238,238,238,0.82)',
+                letterSpacing: '0.06em',
+                background: 'rgba(8,8,8,0.62)',
+                border: `1px solid ${T.lineB}`,
+                borderRadius: 3,
+                padding: '4px 8px',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              {hint}
+            </div>
+          )}
           {/* Title overlay */}
-          <div style={{ padding: '0 20px 20px', background: 'linear-gradient(to top, rgba(8,8,8,0.92) 0%, transparent 100%)', paddingTop: 48 }}>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: span ? 22 : 17, color: T.text, lineHeight: 1.25, marginBottom: 8 }}>{title}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.muted }}>{author}</span>
+          <div style={{ padding: '0 20px 20px', background: 'linear-gradient(to top, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.2) 65%, transparent 100%)', paddingTop: 56 }}>
+            <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 8, background: 'rgba(8,8,8,0.64)', border: `1px solid ${T.lineB}`, borderRadius: 6, padding: '10px 12px', backdropFilter: 'blur(8px)', maxWidth: '92%' }}>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: span ? 22 : 17, color: '#f7f7f7', lineHeight: 1.25, textShadow: '0 3px 16px rgba(0,0,0,0.72)' }}>{title}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: '#ececec', textShadow: '0 2px 10px rgba(0,0,0,0.68)' }}>{author}</span>
               {authorRole && <RoleBadge role={authorRole} size={11} />}
+              </div>
             </div>
           </div>
         </div>

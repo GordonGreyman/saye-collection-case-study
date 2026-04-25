@@ -5,13 +5,12 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { ArchiveCard2, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
-import { addArchiveItem, deleteArchiveItem } from '@/features/archive/actions'
-import { uploadArchiveImage } from '@/features/archive/upload'
 import { buildDiscoverUrl } from '@/features/discover/filters'
 import { upsertProfile } from '@/features/profiles/actions'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
+import { ArchiveComposerOverlay } from '@/features/archive/ArchiveComposerOverlay'
 
 function formatArchiveDate(value) {
   if (!value) return ''
@@ -30,6 +29,36 @@ function archiveTitle(item) {
   if (item.type === 'link') return domainFromUrl(item.content)
   if (item.type === 'image') return 'Archive image'
   return item.content.length > 70 ? `${item.content.slice(0, 70)}...` : item.content
+}
+
+function archiveDraftFromItem(item) {
+  if (item.type === 'image') {
+    return {
+      title: '',
+      body: '',
+      link: '',
+      imageUrl: item.content,
+    }
+  }
+
+  if (item.type === 'link') {
+    return {
+      title: '',
+      body: '',
+      link: item.content,
+      imageUrl: '',
+    }
+  }
+
+  const normalized = (item.content || '').replace(/\r\n/g, '\n')
+  const [head = '', ...rest] = normalized.split('\n\n')
+
+  return {
+    title: head,
+    body: rest.join('\n\n'),
+    link: '',
+    imageUrl: '',
+  }
 }
 
 const ROLE_PROFILE_COPY = {
@@ -63,20 +92,6 @@ function profileCopyFor(role) {
     bio: 'A brief statement about your practice, approach, or institution...',
     location: 'City, Country',
     submit: 'Create Profile',
-  }
-}
-
-function hasUsefulContent(value) {
-  return Boolean(value && String(value).trim())
-}
-
-function isLikelyHttpUrl(value) {
-  if (!hasUsefulContent(value)) return false
-  try {
-    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`)
-    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname)
-  } catch {
-    return false
   }
 }
 
@@ -814,6 +829,9 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
   const router = useRouter();
   const [typeFilter, setTypeFilter] = React.useState('all');
   const [selectedItem, setSelectedItem] = React.useState(null);
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [composerDraft, setComposerDraft] = React.useState(null);
+  const [composerEditTarget, setComposerEditTarget] = React.useState(null);
 
   const ownerName = profile?.display_name || 'Your profile';
   const ownerRole = profile?.role || 'Artist';
@@ -833,6 +851,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
 
   const filtered = typeFilter==='all' ? archiveItems : archiveItems.filter(p=>p.type===typeFilter);
   const ctaLabel = isSignedOut ? 'Join to Build Archive' : isMissingProfile ? 'Complete Profile' : '+ Add to Archive';
+  const isOwner = !isSignedOut && !isMissingProfile
   const onPrimaryAction = () => {
     if (isSignedOut) {
       router.push('/login?next=/build-profile')
@@ -844,6 +863,13 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
     }
     router.push(userProfileId ? `/profile/${userProfileId}` : '/build-profile')
   };
+
+  const editInArchiveComposer = (item) => {
+    setSelectedItem(null)
+    setComposerEditTarget({ id: item.id, type: item.type })
+    setComposerDraft(archiveDraftFromItem(item))
+    setAddOpen(true)
+  }
 
   return (
     <div style={{ minHeight:'100vh', background:T.bg, padding:'88px 48px 80px' }}>
@@ -909,9 +935,30 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
             item={selectedItem}
             items={items.filter(item => typeFilter === 'all' || item.type === typeFilter)}
             onClose={() => setSelectedItem(null)}
+            isOwner={isOwner}
+            onEditInComposer={isOwner ? editInArchiveComposer : undefined}
           />
         )}
       </AnimatePresence>
+
+      {isOwner && userProfileId && (
+        <ArchiveComposerOverlay
+          open={addOpen}
+          profileId={userProfileId}
+          initialDraft={composerDraft ?? undefined}
+          editTarget={composerEditTarget}
+          onClose={() => {
+            setAddOpen(false)
+            setComposerEditTarget(null)
+            setComposerDraft(null)
+          }}
+          onSaved={() => {
+            setComposerEditTarget(null)
+            setComposerDraft(null)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -921,12 +968,10 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const router = useRouter();
   const [tab, setTab] = React.useState('work');
   const [addOpen, setAddOpen] = React.useState(false);
-  const [addType, setAddType] = React.useState('text');
-  const [addContent, setAddContent] = React.useState('');
-  const [selectedFile, setSelectedFile] = React.useState(null);
-  const [savingArchive, setSavingArchive] = React.useState(false);
   const [archiveError, setArchiveError] = React.useState('');
   const [selectedArchiveItem, setSelectedArchiveItem] = React.useState(null);
+  const [composerDraft, setComposerDraft] = React.useState(null);
+  const [composerEditTarget, setComposerEditTarget] = React.useState(null);
 
   const work = [
     { type:'image', title:'Untitled (After the Rain)', authorRole:'Artist', date:'Apr 2026', hint:'photograph', author:'Amara Osei' },
@@ -986,67 +1031,20 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   };
   const connectionSuggestions = connectionsByRole[currentProfile.role] ?? connectionsByRole.Artist;
 
-  const submitArchiveItem = async () => {
-    setArchiveError('')
-    setSavingArchive(true)
-    let content = addContent.trim()
-    if (addType !== 'image' && !hasUsefulContent(content)) {
-      setArchiveError(addType === 'link' ? 'Add a link before saving.' : 'Add text before saving.')
-      setSavingArchive(false)
-      return
-    }
-    if (addType === 'image' && !selectedFile && !hasUsefulContent(content)) {
-      setArchiveError('Add an image URL or choose an image file before saving.')
-      setSavingArchive(false)
-      return
-    }
-    if (addType === 'image' && !selectedFile && hasUsefulContent(content)) {
-      const normalized = /^https?:\/\//i.test(content) ? content : `https://${content}`
-      if (!isLikelyHttpUrl(normalized)) {
-        setArchiveError('Add a valid image URL (e.g. https://example.com/image.jpg)')
-        setSavingArchive(false)
-        return
-      }
-      content = normalized
-    }
-    if (addType === 'link' && !isLikelyHttpUrl(content)) {
-      setArchiveError('Add a valid web link.')
-      setSavingArchive(false)
-      return
-    }
-    if (addType === 'image' && selectedFile) {
-      const uploadResult = await uploadArchiveImage(selectedFile, currentProfile.id)
-      if ('error' in uploadResult) {
-        setArchiveError(uploadResult.error)
-        setSavingArchive(false)
-        return
-      }
-      content = uploadResult.url
-    }
-    const result = await addArchiveItem({ type: addType, content })
-    setSavingArchive(false)
-    if ('error' in result) {
-      setArchiveError(result.error)
-      return
-    }
-    setAddContent('')
-    setSelectedFile(null)
-    setAddOpen(false)
-    router.refresh()
-  }
-
-  const removeArchiveItem = async (id) => {
-    const result = await deleteArchiveItem(id)
-    if ('error' in result) {
-      setArchiveError(result.error)
-      return
-    }
-    router.refresh()
-  }
-
   const openArchiveComposer = () => {
     setTab('work')
     setArchiveError('')
+    setComposerEditTarget(null)
+    setComposerDraft({ title: '', body: '', link: '', imageUrl: '' })
+    setAddOpen(true)
+  }
+
+  const editInArchiveComposer = (item) => {
+    setTab('work')
+    setArchiveError('')
+    setSelectedArchiveItem(null)
+    setComposerEditTarget({ id: item.id, type: item.type })
+    setComposerDraft(archiveDraftFromItem(item))
     setAddOpen(true)
   }
 
@@ -1099,26 +1097,9 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       <div style={{ padding:'36px 48px 80px' }}>
         {tab==='work' && (
           <>
-          {isOwner && addOpen && (
-            <div style={{ background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, padding:20, marginBottom:20 }}>
-              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                {['text','image','link'].map(type => (
-                  <Chip2 key={type} label={type === 'image' ? 'Image' : type} active={addType===type} onClick={() => { setAddType(type); setArchiveError(''); }} />
-                ))}
-              </div>
-              {addType === 'text' && <Input2 label="Text" textarea rows={4} placeholder="Write something..." value={addContent} onChange={e=>setAddContent(e.target.value)} />}
-              {addType === 'link' && <Input2 label="Link" placeholder="https://example.com" value={addContent} onChange={e=>setAddContent(e.target.value)} />}
-              {addType === 'image' && (
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                  <Input2 label="Image URL" placeholder="https://example.com/image.jpg" value={addContent} onChange={e=>setAddContent(e.target.value)} />
-                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>setSelectedFile(e.target.files?.[0] ?? null)} style={{ color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13 }} />
-                </div>
-              )}
-              {archiveError && <div style={{ marginTop:12, fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171' }}>{archiveError}</div>}
-              <div style={{ display:'flex', justifyContent:'flex-end', gap:10, marginTop:16 }}>
-                <Btn2 variant="outline" disabled={savingArchive} onClick={() => setAddOpen(false)}>Cancel</Btn2>
-                <Btn2 disabled={savingArchive} onClick={submitArchiveItem}>{savingArchive ? 'Adding...' : 'Add'}</Btn2>
-              </div>
+          {archiveError && (
+            <div style={{ marginBottom: 16, fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171' }}>
+              {archiveError}
             </div>
           )}
           {profileWork.length > 0 ? (
@@ -1129,7 +1110,6 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                     {...w}
                     itemId={w.id}
                     isOwner={isOwner}
-                    onDelete={removeArchiveItem}
                     onExpand={() => {
                       const raw = archiveItems.find(item => item.id === w.id)
                       if (raw) setSelectedArchiveItem(raw)
@@ -1160,6 +1140,8 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                 item={selectedArchiveItem}
                 items={archiveItems}
                 onClose={() => setSelectedArchiveItem(null)}
+                isOwner={isOwner}
+                onEditInComposer={isOwner ? editInArchiveComposer : undefined}
               />
             )}
           </AnimatePresence>
@@ -1216,6 +1198,25 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
           )
         })()}
       </div>
+      {isOwner && (
+        <ArchiveComposerOverlay
+          open={addOpen}
+          profileId={currentProfile.id}
+          initialDraft={composerDraft ?? undefined}
+          editTarget={composerEditTarget}
+          onClose={() => {
+            setAddOpen(false)
+            setComposerEditTarget(null)
+            setComposerDraft(null)
+          }}
+          onSaved={() => {
+            setArchiveError('')
+            setComposerEditTarget(null)
+            setComposerDraft(null)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   );
 }

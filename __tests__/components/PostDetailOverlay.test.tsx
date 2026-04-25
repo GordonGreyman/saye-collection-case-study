@@ -2,6 +2,17 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
 import type { ArchiveItem } from '@/lib/types'
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: jest.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+  }),
+}))
+
 jest.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
