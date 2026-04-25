@@ -17,7 +17,6 @@ const T = {
   text: '#f2f2f2',
   muted: '#555',
   artist: '#9b7ff8',
-  artistDim: 'rgba(155,127,248,0.12)',
 }
 
 export function PostDetailOverlay({ item: initialItem, items, onClose }: PostDetailOverlayProps) {
@@ -107,13 +106,22 @@ export function PostDetailOverlay({ item: initialItem, items, onClose }: PostDet
         {/* IMAGE */}
         {item.type === 'image' && (
           <div>
-            {/^https?:\/\//i.test(item.content) && (
+            {/^https?:\/\//i.test(item.content) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.content}
                 alt="Archive item"
                 style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block' }}
               />
+            ) : (
+              <div style={{
+                minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '24px', background: 'rgba(255,255,255,0.02)',
+              }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#555', wordBreak: 'break-all' }}>
+                  {item.content}
+                </p>
+              </div>
             )}
             {createdAt && (
               <div style={{ padding: '16px 24px', borderTop: `1px solid ${T.line}` }}>

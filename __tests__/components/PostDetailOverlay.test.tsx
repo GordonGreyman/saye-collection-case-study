@@ -8,7 +8,6 @@ jest.mock('framer-motion', () => ({
       <div {...props}>{children}</div>
     ),
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
 const textItem: ArchiveItem = {
@@ -84,5 +83,19 @@ describe('PostDetailOverlay', () => {
     render(<PostDetailOverlay item={textItem} items={[textItem]} onClose={jest.fn()} />)
     expect(screen.queryByLabelText('Previous item')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Next item')).not.toBeInTheDocument()
+  })
+
+  test('calls onClose when backdrop is clicked', () => {
+    const onClose = jest.fn()
+    const { container } = render(<PostDetailOverlay item={textItem} items={items} onClose={onClose} />)
+    fireEvent.click(container.firstChild as Element)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not call onClose when card content is clicked', () => {
+    const onClose = jest.fn()
+    render(<PostDetailOverlay item={textItem} items={items} onClose={onClose} />)
+    fireEvent.click(screen.getByText('Hello from the archive.'))
+    expect(onClose).not.toHaveBeenCalled()
   })
 })
