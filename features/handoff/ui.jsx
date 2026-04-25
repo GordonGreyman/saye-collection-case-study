@@ -1,5 +1,5 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-unused-vars, react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars, react/no-unescaped-entities, @next/next/no-img-element */
 
 import React from 'react'
 
@@ -86,8 +86,12 @@ export function RoleBadge({ role, size }) {
 
 // ─── NAV ──────────────────────────────────────────────────────────────────
 
-export function SayeNav2({ current, navigate }) {
+export function SayeNav2({ current, navigate, navState, navigatePath, onSignOut }) {
   const [hov, setHov] = React.useState(null);
+  const isAuthenticated = Boolean(navState?.isAuthenticated);
+  const profileId = navState?.profileId;
+  const ctaLabel = isAuthenticated ? (profileId ? 'Profile ->' : 'Complete Profile ->') : 'Join ->';
+  const ctaPath = isAuthenticated ? (profileId ? `/profile/${profileId}` : '/build-profile') : '/build-profile';
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
@@ -120,12 +124,12 @@ export function SayeNav2({ current, navigate }) {
 
       {/* Right side */}
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button onClick={() => navigate('auth')}
+        <button onClick={isAuthenticated ? onSignOut : () => navigate('auth')}
           onMouseEnter={() => setHov('in')} onMouseLeave={() => setHov(null)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Space Grotesk',sans-serif", fontSize: 14, color: hov === 'in' ? T.sub : T.muted, transition: 'color 0.15s' }}>
-          Sign In
+          {isAuthenticated ? 'Log out' : 'Sign In'}
         </button>
-        <Btn2 onClick={() => navigate('build-profile')}>Join →</Btn2>
+        <Btn2 onClick={() => navigatePath ? navigatePath(ctaPath) : navigate('build-profile')}>{ctaLabel}</Btn2>
       </div>
     </nav>
   );
@@ -243,8 +247,18 @@ export function RoleCard2({ role, desc, selected, onClick }) {
       style={{
         flex: 1, minWidth: 220, padding: '36px 28px 32px',
         background: selected ? `linear-gradient(160deg, rgba(${role==='Artist'?'155,127,248':role==='Curator'?'200,200,200':'232,232,232'},0.05) 0%, ${T.surf} 60%)` : T.surf,
-        border: `1px solid ${selected ? r.border : on ? T.lineB : T.line}`,
-        borderTop: `3px solid ${selected ? r.color : on ? r.color : T.line}`,
+        borderTopStyle: 'solid',
+        borderRightStyle: 'solid',
+        borderBottomStyle: 'solid',
+        borderLeftStyle: 'solid',
+        borderTopWidth: 3,
+        borderRightWidth: 1,
+        borderBottomWidth: 1,
+        borderLeftWidth: 1,
+        borderTopColor: selected ? r.color : on ? r.color : T.line,
+        borderRightColor: selected ? r.border : on ? T.lineB : T.line,
+        borderBottomColor: selected ? r.border : on ? T.lineB : T.line,
+        borderLeftColor: selected ? r.border : on ? T.lineB : T.line,
         borderRadius: 4, cursor: 'pointer', transition: 'all 0.2s',
         transform: selected ? 'translateY(-3px)' : 'none',
         boxShadow: selected ? `0 16px 48px rgba(0,0,0,0.4)` : 'none',
@@ -298,23 +312,57 @@ export function DiscoverCard2({ name, role, discipline, location, tags, onClick 
 
 // ─── ARCHIVE CARD v2 (gallery-grade) ─────────────────────────────────────
 
-export function ArchiveCard2({ type, title, content, author, authorRole, date, link, hint, span, tall }) {
+export function ArchiveCard2({ type, title, content, author, authorRole, date, link, hint, span, tall, itemId, isOwner, onDelete, onExpand }) {
   const [h, setH] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
   const r = ROLE_CONFIG[authorRole] || ROLE_CONFIG.Artist;
+  const linkHref = type === 'link' && content
+    ? (/^https?:\/\//i.test(content) ? content : `https://${content}`)
+    : null;
 
   return (
-    <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+    <div
+      onClick={() => onExpand?.()}
+      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         background: T.surf, border: `1px solid ${h ? T.lineB : T.line}`,
         borderRadius: 4, overflow: 'hidden', cursor: 'pointer',
         transition: 'all 0.18s', transform: h ? 'translateY(-2px)' : 'none',
         boxShadow: h ? '0 10px 36px rgba(0,0,0,0.45)' : 'none',
-        display: 'flex', flexDirection: 'column', height: '100%',
+        display: 'flex', flexDirection: 'column', height: '100%', position: 'relative',
       }}>
+
+      {isOwner && itemId && (
+        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 10, right: 10, zIndex: 3, display: 'flex', gap: 8, alignItems: 'center' }}>
+          {confirming && (
+            <button
+              onClick={(event) => { event.stopPropagation(); onDelete?.(itemId); setConfirming(false); }}
+              style={{ background: '#2a0808', border: '1px solid rgba(248,113,113,0.35)', color: '#f87171', borderRadius: 3, padding: '5px 9px', cursor: 'pointer', fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
+              Delete
+            </button>
+          )}
+          <button
+            onClick={(event) => { event.stopPropagation(); setConfirming(value => !value); }}
+            style={{ background: 'rgba(8,8,8,0.8)', border: `1px solid ${T.lineB}`, color: T.muted, borderRadius: 3, padding: '5px 9px', cursor: 'pointer', fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
+            {confirming ? 'Cancel' : 'Remove'}
+          </button>
+        </div>
+      )}
+
+      {/* Expand hint */}
+      <div style={{
+        position: 'absolute', bottom: 10, right: 12, zIndex: 2,
+        fontFamily: "'DM Mono',monospace", fontSize: 10, color: T.faint,
+        letterSpacing: '0.06em', pointerEvents: 'none',
+        opacity: h ? 1 : 0, transition: 'opacity 0.15s',
+      }}>expand ↗</div>
 
       {/* IMAGE CARD — magazine overlay style */}
       {type === 'image' && (
         <div style={{ flex: 1, minHeight: tall ? 320 : 220, background: `linear-gradient(160deg, #18082e 0%, #0a0a14 100%)`, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          {content && /^https?:\/\//i.test(content) && (
+            <img src={content} alt={title || 'Archive item'} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75 }} />
+          )}
           {/* Diagonal stripe texture */}
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.06 }} xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id={`stripe-${title.slice(0,4)}`} width="20" height="20" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="20" stroke="white" strokeWidth="1"/></pattern></defs>
