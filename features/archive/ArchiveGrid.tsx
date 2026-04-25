@@ -1,5 +1,10 @@
+'use client'
+
+import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { AddBlockPanel } from '@/features/archive/AddBlockPanel'
 import { ArchiveItem } from '@/features/archive/ArchiveItem'
+import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
 import type { ArchiveItem as ArchiveItemType } from '@/lib/types'
 
 interface ArchiveGridProps {
@@ -9,6 +14,8 @@ interface ArchiveGridProps {
 }
 
 export function ArchiveGrid({ items, isOwner, profileId }: ArchiveGridProps) {
+  const [selectedItem, setSelectedItem] = useState<ArchiveItemType | null>(null)
+
   if (items.length === 0) {
     return (
       <section className="mt-8">
@@ -33,10 +40,24 @@ export function ArchiveGrid({ items, isOwner, profileId }: ArchiveGridProps) {
       <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
         {items.map(item => (
           <div key={item.id} className="break-inside-avoid mb-4">
-            <ArchiveItem item={item} isOwner={isOwner} />
+            <ArchiveItem
+              item={item}
+              isOwner={isOwner}
+              onExpand={() => setSelectedItem(item)}
+            />
           </div>
         ))}
       </div>
+      <AnimatePresence>
+        {selectedItem && (
+          <PostDetailOverlay
+            key={selectedItem.id}
+            item={selectedItem}
+            items={items}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   )
 }
