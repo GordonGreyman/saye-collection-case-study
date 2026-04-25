@@ -3,9 +3,8 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ExternalLink, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/ToastProvider'
 import { deleteArchiveItem } from '@/features/archive/actions'
 import type { ArchiveItem as ArchiveItemType } from '@/lib/types'
@@ -13,9 +12,10 @@ import type { ArchiveItem as ArchiveItemType } from '@/lib/types'
 interface ArchiveItemProps {
   item: ArchiveItemType
   isOwner: boolean
+  onExpand?: () => void
 }
 
-export function ArchiveItem({ item, isOwner }: ArchiveItemProps) {
+export function ArchiveItem({ item, isOwner, onExpand }: ArchiveItemProps) {
   const router = useRouter()
   const { showToast } = useToast()
   const [confirming, setConfirming] = useState(false)
@@ -61,11 +61,15 @@ export function ArchiveItem({ item, isOwner }: ArchiveItemProps) {
   }
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onClick={onExpand}
+      style={{ cursor: onExpand ? 'pointer' : undefined }}
+    >
       {isOwner && !confirming && (
         <button
           type="button"
-          onClick={() => setConfirming(true)}
+          onClick={e => { e.stopPropagation(); setConfirming(true) }}
           className="absolute right-2 top-2 z-10 bg-black/40 p-1.5 rounded-full text-text-muted hover:text-white"
           aria-label="Delete archive item"
         >
@@ -74,7 +78,10 @@ export function ArchiveItem({ item, isOwner }: ArchiveItemProps) {
       )}
 
       {isOwner && confirming && (
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-2 bg-black/60 rounded-full px-2 py-1 text-xs">
+        <div
+          className="absolute right-2 top-2 z-10 flex items-center gap-2 bg-black/60 rounded-full px-2 py-1 text-xs"
+          onClick={e => e.stopPropagation()}
+        >
           <button
             type="button"
             onClick={onDelete}
@@ -128,15 +135,9 @@ export function ArchiveItem({ item, isOwner }: ArchiveItemProps) {
             )}
           </div>
           <div style={{ padding: '14px 18px' }}>
-            <a
-              href={item.content}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#9b7ff8', textDecoration: 'none', wordBreak: 'break-all' }}
-            >
-              <ExternalLink size={12} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#9b7ff8', wordBreak: 'break-all' }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 13, lineHeight: 1.4 }}>{item.content}</span>
-            </a>
+            </span>
             {createdAt && (
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#2a2a2a', marginTop: 10 }}>{createdAt}</p>
             )}
