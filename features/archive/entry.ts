@@ -162,8 +162,8 @@ export function summarizeCanvasBlocks(blocks: ArchiveCanvasBlock[]) {
   const referenceUrl = linkBlock ? normalizeHttpUrl(linkBlock.content) : ''
 
   let primaryType: ArchiveItemType = 'text'
-  if (imageUrl) primaryType = 'image'
-  else if (!title && !body && referenceUrl) primaryType = 'link'
+  if (referenceUrl) primaryType = 'link'
+  else if (imageUrl) primaryType = 'image'
 
   return { title, body, imageUrl, referenceUrl, primaryType }
 }

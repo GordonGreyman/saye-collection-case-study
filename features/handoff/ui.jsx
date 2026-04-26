@@ -434,3 +434,279 @@ export function ArchiveCard2({ type, title, content, author, authorRole, date, l
     </div>
   );
 }
+
+export function ArchivePrimeCard({ type, title, content, body, imageUrl, referenceUrl, author, authorRole, date, link, onExpand, onHover, expanded }) {
+  const r = ROLE_CONFIG[authorRole] || ROLE_CONFIG.Artist;
+  const previewImage = imageUrl || (content && /^https?:\/\//i.test(content) && type === 'image' ? content : '');
+  const description = body || (type === 'link' ? referenceUrl || link : previewImage ? '' : content);
+  const displayTitle = title || '[Untitled]';
+
+  return (
+    <div
+      data-archive-prime-card="true"
+      data-archive-prime-key={String(title || content || link || '')}
+      onClick={() => onExpand?.()}
+      onMouseEnter={event => onHover?.(event.currentTarget)}
+      onFocus={event => onHover?.(event.currentTarget)}
+      style={{
+        background: T.surf,
+        border: `1px solid ${expanded ? T.lineB : T.line}`,
+        borderRadius: 4,
+        overflow: 'visible',
+        cursor: 'pointer',
+        transition: 'transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
+        transform: expanded ? 'translateY(-4px) scale(1.285)' : 'translateY(0) scale(1)',
+        transformOrigin: 'top left',
+        boxShadow: expanded ? '0 22px 54px rgba(0,0,0,0.64)' : 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        flex: '0 0 auto',
+        width: 280,
+        height: 158,
+        zIndex: expanded ? 20 : 1,
+      }}
+      tabIndex={0}
+      role="button"
+    >
+      <div style={{ height: '100%', background: `linear-gradient(145deg, ${r.dim}, ${T.bg2})`, position: 'relative', overflow: 'hidden', borderRadius: expanded ? '4px 4px 0 0' : 4 }}>
+        {previewImage ? (
+          <img src={previewImage} alt={displayTitle} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.86 }} />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, textAlign: 'center', fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, color: T.text, lineHeight: 1.15 }}>
+            {displayTitle}
+          </div>
+        )}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.18), rgba(0,0,0,0))', pointerEvents: 'none' }} />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          background: '#070707',
+          borderTop: `1px solid ${T.line}`,
+          borderRadius: '0 0 4px 4px',
+          opacity: expanded ? 1 : 0,
+          transform: expanded ? 'translateY(0)' : 'translateY(-8px)',
+          pointerEvents: expanded ? 'auto' : 'none',
+          transition: 'opacity 150ms ease, transform 150ms ease',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '13px 15px 15px' }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 17, color: T.text, lineHeight: 1.2, marginBottom: 7 }}>{displayTitle}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: description ? 9 : 0 }}>
+            <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.sub }}>{author}</span>
+            {authorRole && <RoleBadge role={authorRole} size={10} />}
+            {date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, color: T.faint }}>{date}</span>}
+          </div>
+          {type === 'link' && link && <Label size={10} color={T.artist}>{link}</Label>}
+          {description && (
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.muted, lineHeight: 1.45, marginTop: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {description}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ArchivePrimeRail({ title, items, onExpand }) {
+  const railRef = React.useRef(null);
+  const wrapperRef = React.useRef(null);
+  const pointerRef = React.useRef(null);
+  const hoverDelayRef = React.useRef(null);
+  const [hoveredKey, setHoveredKey] = React.useState(null);
+  const [rowActive, setRowActive] = React.useState(false);
+  const [canScroll, setCanScroll] = React.useState(false);
+
+  const updateCanScroll = React.useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    setCanScroll(rail.scrollWidth > rail.clientWidth + 2);
+  }, []);
+
+  React.useEffect(() => {
+    updateCanScroll();
+    window.addEventListener('resize', updateCanScroll);
+    return () => window.removeEventListener('resize', updateCanScroll);
+  }, [items.length, updateCanScroll]);
+
+  const itemKey = React.useCallback(item => String(item.id || item.title || item.content || item.link || ''), []);
+
+  const showPreview = React.useCallback((item) => {
+    setHoveredKey(itemKey(item));
+    updateCanScroll();
+  }, [itemKey, updateCanScroll]);
+
+  const schedulePreviewFromPointer = React.useCallback((delay = 300) => {
+    if (!pointerRef.current) return;
+    if (hoverDelayRef.current) window.clearTimeout(hoverDelayRef.current);
+    hoverDelayRef.current = window.setTimeout(() => {
+      const card = document.elementFromPoint(pointerRef.current.x, pointerRef.current.y)?.closest?.('[data-archive-prime-card]');
+      if (!card || !railRef.current?.contains(card)) return;
+      const index = Array.from(railRef.current.children).indexOf(card);
+      const item = items[index];
+      if (item) showPreview(item);
+    }, delay);
+  }, [items, showPreview]);
+
+  React.useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const onWheel = (event) => {
+      const rail = railRef.current;
+      if (!rail || rail.scrollWidth <= rail.clientWidth + 2) return;
+
+      const horizontalIntent = Math.abs(event.deltaX) >= Math.abs(event.deltaY);
+      const rawDelta = horizontalIntent ? event.deltaX : event.shiftKey ? event.deltaY : 0;
+      if (!rawDelta) return;
+
+      const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rail.clientWidth : 1;
+      const speed = 1;
+      event.preventDefault();
+      event.stopPropagation();
+      rail.scrollLeft = Math.max(0, Math.min(rail.scrollLeft + rawDelta * scale * speed, rail.scrollWidth - rail.clientWidth));
+      schedulePreviewFromPointer(150);
+    };
+
+    wrapper.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      wrapper.removeEventListener('wheel', onWheel);
+      if (hoverDelayRef.current) window.clearTimeout(hoverDelayRef.current);
+    };
+  }, [items, schedulePreviewFromPointer]);
+
+  if (!items.length) return null;
+
+  const scrollRail = (dir) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const cards = Array.from(rail.children);
+    const currentLeft = rail.scrollLeft;
+    const visibleRight = currentLeft + rail.clientWidth;
+    const margin = 8;
+    const target = dir > 0
+      ? cards.find(card => card.offsetLeft + margin >= visibleRight)
+      : [...cards].reverse().find(card => card.offsetLeft + card.offsetWidth <= currentLeft - margin);
+
+    if (target) {
+      const left = dir > 0
+        ? target.offsetLeft
+        : Math.max(0, target.offsetLeft + target.offsetWidth - rail.clientWidth);
+      rail.scrollTo({ left, behavior: 'smooth' });
+      return;
+    }
+    rail.scrollTo({ left: dir > 0 ? rail.scrollWidth : 0, behavior: 'smooth' });
+  };
+
+  return (
+    <section style={{ marginBottom: -116, position: 'relative' }}>
+      <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 22, color: T.text, margin: '0 0 12px' }}>{title}</h2>
+      <div
+        ref={wrapperRef}
+        style={{ position: 'relative', height: 330, overflow: 'visible', overscrollBehaviorX: 'contain', touchAction: 'pan-x' }}
+        onMouseEnter={() => setRowActive(true)}
+        onMouseMove={event => {
+          pointerRef.current = { x: event.clientX, y: event.clientY };
+        }}
+        onMouseLeave={() => {
+          setRowActive(false);
+          setHoveredKey(null);
+          pointerRef.current = null;
+          if (hoverDelayRef.current) window.clearTimeout(hoverDelayRef.current);
+        }}
+      >
+        {rowActive && canScroll && (
+          <button
+            type="button"
+            onClick={() => scrollRail(-1)}
+            aria-label={`Previous ${title}`}
+            className="archive-rail-arrow"
+            style={{
+              position: 'absolute',
+              left: -18,
+              top: 52,
+              zIndex: 24,
+              width: 42,
+              height: 64,
+              border: `1px solid ${T.lineB}`,
+              borderRadius: 4,
+              background: 'rgba(8,8,8,0.78)',
+              color: T.text,
+              fontSize: 30,
+              cursor: 'pointer',
+            }}
+          >
+            &lsaquo;
+          </button>
+        )}
+        <div
+          ref={railRef}
+          className="archive-prime-strip"
+          style={{
+            display: 'flex',
+            gap: 14,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            padding: '4px 28px 18px 0',
+            scrollbarWidth: 'none',
+            height: 330,
+            overscrollBehaviorX: 'contain',
+          }}
+          onScroll={() => {
+            updateCanScroll();
+          }}
+        >
+          {items.map(item => (
+            <ArchivePrimeCard
+              key={item.id || item.title}
+              {...item}
+              onExpand={() => onExpand(item)}
+              onHover={() => showPreview(item)}
+              expanded={hoveredKey === itemKey(item)}
+            />
+          ))}
+        </div>
+        {rowActive && canScroll && (
+          <button
+            type="button"
+            onClick={() => scrollRail(1)}
+            aria-label={`Next ${title}`}
+            className="archive-rail-arrow"
+            style={{
+              position: 'absolute',
+              right: -18,
+              top: 52,
+              zIndex: 24,
+              width: 42,
+              height: 64,
+              border: `1px solid ${T.lineB}`,
+              borderRadius: 4,
+              background: 'rgba(8,8,8,0.78)',
+              color: T.text,
+              fontSize: 30,
+              cursor: 'pointer',
+            }}
+          >
+            &rsaquo;
+          </button>
+        )}
+      </div>
+      <style jsx>{`
+        .archive-prime-strip::-webkit-scrollbar {
+          display: none;
+        }
+
+        .archive-rail-arrow:hover {
+          background: rgba(20, 20, 20, 0.94) !important;
+          border-color: rgba(255, 255, 255, 0.24) !important;
+        }
+      `}</style>
+    </section>
+  );
+}

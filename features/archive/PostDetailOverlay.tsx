@@ -50,6 +50,10 @@ const C = {
   accentDim: 'rgba(155,127,248,0.12)',
 }
 
+function hasRelatedProfile(item: ArchiveItem | RelatedArchiveItem): item is RelatedArchiveItem {
+  return 'profiles' in item
+}
+
 function renderInlineFormattedText(content: string, keyPrefix: string): ReactNode[] {
   const output: ReactNode[] = []
   const pattern = /(\[([^\]]+)\]\(([^)\s]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_|<u>(.*?)<\/u>)/g
@@ -929,7 +933,7 @@ export function PostDetailOverlay({
                       if (idx >= 0) {
                         setExternalSelection(null)
                         setCurrentIndex(idx)
-                      } else {
+                      } else if (hasRelatedProfile(morItem)) {
                         setExternalSelection(morItem)
                         setActionError('')
                       }

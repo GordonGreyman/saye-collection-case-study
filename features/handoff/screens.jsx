@@ -3,7 +3,7 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { ArchiveCard2, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
+import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
 import { upsertProfile } from '@/features/profiles/actions'
@@ -24,6 +24,14 @@ function archiveTitle(item) {
 
 function archiveDraftFromItem(item) {
   return draftFromArchiveEntry(item)
+}
+
+function archiveRowsFor(items) {
+  return [
+    { id: 'text', title: 'Texts', items: items.filter(item => item.type === 'text') },
+    { id: 'image', title: 'Images', items: items.filter(item => item.type === 'image') },
+    { id: 'link', title: 'Links', items: items.filter(item => item.type === 'link') },
+  ]
 }
 
 const ROLE_PROFILE_COPY = {
@@ -792,7 +800,6 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
 // --- ARCHIVE ---------------------------------------------------------------
 export function ArchiveScreen2({ navigate, items = [], userProfileId = null, profile = null, state = 'ready' }) {
   const router = useRouter();
-  const [typeFilter, setTypeFilter] = React.useState('all');
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [addOpen, setAddOpen] = React.useState(false);
   const [composerDraft, setComposerDraft] = React.useState(null);
@@ -837,7 +844,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
     }
   });
 
-  const filtered = typeFilter==='all' ? archiveItems : archiveItems.filter(p=>p.type===typeFilter);
+  const archiveRows = archiveRowsFor(archiveItems);
   const ctaLabel = isSignedOut ? 'Join to Build Archive' : isMissingProfile ? 'Complete Profile' : '+ Add to Archive';
   const isOwner = !isSignedOut && !isMissingProfile
   const onPrimaryAction = () => {
@@ -872,29 +879,19 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
         <Btn2 variant="ghost" onClick={onPrimaryAction}>{ctaLabel}</Btn2>
       </div>
 
-      {/* Type filter — text tabs style */}
-      <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.line}`, marginBottom:36 }}>
-        {[['all','All'],['image','Images'],['text','Texts'],['link','Links']].map(([id,lbl]) => (
-          <button key={id} onClick={() => setTypeFilter(id)}
-            style={{ padding:'10px 20px', background:'none', border:'none', borderBottom:`2px solid ${typeFilter===id ? T.artist : 'transparent'}`, marginBottom:-1, fontFamily:"'Space Grotesk',sans-serif", fontSize:14, fontWeight: typeFilter===id ? 600 : 400, color: typeFilter===id ? T.text : T.muted, cursor:'pointer', transition:'all 0.15s' }}>
-            {lbl}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length > 0 ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, gridAutoRows:'auto' }}>
-          {filtered.map((p, i) => (
-            <div key={p.id || p.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 60}ms` }}>
-              <ArchiveCard2
-                {...p}
-                itemId={p.id}
-                onExpand={() => {
-                  const raw = localItems.find(item => item.id === p.id)
-                  if (raw) setSelectedItem(raw)
-                }}
-              />
-            </div>
+      {/* Prime-style archive rails */}
+      {archiveItems.length > 0 ? (
+        <div>
+          {archiveRows.map(row => (
+            <ArchivePrimeRail
+              key={row.id}
+              title={row.title}
+              items={row.items}
+              onExpand={card => {
+                const raw = localItems.find(item => item.id === card.id)
+                if (raw) setSelectedItem(raw)
+              }}
+            />
           ))}
         </div>
       ) : (
@@ -921,7 +918,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
           <PostDetailOverlay
             key={selectedItem.id}
             item={selectedItem}
-            items={localItems.filter(item => typeFilter === 'all' || item.type === typeFilter)}
+            items={localItems}
             onClose={() => setSelectedItem(null)}
             isOwner={isOwner}
             onEditInComposer={isOwner ? editInArchiveComposer : undefined}
@@ -1003,6 +1000,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     }
   });
   const profileWork = localArchiveItems.length ? mappedArchiveItems : profile ? [] : work;
+  const profileRows = archiveRowsFor(profileWork);
   const initials = currentProfile.display_name?.charAt(0)?.toUpperCase() || 'S';
   const roleNoun = currentProfile.role === 'Curator'
     ? 'research note'
@@ -1117,19 +1115,17 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
             </div>
           )}
           {profileWork.length > 0 ? (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
-              {profileWork.map((w, i) => (
-                <div key={w.id || w.title} style={{ display:'flex', flexDirection:'column', animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 65}ms` }}>
-                  <ArchiveCard2
-                    {...w}
-                    itemId={w.id}
-                    isOwner={isOwner}
-                    onExpand={() => {
-                      const raw = localArchiveItems.find(item => item.id === w.id)
-                      if (raw) setSelectedArchiveItem(raw)
-                    }}
-                  />
-                </div>
+            <div>
+              {profileRows.map(row => (
+                <ArchivePrimeRail
+                  key={row.id}
+                  title={row.title}
+                  items={row.items}
+                  onExpand={card => {
+                    const raw = localArchiveItems.find(item => item.id === card.id)
+                    if (raw) setSelectedArchiveItem(raw)
+                  }}
+                />
               ))}
             </div>
           ) : (
