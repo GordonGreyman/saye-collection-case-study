@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect */
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
@@ -862,7 +862,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
       router.push('/build-profile')
       return
     }
-    router.push(userProfileId ? `/profile/${userProfileId}` : '/build-profile')
+    router.push(userProfileId ? `/profile/${userProfileId}?compose=1` : '/build-profile')
   };
 
   const editInArchiveComposer = (item) => {
@@ -870,6 +870,15 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
     setComposerEditTarget({ id: item.id, type: item.type })
     setComposerDraft(archiveDraftFromItem(item))
     setAddOpen(true)
+  }
+
+  const openRelatedArchiveItem = (item) => {
+    setSelectedItem(null)
+    if (userProfileId && item.profile_id === userProfileId) {
+      window.setTimeout(() => setSelectedItem(item), 140)
+      return
+    }
+    router.push(`/profile/${item.profile_id}?work=${item.id}`)
   }
 
   return (
@@ -928,6 +937,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
             onClose={() => setSelectedItem(null)}
             isOwner={isOwner}
             onEditInComposer={isOwner ? editInArchiveComposer : undefined}
+            onOpenRelated={openRelatedArchiveItem}
             profile={profile}
           />
         )}
@@ -959,6 +969,8 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
 // --- PROFILE ---------------------------------------------------------------
 export function ProfileScreen2({ navigate, profile = null, archiveItems = [], isOwner = false, viewerIsAuthenticated = false, suggestedProfiles = [] }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [tab, setTab] = React.useState('work');
   const [addOpen, setAddOpen] = React.useState(false);
   const [archiveError, setArchiveError] = React.useState('');
@@ -972,6 +984,23 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   React.useEffect(() => {
     setLocalArchiveItems(archiveItems)
   }, [archiveItems])
+
+  React.useEffect(() => {
+    const workId = searchParams.get('work')
+    if (!workId) return
+
+    const item = localArchiveItems.find(entry => entry.id === workId)
+    if (!item) return
+
+    const timer = window.setTimeout(() => {
+      setTab('work')
+      setArchiveError('')
+      setSelectedArchiveItem(item)
+      window.history.replaceState(null, '', pathname)
+    }, 260)
+
+    return () => window.clearTimeout(timer)
+  }, [localArchiveItems, pathname, searchParams])
 
   const work = [
     { type:'image', title:'Untitled (After the Rain)', authorRole:'Artist', date:'Apr 2026', hint:'photograph', author:'Amara Osei' },
@@ -1264,6 +1293,17 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setAddOpen(true)
   }
 
+  React.useEffect(() => {
+    if (!isOwner || searchParams.get('compose') !== '1') return
+
+    const timer = window.setTimeout(() => {
+      openArchiveComposer()
+      window.history.replaceState(null, '', pathname)
+    }, 260)
+
+    return () => window.clearTimeout(timer)
+  }, [isOwner, pathname, searchParams])
+
   const editInArchiveComposer = (item) => {
     setTab('work')
     setArchiveError('')
@@ -1271,6 +1311,19 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setComposerEditTarget({ id: item.id, type: item.type })
     setComposerDraft(archiveDraftFromItem(item))
     setAddOpen(true)
+  }
+
+  const openRelatedArchiveItem = (item) => {
+    setArchiveError('')
+    setSelectedArchiveItem(null)
+    if (item.profile_id === currentProfileId) {
+      window.setTimeout(() => {
+        setTab('work')
+        setSelectedArchiveItem(item)
+      }, 140)
+      return
+    }
+    router.push(`/profile/${item.profile_id}?work=${item.id}`)
   }
 
   return (
@@ -1498,6 +1551,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                 onClose={() => setSelectedArchiveItem(null)}
                 isOwner={isOwner}
                 onEditInComposer={isOwner ? editInArchiveComposer : undefined}
+                onOpenRelated={openRelatedArchiveItem}
                 profile={currentProfile}
               />
             )}

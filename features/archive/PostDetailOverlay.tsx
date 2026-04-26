@@ -39,6 +39,7 @@ interface PostDetailOverlayProps {
   onClose: () => void
   isOwner?: boolean
   onEditInComposer?: (item: ArchiveItem) => void
+  onOpenRelated?: (item: ArchiveItem) => void
   profile?: Profile | null
 }
 
@@ -346,6 +347,7 @@ export function PostDetailOverlay({
   onClose,
   isOwner = false,
   onEditInComposer,
+  onOpenRelated,
   profile,
 }: PostDetailOverlayProps) {
   const router = useRouter()
@@ -1168,6 +1170,10 @@ export function PostDetailOverlay({
                     key={morItem.id}
                     item={morItem}
                     onClick={() => {
+                      if (onOpenRelated) {
+                        onOpenRelated(morItem)
+                        return
+                      }
                       const idx = items.findIndex(i => i.id === morItem.id)
                       if (idx >= 0) {
                         setExternalSelection(null)
@@ -1229,6 +1235,10 @@ export function PostDetailOverlay({
                     item={rel}
                     authorName={rel.profiles?.display_name}
                     onClick={() => {
+                      if (onOpenRelated) {
+                        onOpenRelated(rel)
+                        return
+                      }
                       setActionError('')
                       setExternalSelection(rel)
                     }}
