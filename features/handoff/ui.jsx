@@ -608,11 +608,11 @@ export function ArchivePrimeRail({ title, items, onExpand }) {
   };
 
   return (
-    <section style={{ marginBottom: -116, position: 'relative' }}>
+    <section style={{ marginBottom: -226, position: 'relative' }}>
       <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 22, color: T.text, margin: '0 0 12px' }}>{title}</h2>
       <div
         ref={wrapperRef}
-        style={{ position: 'relative', height: 330, overflow: 'visible', overscrollBehaviorX: canScroll ? 'contain' : 'auto', touchAction: canScroll ? 'pan-x' : 'auto' }}
+        style={{ position: 'relative', height: 440, overflow: 'visible', overscrollBehaviorX: canScroll ? 'contain' : 'auto', touchAction: canScroll ? 'pan-x' : 'auto' }}
         onMouseEnter={() => setRowActive(true)}
         onMouseMove={event => {
           pointerRef.current = { x: event.clientX, y: event.clientY };
@@ -658,7 +658,7 @@ export function ArchivePrimeRail({ title, items, onExpand }) {
             overflowY: 'hidden',
             padding: '4px 28px 18px 0',
             scrollbarWidth: 'none',
-            height: 330,
+            height: 440,
             overscrollBehaviorX: canScroll ? 'contain' : 'auto',
           }}
           onScroll={() => {
