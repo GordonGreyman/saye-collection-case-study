@@ -1516,7 +1516,6 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
           padding:'80px 48px 48px',
           borderBottom:`1px solid ${T.line}`,
           position:'relative',
-          overflow:'hidden',
           background: heroBackground,
           cursor: isBannerRepositioning ? 'grab' : 'default',
           userSelect: isBannerRepositioning ? 'none' : 'auto',
@@ -1551,7 +1550,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
         {/* Left accent bar */}
         <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)`, pointerEvents:'none' }} />
 
-        <div style={{ display:'flex', alignItems:'flex-start', gap:24, flexWrap:'wrap', position:'relative', zIndex:1, border:`1px solid rgba(255,255,255,0.13)`, borderRadius:8, background:'rgba(8,8,8,0.48)', backdropFilter:'blur(12px)', boxShadow:'0 18px 44px rgba(0,0,0,0.26)', padding:'20px 24px', width:'fit-content', maxWidth:'100%' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:24, flexWrap:'wrap', position:'relative', zIndex: avatarPanelOpen ? 30 : 1, border:`1px solid rgba(255,255,255,0.13)`, borderRadius:8, background:'rgba(8,8,8,0.48)', backdropFilter:'blur(12px)', boxShadow:'0 18px 44px rgba(0,0,0,0.26)', padding:'20px 24px', width:'fit-content', maxWidth:'100%' }}>
           {/* Avatar */}
           <div style={{ position:'relative', flexShrink:0 }}>
             <div
