@@ -742,6 +742,7 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
     discipline: profile.discipline || 'Unspecified',
     location: profile.geography || 'Global',
     tags: profile.interests?.length ? profile.interests : [profile.role.toLowerCase()],
+    avatar_url: profile.avatar_url || null,
   })) : people;
 
   const q = search.trim().toLowerCase();
