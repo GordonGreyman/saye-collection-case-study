@@ -6,14 +6,15 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
-import { connectProfiles, disconnectProfiles, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
+import { connectProfiles, disconnectProfiles, saveProfileAvatar, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
+import { uploadAvatarImage } from '@/features/profiles/avatar'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS, PROFILE_BANNER_COLORS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { draftFromArchiveEntry, domainFromUrl, resolveArchiveEntry } from '@/features/archive/entry'
 import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
 import { ArchiveComposerOverlay } from '@/features/archive/ArchiveComposerOverlay'
 import { uploadArchiveImage } from '@/features/archive/upload'
-import { Image as ImageIcon, Move, X } from 'lucide-react'
+import { Camera, Image as ImageIcon, Move, X } from 'lucide-react'
 
 function formatArchiveDate(value) {
   if (!value) return ''
@@ -1019,6 +1020,15 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const bannerPanelPreviewRef = React.useRef(null);
   const bannerPanelDragRef = React.useRef(null);
 
+  const [localAvatarUrl, setLocalAvatarUrl] = React.useState(currentProfile.avatar_url ?? null);
+  const [avatarPanelOpen, setAvatarPanelOpen] = React.useState(false);
+  const [avatarFile, setAvatarFile] = React.useState(null);
+  const [avatarPreview, setAvatarPreview] = React.useState('');
+  const [avatarUrlInput, setAvatarUrlInput] = React.useState('');
+  const [avatarSaving, setAvatarSaving] = React.useState(false);
+  const [avatarError, setAvatarError] = React.useState('');
+  const [avatarHovering, setAvatarHovering] = React.useState(false);
+
   React.useEffect(() => {
     setLocalArchiveItems(archiveItems)
   }, [archiveItems])
@@ -1350,6 +1360,69 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     window.addEventListener('mouseup', onUp)
   }
 
+  const closeAvatarPanel = () => {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+    setAvatarFile(null)
+    setAvatarPreview('')
+    setAvatarUrlInput('')
+    setAvatarError('')
+    setAvatarPanelOpen(false)
+  }
+
+  const selectAvatarFile = file => {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+    setAvatarFile(file)
+    setAvatarPreview(file ? URL.createObjectURL(file) : '')
+    setAvatarUrlInput('')
+    setAvatarError('')
+  }
+
+  const saveAvatar = async () => {
+    setAvatarSaving(true)
+    setAvatarError('')
+
+    let url = null
+    if (avatarFile) {
+      const result = await uploadAvatarImage(avatarFile, currentProfile.id)
+      if ('error' in result) {
+        setAvatarSaving(false)
+        setAvatarError(result.error)
+        return
+      }
+      url = result.url
+    } else if (avatarUrlInput.trim()) {
+      url = avatarUrlInput.trim()
+    } else {
+      setAvatarSaving(false)
+      setAvatarError('Upload a photo or paste a URL first.')
+      return
+    }
+
+    const result = await saveProfileAvatar(url)
+    setAvatarSaving(false)
+    if ('error' in result) {
+      setAvatarError(result.error)
+      return
+    }
+    setLocalAvatarUrl(url)
+    closeAvatarPanel()
+    router.refresh()
+  }
+
+  const removeAvatar = async () => {
+    setAvatarSaving(true)
+    setAvatarError('')
+    const result = await saveProfileAvatar(null)
+    setAvatarSaving(false)
+    if ('error' in result) {
+      setAvatarError(result.error)
+      return
+    }
+    setLocalAvatarUrl(null)
+    closeAvatarPanel()
+    router.refresh()
+  }
+
   const refreshLocalProfileArchiveItems = React.useCallback(async () => {
     if (!currentProfileId) return
     const supabase = createClient()
@@ -1478,7 +1551,60 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
         <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)`, pointerEvents:'none' }} />
 
         <div style={{ display:'flex', alignItems:'flex-start', gap:24, flexWrap:'wrap', position:'relative', zIndex:1, border:`1px solid rgba(255,255,255,0.13)`, borderRadius:8, background:'rgba(8,8,8,0.48)', backdropFilter:'blur(12px)', boxShadow:'0 18px 44px rgba(0,0,0,0.26)', padding:'20px 24px', width:'fit-content', maxWidth:'100%' }}>
-          <div style={{ width:80, height:80, borderRadius:'50%', background:T.artistDim, border:`2px solid ${T.artist}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:28, color:T.artist, flexShrink:0 }}>{initials}</div>
+          {/* Avatar */}
+          <div style={{ position:'relative', flexShrink:0 }}>
+            <div
+              onClick={isOwner ? () => setAvatarPanelOpen(o => !o) : undefined}
+              onMouseEnter={isOwner ? () => setAvatarHovering(true) : undefined}
+              onMouseLeave={isOwner ? () => setAvatarHovering(false) : undefined}
+              style={{ width:80, height:80, borderRadius:'50%', background:T.artistDim, border:`2px solid ${T.artist}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:28, color:T.artist, flexShrink:0, overflow:'hidden', cursor:isOwner ? 'pointer' : 'default', position:'relative' }}
+            >
+              {localAvatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={localAvatarUrl} alt={currentProfile.display_name} draggable={false} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+              ) : initials}
+              {isOwner && avatarHovering && (
+                <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'50%' }}>
+                  <Camera size={20} color="#fff" />
+                </div>
+              )}
+            </div>
+
+            {isOwner && avatarPanelOpen && (
+              <div style={{ position:'absolute', top:88, left:0, zIndex:10, minWidth:260, border:`1px solid ${T.line}`, borderRadius:8, background:'rgba(12,12,12,0.96)', backdropFilter:'blur(10px)', padding:14, boxShadow:'0 12px 36px rgba(0,0,0,0.5)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <Label size={12} color={T.artist} tracking="0.14em">Profile photo</Label>
+                  <button onClick={closeAvatarPanel} style={{ width:24, height:24, borderRadius:'50%', border:`1px solid ${T.line}`, background:'transparent', color:T.muted, display:'inline-flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><X size={11} /></button>
+                </div>
+
+                {(avatarPreview || localAvatarUrl) && (
+                  <div style={{ width:64, height:64, borderRadius:'50%', overflow:'hidden', border:`2px solid ${T.artist}`, marginBottom:12 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={avatarPreview || localAvatarUrl} alt="Preview" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                  </div>
+                )}
+
+                <label style={{ display:'inline-flex', alignItems:'center', gap:6, background:'transparent', border:`1px solid ${T.line}`, borderRadius:4, color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'7px 11px', cursor:'pointer', marginBottom:10 }}>
+                  <Camera size={13} /> Upload photo
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => selectAvatarFile(e.target.files?.[0] ?? null)} style={{ display:'none' }} />
+                </label>
+
+                <input
+                  placeholder="…or paste an image URL"
+                  value={avatarUrlInput}
+                  onChange={e => { setAvatarUrlInput(e.target.value); if (avatarFile) { setAvatarFile(null); setAvatarPreview('') } }}
+                  style={{ width:'100%', boxSizing:'border-box', background:T.bg2, border:`1px solid ${T.line}`, borderRadius:3, padding:'7px 10px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, outline:'none', marginBottom:10 }}
+                />
+
+                {avatarError && <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171', marginBottom:8 }}>{avatarError}</div>}
+
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  <button onClick={saveAvatar} disabled={avatarSaving} style={{ background:T.artist, border:'none', borderRadius:4, color:T.bg, fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:13, padding:'7px 14px', cursor:avatarSaving ? 'not-allowed' : 'pointer' }}>{avatarSaving ? 'Saving...' : 'Save photo'}</button>
+                  {localAvatarUrl && <button onClick={removeAvatar} disabled={avatarSaving} style={{ background:'transparent', border:`1px solid ${T.line}`, borderRadius:4, color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'7px 12px', cursor:avatarSaving ? 'not-allowed' : 'pointer' }}>Remove</button>}
+                </div>
+              </div>
+            )}
+          </div>
           <div style={{ flex:1, minWidth:280 }}>
             <div style={{ marginBottom:12 }}><RoleBadge role={currentProfile.role} size={13} /></div>
             <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5vw,64px)', color:T.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1 }}>{currentProfile.display_name}</h1>

@@ -109,6 +109,29 @@ export async function saveProfileBanner(input: ProfileBannerInput): Promise<Acti
   return { success: true }
 }
 
+export async function saveProfileAvatar(avatarUrl: string | null): Promise<ActionResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const normalized = avatarUrl ? normalizeHttpUrl(avatarUrl) : null
+  if (avatarUrl && !isLikelyHttpUrl(normalized!)) {
+    return { error: 'Invalid avatar image URL.' }
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ avatar_url: normalized })
+    .eq('id', user.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/profile/${user.id}`)
+  return { success: true }
+}
+
 export async function connectProfiles(targetProfileId: string): Promise<ActionResult> {
   const supabase = await createClient()
   const {
