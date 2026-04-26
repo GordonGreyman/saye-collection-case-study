@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
-import { saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
+import { connectProfiles, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS, PROFILE_BANNER_COLORS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { draftFromArchiveEntry, domainFromUrl, resolveArchiveEntry } from '@/features/archive/entry'
@@ -811,6 +811,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
   const [composerDraft, setComposerDraft] = React.useState(null);
   const [composerEditTarget, setComposerEditTarget] = React.useState(null);
   const [localItems, setLocalItems] = React.useState(items);
+  const [overlayFullscreen, setOverlayFullscreen] = React.useState(false);
 
   React.useEffect(() => {
     setLocalItems(items)
@@ -872,13 +873,14 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
     setAddOpen(true)
   }
 
-  const openRelatedArchiveItem = (item) => {
+  const openRelatedArchiveItem = (item, options = { fullscreen: false }) => {
     setSelectedItem(null)
     if (userProfileId && item.profile_id === userProfileId) {
+      setOverlayFullscreen(options.fullscreen)
       window.setTimeout(() => setSelectedItem(item), 140)
       return
     }
-    router.push(`/profile/${item.profile_id}?work=${item.id}`)
+    router.push(`/profile/${item.profile_id}?work=${item.id}${options.fullscreen ? '&view=full' : ''}`)
   }
 
   return (
@@ -938,6 +940,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
             isOwner={isOwner}
             onEditInComposer={isOwner ? editInArchiveComposer : undefined}
             onOpenRelated={openRelatedArchiveItem}
+            initialFullscreen={overlayFullscreen}
             profile={profile}
           />
         )}
@@ -967,7 +970,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
 }
 
 // --- PROFILE ---------------------------------------------------------------
-export function ProfileScreen2({ navigate, profile = null, archiveItems = [], isOwner = false, viewerIsAuthenticated = false, suggestedProfiles = [] }) {
+export function ProfileScreen2({ navigate, profile = null, archiveItems = [], isOwner = false, viewerIsAuthenticated = false, isConnected = false, connectedProfiles = [], suggestedProfiles = [] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -978,6 +981,9 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const [composerDraft, setComposerDraft] = React.useState(null);
   const [composerEditTarget, setComposerEditTarget] = React.useState(null);
   const [localArchiveItems, setLocalArchiveItems] = React.useState(archiveItems);
+  const [connected, setConnected] = React.useState(isConnected);
+  const [connectionSaving, setConnectionSaving] = React.useState(false);
+  const [overlayFullscreen, setOverlayFullscreen] = React.useState(false);
   const bannerRef = React.useRef(null);
   const bannerDragRef = React.useRef(null);
 
@@ -995,6 +1001,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     const timer = window.setTimeout(() => {
       setTab('work')
       setArchiveError('')
+      setOverlayFullscreen(searchParams.get('view') === 'full')
       setSelectedArchiveItem(item)
       window.history.replaceState(null, '', pathname)
     }, 260)
@@ -1022,6 +1029,10 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     banner_position_y: null,
   };
   const currentProfileId = currentProfile.id
+  React.useEffect(() => {
+    setConnected(isConnected)
+  }, [isConnected, currentProfileId])
+
   const [profileBanner, setProfileBanner] = React.useState(() => ({
     color: currentProfile.banner_color ?? null,
     imageUrl: currentProfile.banner_image_url ?? null,
@@ -1313,17 +1324,37 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setAddOpen(true)
   }
 
-  const openRelatedArchiveItem = (item) => {
+  const openRelatedArchiveItem = (item, options = { fullscreen: false }) => {
     setArchiveError('')
     setSelectedArchiveItem(null)
     if (item.profile_id === currentProfileId) {
+      setOverlayFullscreen(options.fullscreen)
       window.setTimeout(() => {
         setTab('work')
         setSelectedArchiveItem(item)
       }, 140)
       return
     }
-    router.push(`/profile/${item.profile_id}?work=${item.id}`)
+    router.push(`/profile/${item.profile_id}?work=${item.id}${options.fullscreen ? '&view=full' : ''}`)
+  }
+
+  const connectToProfile = async () => {
+    if (!viewerIsAuthenticated) {
+      router.push(`/login?next=/profile/${currentProfile.id}`)
+      return
+    }
+    if (connected || connectionSaving) return
+
+    setConnectionSaving(true)
+    setArchiveError('')
+    const result = await connectProfiles(currentProfile.id)
+    setConnectionSaving(false)
+    if ('error' in result) {
+      setArchiveError(result.error)
+      return
+    }
+    setConnected(true)
+    router.refresh()
   }
 
   return (
@@ -1381,7 +1412,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
           <div style={{ display:'flex', gap:10, alignItems:'flex-start', padding:8, flexWrap:'wrap', border:`1px solid rgba(255,255,255,0.1)`, borderRadius:6, background:'rgba(0,0,0,0.24)' }}>
             {isOwner ? <Btn2 variant="outline" onClick={() => router.push('/build-profile')}>Edit Profile</Btn2> : <Btn2 variant="outline" onClick={() => navigator.clipboard?.writeText(window.location.href)}>Copy Link</Btn2>}
             {isOwner && <Btn2 variant="outline" onClick={openBannerPanel}>{heroHasBanner ? 'Edit Banner' : 'Add Banner'}</Btn2>}
-            {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 onClick={() => viewerIsAuthenticated ? router.push('/discover') : router.push(`/login?next=/profile/${currentProfile.id}`)}>{viewerIsAuthenticated ? 'Discover More ->' : 'Join to Connect ->'}</Btn2>}
+            {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 onClick={connectToProfile}>{connected ? 'You are connected' : connectionSaving ? 'Connecting...' : viewerIsAuthenticated ? 'Connect' : 'Join to Connect ->'}</Btn2>}
           </div>
         </div>
 
@@ -1552,6 +1583,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                 isOwner={isOwner}
                 onEditInComposer={isOwner ? editInArchiveComposer : undefined}
                 onOpenRelated={openRelatedArchiveItem}
+                initialFullscreen={overlayFullscreen}
                 profile={currentProfile}
               />
             )}
@@ -1573,7 +1605,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
           </div>
         )}
         {tab==='connections' && (() => {
-          const toShow = suggestedProfiles.length ? suggestedProfiles : connectionSuggestions
+          const toShow = connectedProfiles.length ? connectedProfiles : suggestedProfiles.length ? suggestedProfiles : connectionSuggestions
           if (toShow.length === 0) {
             return (
               <div style={{ padding:'72px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>

@@ -3,7 +3,7 @@ import { SayeShell } from '@/features/handoff/shell'
 import { getArchiveItems, getProfile } from '@/features/archive/queries'
 import { createClient } from '@/lib/supabase/server'
 import { getHandoffNavState } from '@/features/handoff/server'
-import { getSuggestedProfiles } from '@/features/profiles/queries'
+import { areProfilesConnected, getConnectedProfiles, getSuggestedProfiles } from '@/features/profiles/queries'
 import { getMockPersonaById, getSuggestedMockPersonas } from '@/features/discover/mockPersonas'
 import { getMockArchiveItemsForProfile } from '@/features/discover/mockArchiveItems'
 
@@ -53,6 +53,8 @@ export default async function ProfilePage({
           archiveItems: getMockArchiveItemsForProfile(mockPersona?.id ?? id),
           isOwner: false,
           viewerIsAuthenticated: Boolean(userResult.data.user),
+          isConnected: false,
+          connectedProfiles: [],
           suggestedProfiles,
         }}
       />
@@ -72,7 +74,11 @@ export default async function ProfilePage({
 
   const isOwner = userResult.data.user?.id === profile.id
   const viewerIsAuthenticated = Boolean(userResult.data.user)
-  const suggestedProfiles = await getSuggestedProfiles(profile.id, profile.interests ?? [])
+  const [suggestedProfiles, connectedProfiles, isConnected] = await Promise.all([
+    getSuggestedProfiles(profile.id, profile.interests ?? []),
+    getConnectedProfiles(profile.id),
+    areProfilesConnected(userResult.data.user?.id, profile.id),
+  ])
 
   return (
     <SayeShell
@@ -83,6 +89,8 @@ export default async function ProfilePage({
         archiveItems,
         isOwner,
         viewerIsAuthenticated,
+        isConnected,
+        connectedProfiles,
         suggestedProfiles,
       }}
     />

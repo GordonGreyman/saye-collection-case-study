@@ -39,7 +39,8 @@ interface PostDetailOverlayProps {
   onClose: () => void
   isOwner?: boolean
   onEditInComposer?: (item: ArchiveItem) => void
-  onOpenRelated?: (item: ArchiveItem) => void
+  onOpenRelated?: (item: ArchiveItem, options: { fullscreen: boolean }) => void
+  initialFullscreen?: boolean
   profile?: Profile | null
 }
 
@@ -348,6 +349,7 @@ export function PostDetailOverlay({
   isOwner = false,
   onEditInComposer,
   onOpenRelated,
+  initialFullscreen = false,
   profile,
 }: PostDetailOverlayProps) {
   const router = useRouter()
@@ -355,7 +357,7 @@ export function PostDetailOverlay({
     Math.max(0, items.findIndex(i => i.id === initialItem.id)),
   )
   const [saving, setSaving] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen)
   const [actionError, setActionError] = useState('')
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [profileHeaderVisible, setProfileHeaderVisible] = useState(true)
@@ -696,7 +698,7 @@ export function PostDetailOverlay({
           style={{
             position: 'absolute',
             top: 14,
-            right: 14,
+            right: 34,
             zIndex: 30,
             display: 'flex',
             gap: 8,
@@ -1171,7 +1173,7 @@ export function PostDetailOverlay({
                     item={morItem}
                     onClick={() => {
                       if (onOpenRelated) {
-                        onOpenRelated(morItem)
+                        onOpenRelated(morItem, { fullscreen: isFullscreen })
                         return
                       }
                       const idx = items.findIndex(i => i.id === morItem.id)
@@ -1236,7 +1238,7 @@ export function PostDetailOverlay({
                     authorName={rel.profiles?.display_name}
                     onClick={() => {
                       if (onOpenRelated) {
-                        onOpenRelated(rel)
+                        onOpenRelated(rel, { fullscreen: isFullscreen })
                         return
                       }
                       setActionError('')

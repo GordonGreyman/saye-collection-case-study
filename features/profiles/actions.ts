@@ -108,3 +108,51 @@ export async function saveProfileBanner(input: ProfileBannerInput): Promise<Acti
   revalidatePath(`/profile/${user.id}`)
   return { success: true }
 }
+
+export async function connectProfiles(targetProfileId: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Unauthorized' }
+  }
+
+  if (!targetProfileId || targetProfileId === user.id) {
+    return { error: 'Choose another profile to connect with.' }
+  }
+
+  const { data: targetProfile, error: targetError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', targetProfileId)
+    .maybeSingle()
+
+  if (targetError) {
+    return { error: targetError.message }
+  }
+  if (!targetProfile) {
+    return { error: 'Profile not found.' }
+  }
+
+  const [profileAId, profileBId] = [user.id, targetProfileId].sort()
+  const { error } = await supabase
+    .from('profile_connections')
+    .upsert(
+      {
+        profile_a_id: profileAId,
+        profile_b_id: profileBId,
+        created_by: user.id,
+      },
+      { onConflict: 'profile_a_id,profile_b_id' },
+    )
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/profile/${user.id}`)
+  revalidatePath(`/profile/${targetProfileId}`)
+  return { success: true }
+}
