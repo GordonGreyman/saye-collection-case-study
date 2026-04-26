@@ -1020,14 +1020,6 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const bannerPanelPreviewRef = React.useRef(null);
   const bannerPanelDragRef = React.useRef(null);
 
-  const [localAvatarUrl, setLocalAvatarUrl] = React.useState(currentProfile.avatar_url ?? null);
-  const [avatarPanelOpen, setAvatarPanelOpen] = React.useState(false);
-  const [avatarFile, setAvatarFile] = React.useState(null);
-  const [avatarPreview, setAvatarPreview] = React.useState('');
-  const [avatarUrlInput, setAvatarUrlInput] = React.useState('');
-  const [avatarSaving, setAvatarSaving] = React.useState(false);
-  const [avatarError, setAvatarError] = React.useState('');
-  const [avatarHovering, setAvatarHovering] = React.useState(false);
 
   React.useEffect(() => {
     setLocalArchiveItems(archiveItems)
@@ -1074,6 +1066,15 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   React.useEffect(() => {
     setConnected(isConnected)
   }, [isConnected, currentProfileId])
+
+  const [localAvatarUrl, setLocalAvatarUrl] = React.useState(() => currentProfile.avatar_url ?? null);
+  const [avatarPanelOpen, setAvatarPanelOpen] = React.useState(false);
+  const [avatarFile, setAvatarFile] = React.useState(null);
+  const [avatarPreview, setAvatarPreview] = React.useState('');
+  const [avatarUrlInput, setAvatarUrlInput] = React.useState('');
+  const [avatarSaving, setAvatarSaving] = React.useState(false);
+  const [avatarError, setAvatarError] = React.useState('');
+  const [avatarHovering, setAvatarHovering] = React.useState(false);
 
   const [profileBanner, setProfileBanner] = React.useState(() => ({
     color: currentProfile.banner_color ?? null,
