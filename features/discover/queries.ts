@@ -100,6 +100,7 @@ export async function getProfiles(filters: DiscoverFilters): Promise<DiscoverPro
     geography: persona.geography,
     discipline: persona.discipline,
     interests: persona.interests,
+    avatar_url: null,
   }))
 
   const baseProfiles = (data ?? []) as DiscoverProfile[]
