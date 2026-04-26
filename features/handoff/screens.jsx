@@ -1016,6 +1016,8 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const [overlayFullscreen, setOverlayFullscreen] = React.useState(false);
   const bannerRef = React.useRef(null);
   const bannerDragRef = React.useRef(null);
+  const bannerPanelPreviewRef = React.useRef(null);
+  const bannerPanelDragRef = React.useRef(null);
 
   React.useEffect(() => {
     setLocalArchiveItems(archiveItems)
@@ -1074,6 +1076,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const [draftBannerColor, setDraftBannerColor] = React.useState(currentProfile.banner_color ?? PROFILE_BANNER_COLORS[0].value)
   const [bannerFile, setBannerFile] = React.useState(null)
   const [bannerPreview, setBannerPreview] = React.useState('')
+  const [bannerUrlInput, setBannerUrlInput] = React.useState('')
   const [bannerError, setBannerError] = React.useState('')
   const [bannerSaving, setBannerSaving] = React.useState(false)
   const [isBannerRepositioning, setIsBannerRepositioning] = React.useState(false)
@@ -1165,6 +1168,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     if (bannerPreview) URL.revokeObjectURL(bannerPreview)
     setBannerPreview('')
     setBannerFile(null)
+    setBannerUrlInput('')
     setBannerMode(profileBanner.imageUrl ? 'image' : profileBanner.color ? 'color' : 'none')
     setDraftBannerColor(profileBanner.color ?? PROFILE_BANNER_COLORS[0].value)
     setBannerError('')
@@ -1208,10 +1212,12 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
         return
       }
       imageUrl = result.url
+    } else if (bannerMode === 'image' && bannerUrlInput.trim()) {
+      imageUrl = bannerUrlInput.trim()
     }
     if (bannerMode === 'image' && !imageUrl) {
       setBannerSaving(false)
-      setBannerError('Upload a banner photo first.')
+      setBannerError('Upload a banner photo or paste a URL first.')
       return
     }
 
@@ -1246,6 +1252,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     if (bannerPreview) URL.revokeObjectURL(bannerPreview)
     setBannerPreview('')
     setBannerFile(null)
+    setBannerUrlInput('')
     setProfileBanner({
       color: payload.banner_color,
       imageUrl: payload.banner_image_url,
@@ -1308,6 +1315,34 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     }
     const onUp = () => {
       bannerDragRef.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
+  const startPanelBannerDrag = e => {
+    if (!isBannerRepositioning) return
+    e.preventDefault()
+    bannerPanelDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: draftBannerPosition.x,
+      startPosY: draftBannerPosition.y,
+    }
+    const onMove = ev => {
+      if (!bannerPanelDragRef.current || !bannerPanelPreviewRef.current) return
+      const rect = bannerPanelPreviewRef.current.getBoundingClientRect()
+      const dx = ((ev.clientX - bannerPanelDragRef.current.startX) / rect.width) * 100
+      const dy = ((ev.clientY - bannerPanelDragRef.current.startY) / rect.height) * 100
+      setDraftBannerPosition({
+        x: Math.max(0, Math.min(100, bannerPanelDragRef.current.startPosX - dx)),
+        y: Math.max(0, Math.min(100, bannerPanelDragRef.current.startPosY - dy)),
+      })
+    }
+    const onUp = () => {
+      bannerPanelDragRef.current = null
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
@@ -1478,7 +1513,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={e => selectBannerFile(e.target.files?.[0] ?? null)}
+                  onChange={e => { selectBannerFile(e.target.files?.[0] ?? null); setBannerUrlInput('') }}
                   style={{ display:'none' }}
                 />
               </label>
@@ -1508,14 +1543,41 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
               ))}
             </div>
 
+            {bannerMode === 'image' && (
+              <div style={{ marginBottom: 14 }}>
+                <input
+                  placeholder="…or paste an image URL"
+                  value={bannerUrlInput}
+                  onChange={e => {
+                    const val = e.target.value
+                    setBannerUrlInput(val)
+                    if (bannerFile) { setBannerFile(null); setBannerPreview('') }
+                    if (val.trim()) { setBannerPreview(val.trim()); setBannerMode('image') }
+                    else { setBannerPreview('') }
+                  }}
+                  style={{ width:'100%', boxSizing:'border-box', background:T.bg2, border:`1px solid ${T.line}`, borderRadius:3, padding:'8px 12px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, outline:'none' }}
+                />
+              </div>
+            )}
+
             {bannerMode === 'image' && (bannerPreview || profileBanner.imageUrl) && (
-              <div style={{ position:'relative', height:150, borderRadius:6, overflow:'hidden', border:`1px solid ${T.line}`, marginBottom:16, background:'#080808' }}>
+              <div
+                ref={bannerPanelPreviewRef}
+                onMouseDown={isBannerRepositioning ? startPanelBannerDrag : undefined}
+                style={{ position:'relative', height:150, borderRadius:6, overflow:'hidden', border:`1px solid ${T.line}`, marginBottom:16, background:'#080808', cursor: isBannerRepositioning ? 'grab' : 'default', userSelect: isBannerRepositioning ? 'none' : 'auto' }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={bannerPreview || profileBanner.imageUrl}
                   alt="Banner preview"
-                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:`${profileBanner.x}% ${profileBanner.y}%`, display:'block' }}
+                  draggable={false}
+                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:`${isBannerRepositioning ? draftBannerPosition.x : profileBanner.x}% ${isBannerRepositioning ? draftBannerPosition.y : profileBanner.y}%`, display:'block', pointerEvents:'none', transition: isBannerRepositioning ? 'none' : 'object-position 0.22s ease' }}
                 />
+                {isBannerRepositioning && (
+                  <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
+                    <span style={{ background:'rgba(0,0,0,0.6)', color:'#fff', fontFamily:"'Space Grotesk',sans-serif", fontSize:12, padding:'5px 12px', borderRadius:4, backdropFilter:'blur(4px)' }}>Drag to reposition</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1523,8 +1585,8 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
 
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
               <button onClick={saveBannerSettings} disabled={bannerSaving} style={{ background:T.artist, border:'none', borderRadius:4, color:T.bg, fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:13, padding:'9px 18px', cursor:bannerSaving ? 'not-allowed' : 'pointer' }}>{bannerSaving ? 'Saving...' : 'Save banner'}</button>
-              {profileBanner.imageUrl && bannerMode === 'image' && (
-                <button onClick={beginBannerReposition} disabled={bannerSaving} style={{ display:'inline-flex', alignItems:'center', gap:7, background:'transparent', border:`1px solid ${T.line}`, borderRadius:4, color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'9px 14px', cursor:'pointer' }}><Move size={14} /> Reposition photo</button>
+              {bannerMode === 'image' && (bannerPreview || profileBanner.imageUrl) && (
+                <button onClick={() => { setDraftBannerPosition({ x: profileBanner.x, y: profileBanner.y }); setIsBannerRepositioning(true) }} disabled={bannerSaving} style={{ display:'inline-flex', alignItems:'center', gap:7, background: isBannerRepositioning ? T.artistDim : 'transparent', border:`1px solid ${isBannerRepositioning ? T.artist : T.line}`, borderRadius:4, color: isBannerRepositioning ? T.artist : T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'9px 14px', cursor:'pointer' }}><Move size={14} /> {isBannerRepositioning ? 'Repositioning…' : 'Reposition photo'}</button>
               )}
             </div>
           </div>
@@ -1555,7 +1617,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
         )}
 
         {/* Stats */}
-        <div style={{ display:'flex', gap:12, marginTop:40, borderTop:`1px solid rgba(255,255,255,0.12)`, paddingTop:24, flexWrap:'wrap', position:'relative', zIndex:1 }}>
+        <div style={{ display:'flex', gap:12, marginTop:40, flexWrap:'wrap', position:'relative', zIndex:1 }}>
           {stats.map(([n,l],i) => (
             <div key={l} style={{ minWidth:112, padding:'12px 16px', border:`1px solid rgba(255,255,255,0.13)`, borderRadius:6, background:'rgba(8,8,8,0.56)', backdropFilter:'blur(10px)', boxShadow:'0 12px 30px rgba(0,0,0,0.24)' }}>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:24, color:T.text, lineHeight:1 }}>{n}</div>
@@ -1625,6 +1687,10 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                 onOpenRelated={openRelatedArchiveItem}
                 initialFullscreen={overlayFullscreen}
                 profile={currentProfile}
+                onItemUpdate={updatedItem => {
+                  setLocalArchiveItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))
+                  setSelectedArchiveItem(updatedItem)
+                }}
               />
             )}
           </AnimatePresence>

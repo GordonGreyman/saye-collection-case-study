@@ -29,6 +29,9 @@ function toArchiveWritePayload(input: ArchiveEntryInput) {
   if (input.thumbnail && isLikelyHttpUrl(normalizeHttpUrl(input.thumbnail))) {
     json.thumbnail = normalizeHttpUrl(input.thumbnail)
   }
+  if (input.thumbnailPosition) {
+    json.thumbnailPosition = input.thumbnailPosition
+  }
 
   return {
     payload: {

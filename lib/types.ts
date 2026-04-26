@@ -37,4 +37,5 @@ export type ArchiveItem = {
 export type ArchiveEntryInput = {
   canvas?: ArchiveCanvasBlock[]
   thumbnail?: string
+  thumbnailPosition?: { x: number; y: number }
 }

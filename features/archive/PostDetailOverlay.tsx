@@ -40,6 +40,7 @@ interface PostDetailOverlayProps {
   isOwner?: boolean
   onEditInComposer?: (item: ArchiveItem) => void
   onOpenRelated?: (item: ArchiveItem, options: { fullscreen: boolean }) => void
+  onItemUpdate?: (item: ArchiveItem) => void
   initialFullscreen?: boolean
   profile?: Profile | null
 }
@@ -349,6 +350,7 @@ export function PostDetailOverlay({
   isOwner = false,
   onEditInComposer,
   onOpenRelated,
+  onItemUpdate,
   initialFullscreen = false,
   profile,
 }: PostDetailOverlayProps) {
@@ -449,7 +451,13 @@ export function PostDetailOverlay({
     }
     setThumbPos(draftPos)
     setIsRepositioning(false)
-  }, [item.id, item.content, draftPos])
+    // Update the parent immediately so reopening the overlay shows the new position
+    try {
+      const patched = JSON.parse(item.content) as Record<string, unknown>
+      patched.thumbnailPosition = draftPos
+      onItemUpdate?.({ ...item, content: JSON.stringify(patched) })
+    } catch {}
+  }, [item, draftPos, onItemUpdate])
 
   const handleRepoCancel = useCallback(() => {
     setDraftPos(thumbPos)

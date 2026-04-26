@@ -10,6 +10,7 @@ import {
   Link2,
   LinkIcon,
   ListIcon,
+  Move,
   Pilcrow,
   Type,
   UnderlineIcon,
@@ -421,6 +422,10 @@ export function ArchiveComposerOverlay({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailContent, setThumbnailContent] = useState('')
   const [thumbnailPreview, setThumbnailPreview] = useState('')
+  const [thumbPos, setThumbPos] = useState({ x: 50, y: 50 })
+  const [isThumbRepositioning, setIsThumbRepositioning] = useState(false)
+  const thumbPreviewRef = useRef<HTMLDivElement>(null)
+  const thumbDragState = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null)
   const [blocks, setBlocks] = useState<CanvasBlockDraft[]>([newBlock('text')])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -612,6 +617,28 @@ export function ArchiveComposerOverlay({
     })
   }
 
+  const handleThumbDragStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    thumbDragState.current = { startX: e.clientX, startY: e.clientY, startPosX: thumbPos.x, startPosY: thumbPos.y }
+    const onMove = (ev: MouseEvent) => {
+      if (!thumbDragState.current || !thumbPreviewRef.current) return
+      const rect = thumbPreviewRef.current.getBoundingClientRect()
+      const dx = ((ev.clientX - thumbDragState.current.startX) / rect.width) * 100
+      const dy = ((ev.clientY - thumbDragState.current.startY) / rect.height) * 100
+      setThumbPos({
+        x: Math.max(0, Math.min(100, thumbDragState.current.startPosX - dx)),
+        y: Math.max(0, Math.min(100, thumbDragState.current.startPosY - dy)),
+      })
+    }
+    const onUp = () => {
+      thumbDragState.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
   const save = async () => {
     setSaving(true)
     setError('')
@@ -691,8 +718,8 @@ export function ArchiveComposerOverlay({
       : undefined
 
     const result = editTarget
-      ? await updateArchiveItemClient(editTarget.id, { canvas, thumbnail: thumbnailArg })
-      : await addArchiveItemClient({ canvas, thumbnail: thumbnailArg })
+      ? await updateArchiveItemClient(editTarget.id, { canvas, thumbnail: thumbnailArg, thumbnailPosition: thumbPos })
+      : await addArchiveItemClient({ canvas, thumbnail: thumbnailArg, thumbnailPosition: thumbPos })
 
     if ('error' in result) {
       setSaving(false)
@@ -811,25 +838,44 @@ export function ArchiveComposerOverlay({
                     COVER IMAGE
                   </div>
                   {(thumbnailPreview || (thumbnailContent && isLikelyHttpUrl(normalizeHttpUrl(thumbnailContent)))) ? (
-                    <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0d0d0d', marginBottom: 8, width: '100%', aspectRatio: '21 / 7' }}>
+                    <div
+                      ref={thumbPreviewRef}
+                      onMouseDown={isThumbRepositioning ? handleThumbDragStart : undefined}
+                      style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0d0d0d', marginBottom: 8, width: '100%', aspectRatio: '21 / 7', cursor: isThumbRepositioning ? 'grab' : 'default', userSelect: isThumbRepositioning ? 'none' : 'auto' }}
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={thumbnailPreview || normalizeHttpUrl(thumbnailContent)}
                         alt="Cover"
-                        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+                        draggable={false}
+                        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${thumbPos.x}% ${thumbPos.y}%`, pointerEvents: 'none', transition: isThumbRepositioning ? 'none' : 'object-position 0.2s ease' }}
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
-                          setThumbnailFile(null)
-                          setThumbnailContent('')
-                          setThumbnailPreview('')
-                        }}
-                        style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(8,8,8,0.74)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 4, color: '#f87171', padding: '5px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Mono',monospace", fontSize: 10 }}
-                      >
-                        <X size={10} /> Remove
-                      </button>
+                      {isThumbRepositioning && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                          <span style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', fontFamily: "'Space Grotesk',sans-serif", fontSize: 11, padding: '4px 10px', borderRadius: 3, backdropFilter: 'blur(4px)' }}>Drag to reposition</span>
+                        </div>
+                      )}
+                      <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6 }}>
+                        {!isThumbRepositioning && (
+                          <button type="button" onClick={() => setIsThumbRepositioning(true)}
+                            style={{ background: 'rgba(8,8,8,0.74)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 4, color: '#b6b6b6', padding: '5px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
+                            <Move size={10} /> Reposition
+                          </button>
+                        )}
+                        {isThumbRepositioning && (
+                          <button type="button" onClick={() => setIsThumbRepositioning(false)}
+                            style={{ background: 'rgba(8,8,8,0.74)', border: '1px solid rgba(155,127,248,0.4)', borderRadius: 4, color: '#9b7ff8', padding: '5px 8px', cursor: 'pointer', fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
+                            Done
+                          </button>
+                        )}
+                        {!isThumbRepositioning && (
+                          <button type="button"
+                            onClick={() => { if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview); setThumbnailFile(null); setThumbnailContent(''); setThumbnailPreview(''); setThumbPos({ x: 50, y: 50 }) }}
+                            style={{ background: 'rgba(8,8,8,0.74)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 4, color: '#f87171', padding: '5px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Mono',monospace", fontSize: 10 }}>
+                            <X size={10} /> Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
