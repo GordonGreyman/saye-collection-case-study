@@ -36,6 +36,10 @@ export default async function ProfilePage({
           discipline: mockPersona.discipline ?? null,
           interests: mockPersona.interests ?? [],
           avatar_url: null,
+          banner_color: null,
+          banner_image_url: null,
+          banner_position_x: null,
+          banner_position_y: null,
           created_at: mockPersona.created_at,
         }
       : null

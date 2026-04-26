@@ -1,17 +1,19 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/static-components, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect */
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
-import { upsertProfile } from '@/features/profiles/actions'
-import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS } from '@/lib/constants'
+import { saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
+import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS, PROFILE_BANNER_COLORS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { draftFromArchiveEntry, domainFromUrl, resolveArchiveEntry } from '@/features/archive/entry'
 import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
 import { ArchiveComposerOverlay } from '@/features/archive/ArchiveComposerOverlay'
+import { uploadArchiveImage } from '@/features/archive/upload'
+import { Image as ImageIcon, Move, X } from 'lucide-react'
 
 function formatArchiveDate(value) {
   if (!value) return ''
@@ -32,6 +34,10 @@ function archiveRowsFor(items) {
     { id: 'image', title: 'Images', items: items.filter(item => item.type === 'image') },
     { id: 'link', title: 'Links', items: items.filter(item => item.type === 'link') },
   ]
+}
+
+function bannerNumber(value, fallback = 50) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
 const ROLE_PROFILE_COPY = {
@@ -960,6 +966,8 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const [composerDraft, setComposerDraft] = React.useState(null);
   const [composerEditTarget, setComposerEditTarget] = React.useState(null);
   const [localArchiveItems, setLocalArchiveItems] = React.useState(archiveItems);
+  const bannerRef = React.useRef(null);
+  const bannerDragRef = React.useRef(null);
 
   React.useEffect(() => {
     setLocalArchiveItems(archiveItems)
@@ -979,8 +987,59 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     geography: 'Lagos, Nigeria',
     discipline: 'Photography',
     interests: ['conceptual','documentary','large-format','silver-gelatin','africa','diaspora'],
+    banner_color: null,
+    banner_image_url: null,
+    banner_position_x: null,
+    banner_position_y: null,
   };
   const currentProfileId = currentProfile.id
+  const [profileBanner, setProfileBanner] = React.useState(() => ({
+    color: currentProfile.banner_color ?? null,
+    imageUrl: currentProfile.banner_image_url ?? null,
+    x: bannerNumber(currentProfile.banner_position_x),
+    y: bannerNumber(currentProfile.banner_position_y),
+  }))
+  const [bannerPanelOpen, setBannerPanelOpen] = React.useState(false)
+  const [bannerMode, setBannerMode] = React.useState(currentProfile.banner_image_url ? 'image' : currentProfile.banner_color ? 'color' : 'none')
+  const [draftBannerColor, setDraftBannerColor] = React.useState(currentProfile.banner_color ?? PROFILE_BANNER_COLORS[0].value)
+  const [bannerFile, setBannerFile] = React.useState(null)
+  const [bannerPreview, setBannerPreview] = React.useState('')
+  const [bannerError, setBannerError] = React.useState('')
+  const [bannerSaving, setBannerSaving] = React.useState(false)
+  const [isBannerRepositioning, setIsBannerRepositioning] = React.useState(false)
+  const [draftBannerPosition, setDraftBannerPosition] = React.useState({ x: profileBanner.x, y: profileBanner.y })
+
+  React.useEffect(() => {
+    setProfileBanner({
+      color: currentProfile.banner_color ?? null,
+      imageUrl: currentProfile.banner_image_url ?? null,
+      x: bannerNumber(currentProfile.banner_position_x),
+      y: bannerNumber(currentProfile.banner_position_y),
+    })
+    setBannerMode(currentProfile.banner_image_url ? 'image' : currentProfile.banner_color ? 'color' : 'none')
+    setDraftBannerColor(currentProfile.banner_color ?? PROFILE_BANNER_COLORS[0].value)
+    setDraftBannerPosition({
+      x: bannerNumber(currentProfile.banner_position_x),
+      y: bannerNumber(currentProfile.banner_position_y),
+    })
+    setIsBannerRepositioning(false)
+    setBannerError('')
+  }, [currentProfile.id, currentProfile.banner_color, currentProfile.banner_image_url, currentProfile.banner_position_x, currentProfile.banner_position_y])
+
+  React.useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview)
+    }
+  }, [bannerPreview])
+
+  const pendingBannerImage = bannerPanelOpen && bannerMode === 'image' ? bannerPreview : ''
+  const bannerImage = bannerPanelOpen && bannerMode !== 'image' ? '' : pendingBannerImage || profileBanner.imageUrl
+  const previewBannerColor = bannerPanelOpen ? (bannerMode === 'color' ? draftBannerColor : null) : profileBanner.color
+  const visibleBannerPosition = isBannerRepositioning ? draftBannerPosition : profileBanner
+  const heroHasBanner = Boolean(bannerImage || previewBannerColor)
+  const heroBackground = previewBannerColor && !bannerImage
+    ? `linear-gradient(135deg, ${previewBannerColor}44 0%, ${T.bg} 54%, #080808 100%)`
+    : T.bg
   const mappedArchiveItems = localArchiveItems.map(item => {
     const entry = resolveArchiveEntry(item)
     const coverUrl = entry.thumbnailUrl || entry.imageUrl
@@ -1032,6 +1091,160 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   };
   const connectionSuggestions = connectionsByRole[currentProfile.role] ?? connectionsByRole.Artist;
 
+  const closeBannerPanel = () => {
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview)
+    setBannerPreview('')
+    setBannerFile(null)
+    setBannerMode(profileBanner.imageUrl ? 'image' : profileBanner.color ? 'color' : 'none')
+    setDraftBannerColor(profileBanner.color ?? PROFILE_BANNER_COLORS[0].value)
+    setBannerError('')
+    setBannerPanelOpen(false)
+  }
+
+  const openBannerPanel = () => {
+    if (bannerPanelOpen) {
+      closeBannerPanel()
+      return
+    }
+    setBannerPanelOpen(open => {
+      const next = !open
+      if (next) {
+        setBannerMode(profileBanner.imageUrl ? 'image' : profileBanner.color ? 'color' : 'none')
+        setDraftBannerColor(profileBanner.color ?? PROFILE_BANNER_COLORS[0].value)
+        setBannerError('')
+      }
+      return next
+    })
+  }
+
+  const selectBannerFile = file => {
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview)
+    setBannerFile(file)
+    setBannerPreview(file ? URL.createObjectURL(file) : '')
+    setBannerMode(file ? 'image' : (profileBanner.imageUrl ? 'image' : 'none'))
+    setBannerError('')
+  }
+
+  const saveBannerSettings = async () => {
+    setBannerSaving(true)
+    setBannerError('')
+
+    let imageUrl = profileBanner.imageUrl
+    if (bannerMode === 'image' && bannerFile) {
+      const result = await uploadArchiveImage(bannerFile, currentProfile.id)
+      if ('error' in result) {
+        setBannerSaving(false)
+        setBannerError(result.error)
+        return
+      }
+      imageUrl = result.url
+    }
+    if (bannerMode === 'image' && !imageUrl) {
+      setBannerSaving(false)
+      setBannerError('Upload a banner photo first.')
+      return
+    }
+
+    const payload = bannerMode === 'image'
+      ? {
+          banner_color: null,
+          banner_image_url: imageUrl,
+          banner_position_x: profileBanner.x,
+          banner_position_y: profileBanner.y,
+        }
+      : bannerMode === 'color'
+        ? {
+            banner_color: draftBannerColor,
+            banner_image_url: null,
+            banner_position_x: null,
+            banner_position_y: null,
+          }
+        : {
+            banner_color: null,
+            banner_image_url: null,
+            banner_position_x: null,
+            banner_position_y: null,
+          }
+
+    const result = await saveProfileBanner(payload)
+    setBannerSaving(false)
+    if ('error' in result) {
+      setBannerError(result.error)
+      return
+    }
+
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview)
+    setBannerPreview('')
+    setBannerFile(null)
+    setProfileBanner({
+      color: payload.banner_color,
+      imageUrl: payload.banner_image_url,
+      x: bannerNumber(payload.banner_position_x),
+      y: bannerNumber(payload.banner_position_y),
+    })
+    setBannerPanelOpen(false)
+    router.refresh()
+  }
+
+  const beginBannerReposition = () => {
+    setDraftBannerPosition({ x: profileBanner.x, y: profileBanner.y })
+    setIsBannerRepositioning(true)
+    setBannerError('')
+  }
+
+  const saveBannerPosition = async () => {
+    if (!profileBanner.imageUrl) return
+    setBannerSaving(true)
+    setBannerError('')
+    const result = await saveProfileBanner({
+      banner_color: null,
+      banner_image_url: profileBanner.imageUrl,
+      banner_position_x: draftBannerPosition.x,
+      banner_position_y: draftBannerPosition.y,
+    })
+    setBannerSaving(false)
+    if ('error' in result) {
+      setBannerError(result.error)
+      return
+    }
+    setProfileBanner(current => ({ ...current, x: draftBannerPosition.x, y: draftBannerPosition.y }))
+    setIsBannerRepositioning(false)
+    router.refresh()
+  }
+
+  const cancelBannerPosition = () => {
+    setDraftBannerPosition({ x: profileBanner.x, y: profileBanner.y })
+    setIsBannerRepositioning(false)
+  }
+
+  const startBannerDrag = e => {
+    if (!isBannerRepositioning) return
+    e.preventDefault()
+    bannerDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: draftBannerPosition.x,
+      startPosY: draftBannerPosition.y,
+    }
+    const onMove = ev => {
+      if (!bannerDragRef.current || !bannerRef.current) return
+      const rect = bannerRef.current.getBoundingClientRect()
+      const dx = ((ev.clientX - bannerDragRef.current.startX) / rect.width) * 100
+      const dy = ((ev.clientY - bannerDragRef.current.startY) / rect.height) * 100
+      setDraftBannerPosition({
+        x: Math.max(0, Math.min(100, bannerDragRef.current.startPosX - dx)),
+        y: Math.max(0, Math.min(100, bannerDragRef.current.startPosY - dy)),
+      })
+    }
+    const onUp = () => {
+      bannerDragRef.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
   const refreshLocalProfileArchiveItems = React.useCallback(async () => {
     if (!currentProfileId) return
     const supabase = createClient()
@@ -1063,7 +1276,41 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   return (
     <div style={{ background:T.bg, minHeight:'100vh' }}>
       {/* Hero */}
-      <div style={{ padding:'80px 48px 48px', borderBottom:`1px solid ${T.line}`, position:'relative', overflow:'hidden' }}>
+      <div
+        ref={bannerRef}
+        onMouseDown={startBannerDrag}
+        style={{
+          padding:'80px 48px 48px',
+          borderBottom:`1px solid ${T.line}`,
+          position:'relative',
+          overflow:'hidden',
+          background: heroBackground,
+          cursor: isBannerRepositioning ? 'grab' : 'default',
+          userSelect: isBannerRepositioning ? 'none' : 'auto',
+        }}
+      >
+        {bannerImage && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={bannerImage}
+              alt=""
+              draggable={false}
+              style={{
+                position:'absolute',
+                inset:0,
+                width:'100%',
+                height:'100%',
+                objectFit:'cover',
+                objectPosition:`${visibleBannerPosition.x}% ${visibleBannerPosition.y}%`,
+                opacity:0.72,
+                pointerEvents:'none',
+                transition:isBannerRepositioning ? 'none' : 'object-position 0.22s ease',
+              }}
+            />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(8,8,8,0.5), rgba(8,8,8,0.86))', pointerEvents:'none' }} />
+          </>
+        )}
         <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.02, pointerEvents:'none' }}>
           <defs><pattern id="prof-grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.5"/></pattern></defs>
           <rect width="100%" height="100%" fill="url(#prof-grid)"/>
@@ -1071,25 +1318,124 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
         {/* Left accent bar */}
         <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)`, pointerEvents:'none' }} />
 
-        <div style={{ display:'flex', alignItems:'flex-start', gap:32, flexWrap:'wrap', position:'relative', zIndex:1 }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:24, flexWrap:'wrap', position:'relative', zIndex:1, border:`1px solid rgba(255,255,255,0.13)`, borderRadius:8, background:'rgba(8,8,8,0.48)', backdropFilter:'blur(12px)', boxShadow:'0 18px 44px rgba(0,0,0,0.26)', padding:'20px 24px', width:'fit-content', maxWidth:'100%' }}>
           <div style={{ width:80, height:80, borderRadius:'50%', background:T.artistDim, border:`2px solid ${T.artist}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:28, color:T.artist, flexShrink:0 }}>{initials}</div>
           <div style={{ flex:1, minWidth:280 }}>
             <div style={{ marginBottom:12 }}><RoleBadge role={currentProfile.role} size={13} /></div>
             <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5vw,64px)', color:T.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1 }}>{currentProfile.display_name}</h1>
             <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.muted, margin:0 }}>{currentProfile.discipline || 'Unspecified'} · {currentProfile.geography || 'Global'}</p>
           </div>
-          <div style={{ display:'flex', gap:10, alignItems:'flex-start', paddingTop:8 }}>
+          <div style={{ display:'flex', gap:10, alignItems:'flex-start', padding:8, flexWrap:'wrap', border:`1px solid rgba(255,255,255,0.1)`, borderRadius:6, background:'rgba(0,0,0,0.24)' }}>
             {isOwner ? <Btn2 variant="outline" onClick={() => router.push('/build-profile')}>Edit Profile</Btn2> : <Btn2 variant="outline" onClick={() => navigator.clipboard?.writeText(window.location.href)}>Copy Link</Btn2>}
+            {isOwner && <Btn2 variant="outline" onClick={openBannerPanel}>{heroHasBanner ? 'Edit Banner' : 'Add Banner'}</Btn2>}
             {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 onClick={() => viewerIsAuthenticated ? router.push('/discover') : router.push(`/login?next=/profile/${currentProfile.id}`)}>{viewerIsAuthenticated ? 'Discover More ->' : 'Join to Connect ->'}</Btn2>}
           </div>
         </div>
 
+        {isOwner && bannerPanelOpen && (
+          <div style={{ position:'relative', zIndex:2, marginTop:28, maxWidth:720, border:`1px solid ${T.line}`, borderRadius:8, background:'rgba(12,12,12,0.86)', backdropFilter:'blur(10px)', padding:18 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, marginBottom:16 }}>
+              <Label size={12} color={T.artist} tracking="0.14em">Profile banner</Label>
+              <button
+                type="button"
+                onClick={closeBannerPanel}
+                style={{ width:28, height:28, borderRadius:'50%', border:`1px solid ${T.line}`, background:'transparent', color:T.muted, display:'inline-flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}
+                aria-label="Close banner editor"
+              >
+                <X size={13} />
+              </button>
+            </div>
+
+            <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:16 }}>
+              <button onClick={() => setBannerMode('none')} style={{ background:bannerMode==='none' ? T.artistDim : 'transparent', border:`1px solid ${bannerMode==='none' ? T.artist : T.line}`, borderRadius:4, color:bannerMode==='none' ? T.artist : T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'8px 12px', cursor:'pointer' }}>No banner</button>
+              <button onClick={() => setBannerMode('color')} style={{ background:bannerMode==='color' ? T.artistDim : 'transparent', border:`1px solid ${bannerMode==='color' ? T.artist : T.line}`, borderRadius:4, color:bannerMode==='color' ? T.artist : T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'8px 12px', cursor:'pointer' }}>Color</button>
+              <label style={{ display:'inline-flex', alignItems:'center', gap:7, background:bannerMode==='image' ? T.artistDim : 'transparent', border:`1px solid ${bannerMode==='image' ? T.artist : T.line}`, borderRadius:4, color:bannerMode==='image' ? T.artist : T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'8px 12px', cursor:'pointer' }}>
+                <ImageIcon size={14} /> Upload photo
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={e => selectBannerFile(e.target.files?.[0] ?? null)}
+                  style={{ display:'none' }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:16 }}>
+              {PROFILE_BANNER_COLORS.map(color => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => {
+                    setBannerMode('color')
+                    setDraftBannerColor(color.value)
+                  }}
+                  title={color.name}
+                  aria-label={color.name}
+                  style={{
+                    width:34,
+                    height:34,
+                    borderRadius:'50%',
+                    border:`2px solid ${bannerMode === 'color' && draftBannerColor === color.value ? '#fff' : 'rgba(255,255,255,0.16)'}`,
+                    background:color.value,
+                    cursor:'pointer',
+                    boxShadow:bannerMode === 'color' && draftBannerColor === color.value ? `0 0 0 3px ${color.value}55` : 'none',
+                  }}
+                />
+              ))}
+            </div>
+
+            {bannerMode === 'image' && (bannerPreview || profileBanner.imageUrl) && (
+              <div style={{ position:'relative', height:150, borderRadius:6, overflow:'hidden', border:`1px solid ${T.line}`, marginBottom:16, background:'#080808' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bannerPreview || profileBanner.imageUrl}
+                  alt="Banner preview"
+                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:`${profileBanner.x}% ${profileBanner.y}%`, display:'block' }}
+                />
+              </div>
+            )}
+
+            {bannerError && <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'#f87171', marginBottom:12 }}>{bannerError}</div>}
+
+            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+              <button onClick={saveBannerSettings} disabled={bannerSaving} style={{ background:T.artist, border:'none', borderRadius:4, color:T.bg, fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:13, padding:'9px 18px', cursor:bannerSaving ? 'not-allowed' : 'pointer' }}>{bannerSaving ? 'Saving...' : 'Save banner'}</button>
+              {profileBanner.imageUrl && bannerMode === 'image' && (
+                <button onClick={beginBannerReposition} disabled={bannerSaving} style={{ display:'inline-flex', alignItems:'center', gap:7, background:'transparent', border:`1px solid ${T.line}`, borderRadius:4, color:T.muted, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'9px 14px', cursor:'pointer' }}><Move size={14} /> Reposition photo</button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isOwner && profileBanner.imageUrl && !isBannerRepositioning && !bannerPanelOpen && (
+          <button
+            type="button"
+            onClick={beginBannerReposition}
+            style={{ position:'absolute', right:48, bottom:28, zIndex:3, display:'inline-flex', alignItems:'center', gap:7, background:'rgba(12,12,12,0.72)', border:`1px solid ${T.lineB}`, borderRadius:4, color:T.sub, fontFamily:"'Space Grotesk',sans-serif", fontSize:12, padding:'7px 12px', cursor:'pointer', backdropFilter:'blur(8px)' }}
+          >
+            <Move size={13} /> Reposition
+          </button>
+        )}
+
+        {isBannerRepositioning && (
+          <>
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', zIndex:2, pointerEvents:'none' }}>
+              <span style={{ background:'rgba(0,0,0,0.6)', color:'#fff', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, padding:'7px 14px', borderRadius:4, backdropFilter:'blur(6px)' }}>
+                Drag image to reposition
+              </span>
+            </div>
+            <div onMouseDown={e => e.stopPropagation()} style={{ position:'absolute', right:48, top:88, zIndex:4, display:'flex', gap:8 }}>
+              <button onClick={cancelBannerPosition} style={{ background:'rgba(20,20,20,0.84)', border:`1px solid ${T.lineB}`, borderRadius:4, color:T.sub, fontFamily:"'Space Grotesk',sans-serif", fontSize:12, padding:'7px 13px', cursor:'pointer' }}>Cancel</button>
+              <button onClick={saveBannerPosition} disabled={bannerSaving} style={{ background:T.artist, border:`1px solid ${T.artist}`, borderRadius:4, color:T.bg, fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:12, padding:'7px 14px', cursor:bannerSaving ? 'not-allowed' : 'pointer', boxShadow:'0 10px 28px rgba(155,127,248,0.32)' }}>{bannerSaving ? 'Saving...' : 'Save position'}</button>
+            </div>
+          </>
+        )}
+
         {/* Stats */}
-        <div style={{ display:'flex', gap:0, marginTop:40, borderTop:`1px solid ${T.line}`, paddingTop:28 }}>
+        <div style={{ display:'flex', gap:12, marginTop:40, borderTop:`1px solid rgba(255,255,255,0.12)`, paddingTop:24, flexWrap:'wrap', position:'relative', zIndex:1 }}>
           {stats.map(([n,l],i) => (
-            <div key={l} style={{ paddingRight:40, marginRight:40, borderRight: i<3 ? `1px solid ${T.line}` : 'none' }}>
-              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:24, color:T.text }}>{n}</div>
-              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, marginTop:2 }}>{l}</div>
+            <div key={l} style={{ minWidth:112, padding:'12px 16px', border:`1px solid rgba(255,255,255,0.13)`, borderRadius:6, background:'rgba(8,8,8,0.56)', backdropFilter:'blur(10px)', boxShadow:'0 12px 30px rgba(0,0,0,0.24)' }}>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:24, color:T.text, lineHeight:1 }}>{n}</div>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:12, color:'#cfcfcf', marginTop:5 }}>{l}</div>
             </div>
           ))}
         </div>

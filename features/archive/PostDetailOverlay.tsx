@@ -382,6 +382,10 @@ export function PostDetailOverlay({
         discipline: null,
         interests: [],
         avatar_url: null,
+        banner_color: null,
+        banner_image_url: null,
+        banner_position_x: null,
+        banner_position_y: null,
         created_at: externalSelection.created_at,
       }
     : profile

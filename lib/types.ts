@@ -9,6 +9,10 @@ export type Profile = {
   discipline: string | null
   interests: string[]
   avatar_url: string | null
+  banner_color: string | null
+  banner_image_url: string | null
+  banner_position_x: number | null
+  banner_position_y: number | null
   created_at: string
 }
 

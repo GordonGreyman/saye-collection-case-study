@@ -114,3 +114,12 @@ export const INTEREST_PRESETS = [
   'Sculpture',
   'Publishing',
 ] as const
+
+export const PROFILE_BANNER_COLORS = [
+  { name: 'Violet', value: '#9b7ff8' },
+  { name: 'Cyan', value: '#5eadc9' },
+  { name: 'Moss', value: '#6abf69' },
+  { name: 'Rose', value: '#d96f8c' },
+  { name: 'Amber', value: '#d7a84f' },
+  { name: 'Ink', value: '#2d3448' },
+] as const
