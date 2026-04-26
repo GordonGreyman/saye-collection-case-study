@@ -278,7 +278,7 @@ export function RoleCard2({ role, desc, selected, onClick }) {
 
 const CARD_BKGS = ['#140820','#081408','#140808','#08081c','#140f00'];
 
-export function DiscoverCard2({ name, role, discipline, location, tags, onClick }) {
+export function DiscoverCard2({ name, role, discipline, location, tags, avatarUrl, onClick }) {
   const [h, setH] = React.useState(false);
   const r = ROLE_CONFIG[role] || ROLE_CONFIG.Artist;
   const bkg = CARD_BKGS[name.charCodeAt(0) % CARD_BKGS.length];
@@ -296,7 +296,11 @@ export function DiscoverCard2({ name, role, discipline, location, tags, onClick 
       }}>
       {/* Header strip */}
       <div style={{ height: 64, background: `linear-gradient(135deg,${bkg},${T.surf})`, display: 'flex', alignItems: 'center', padding: '0 18px', gap: 14, position: 'relative' }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', background: r.dim, border: `1px solid ${r.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: r.color, flexShrink: 0 }}>{name.charAt(0)}</div>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: r.dim, border: `1px solid ${r.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: r.color, flexShrink: 0, overflow: 'hidden' }}>
+          {avatarUrl
+            ? <img src={avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : name.charAt(0)}
+        </div>
         <div style={{ position: 'absolute', top: 10, right: 12 }}><RoleBadge role={role} size={11} /></div>
       </div>
 

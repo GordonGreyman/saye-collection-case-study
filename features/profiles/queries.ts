@@ -17,7 +17,7 @@ export async function getSuggestedProfiles(
 
   const base = supabase
     .from('profiles')
-    .select('id, display_name, role, geography, discipline, interests')
+    .select('id, display_name, role, geography, discipline, interests, avatar_url')
     .neq('id', profileId)
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -67,7 +67,7 @@ export async function getConnectedProfiles(profileId: string): Promise<DiscoverP
 
   const { data } = await supabase
     .from('profiles')
-    .select('id, display_name, role, geography, discipline, interests')
+    .select('id, display_name, role, geography, discipline, interests, avatar_url')
     .in('id', connectedIds)
 
   return (data ?? []) as DiscoverProfile[]

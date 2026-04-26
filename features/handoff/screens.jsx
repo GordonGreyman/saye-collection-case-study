@@ -811,7 +811,7 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
           style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
           {filtered.map((p, i) => (
             <div key={p.id || p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 55}ms` }}>
-              <DiscoverCard2 {...p} onClick={() => p.id ? router.push(`/profile/${p.id}`) : navigate('profile')} />
+              <DiscoverCard2 {...p} avatarUrl={p.avatar_url || null} onClick={() => p.id ? router.push(`/profile/${p.id}`) : navigate('profile')} />
             </div>
           ))}
         </div>
@@ -1870,6 +1870,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                     discipline={p.discipline || 'Unspecified'}
                     location={p.geography || 'Global'}
                     tags={p.interests?.length ? p.interests.slice(0,3) : p.tags || []}
+                    avatarUrl={p.avatar_url || null}
                     onClick={() => {
                       if (p.id) router.push(`/profile/${p.id}`)
                     }}

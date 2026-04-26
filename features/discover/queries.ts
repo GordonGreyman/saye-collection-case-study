@@ -6,7 +6,7 @@ import { getAllMockPersonas, getFilteredMockPersonas } from '@/features/discover
 
 export type DiscoverProfile = Pick<
   Profile,
-  'id' | 'display_name' | 'role' | 'geography' | 'discipline' | 'interests'
+  'id' | 'display_name' | 'role' | 'geography' | 'discipline' | 'interests' | 'avatar_url'
 >
 
 export type FilterOptions = {
@@ -50,7 +50,7 @@ export async function getProfiles(filters: DiscoverFilters): Promise<DiscoverPro
 
   let query = supabase
     .from('profiles')
-    .select('id, display_name, role, geography, discipline, interests')
+    .select('id, display_name, role, geography, discipline, interests, avatar_url')
     .range(from, to)
 
   let countQuery = supabase.from('profiles').select('*', { count: 'exact', head: true })
