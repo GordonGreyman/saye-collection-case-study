@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
-import { connectProfiles, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
+import { connectProfiles, disconnectProfiles, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS, PROFILE_BANNER_COLORS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { draftFromArchiveEntry, domainFromUrl, resolveArchiveEntry } from '@/features/archive/entry'
@@ -551,49 +551,103 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
 }
 
 // --- DISCOVER -------------------------------------------------------------
-function DiscoverFilterCol({ label, chips, active, filterKey, filterSearch, setFilterSearch, onToggle }) {
-  const filterTerm = filterSearch[filterKey] ?? '';
-  const normalized = filterTerm.trim().toLowerCase();
-  const matching = chips.filter(chip => !normalized || String(chip).toLowerCase().includes(normalized));
-  const activeSet = new Set(active);
-  const ordered = [
-    ...matching.filter(chip => activeSet.has(chip)),
-    ...matching.filter(chip => !activeSet.has(chip)),
-  ];
-  const visible = ordered.slice(0, 12);
-  const hiddenCount = Math.max(0, ordered.length - visible.length);
+function DiscoverFilterSearch({ label, chips, active, filterKey, onToggle }) {
+  const [query, setQuery] = React.useState('')
+  const [open, setOpen] = React.useState(false)
+  const containerRef = React.useRef(null)
+  const inputRef = React.useRef(null)
+
+  const normalized = query.trim().toLowerCase()
+  const popular = chips.slice(0, 4)
+  const suggestions = normalized
+    ? chips.filter(c => String(c).toLowerCase().includes(normalized))
+    : chips.slice(0, 6)
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const select = (chip) => {
+    onToggle(active, filterKey, chip)
+    setQuery('')
+    setOpen(false)
+  }
+
+  const highlight = (text, q) => {
+    if (!q) return text
+    const idx = text.toLowerCase().indexOf(q)
+    if (idx === -1) return text
+    return <>{text.slice(0, idx)}<strong style={{ color: T.text }}>{text.slice(idx, idx + q.length)}</strong>{text.slice(idx + q.length)}</>
+  }
 
   return (
-    <div style={{ flex: '1 1 220px' }}>
-      <div style={{ paddingBottom: 12, marginBottom: 14, borderBottom: `1px solid ${T.line}` }}>
+    <div ref={containerRef} style={{ flex: '1 1 200px', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Label size={12} color={T.muted}>{label}</Label>
-        {active.length > 0 && <span style={{ marginLeft: 8, fontFamily:"'DM Mono',monospace", fontSize:11, color: T.artist }}>({active.length})</span>}
-        <input
-          placeholder={`Find ${label.toLowerCase()}`}
-          value={filterTerm}
-          onChange={event => setFilterSearch(current => ({ ...current, [filterKey]: event.target.value }))}
-          style={{ marginTop:10, width:'100%', background:T.bg2, border:`1px solid ${T.line}`, borderRadius:3, padding:'8px 10px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, outline:'none', boxSizing:'border-box' }}
-        />
+        {active.length > 0 && <span style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:T.artist }}>{active.length} active</span>}
       </div>
-      <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-        {visible.map(c => (
-          <motion.div key={c} whileTap={{ scale: 1.06 }} style={{ display: 'inline-flex' }}>
-            <Chip2 label={c} active={active.includes(c)} onClick={() => onToggle(active, filterKey, c)} />
-          </motion.div>
-        ))}
-      </div>
-      {hiddenCount > 0 && (
-        <div style={{ marginTop:10, fontFamily:"'DM Mono',monospace", fontSize:11, color:T.faint }}>
-          {hiddenCount} more - keep typing
+
+      {active.length > 0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:8 }}>
+          {active.map(a => (
+            <button key={a} type="button" onClick={() => onToggle(active, filterKey, a)}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, fontFamily:"'DM Mono',monospace", fontSize:11, color:T.artist, background:T.artistDim, border:'1px solid rgba(155,127,248,0.25)', borderRadius:2, padding:'2px 8px', cursor:'pointer' }}>
+              {a} <span style={{ opacity:0.7 }}>×</span>
+            </button>
+          ))}
         </div>
       )}
-      {visible.length === 0 && (
-        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
-          No matching filters
+
+      <div style={{ position:'relative' }}>
+        <svg style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:T.faint }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          ref={inputRef}
+          placeholder={`Search ${label.toLowerCase()}…`}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onFocus={() => setOpen(true)}
+          style={{ width:'100%', boxSizing:'border-box', background:T.bg2, border:`1px solid ${open ? 'rgba(155,127,248,0.35)' : T.line}`, borderRadius: open ? '3px 3px 0 0' : 3, padding:'8px 12px 8px 30px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:13, outline:'none', transition:'border-color 0.15s' }}
+        />
+        {open && (
+          <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#0d0d0d', border:`1px solid rgba(155,127,248,0.35)`, borderTop:'none', borderRadius:'0 0 3px 3px', zIndex:50, maxHeight:220, overflowY:'auto', boxShadow:'0 12px 32px rgba(0,0,0,0.6)' }}>
+            {suggestions.length === 0
+              ? <div style={{ padding:'12px 14px', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>No matches</div>
+              : suggestions.map(s => (
+                <div key={s} onMouseDown={() => select(s)}
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 14px', cursor:'pointer', background: active.includes(s) ? T.artistDim : 'transparent', transition:'background 0.1s' }}
+                  onMouseEnter={e => { if (!active.includes(s)) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                  onMouseLeave={e => { if (!active.includes(s)) e.currentTarget.style.background = active.includes(s) ? T.artistDim : 'transparent' }}
+                >
+                  <span style={{ color:T.faint, fontSize:13, flexShrink:0, fontFamily:'monospace' }}>⌕</span>
+                  <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color: active.includes(s) ? T.artist : T.sub }}>
+                    {highlight(s, normalized)}
+                  </span>
+                  {active.includes(s) && <span style={{ marginLeft:'auto', fontFamily:"'DM Mono',monospace", fontSize:10, color:T.artist }}>✓</span>}
+                </div>
+              ))
+            }
+          </div>
+        )}
+      </div>
+
+      {!open && (
+        <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:10, flexWrap:'wrap' }}>
+          <span style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:T.faint, flexShrink:0 }}>Popular:</span>
+          {popular.filter(p => !active.includes(p)).map(p => (
+            <button key={p} type="button" onClick={() => onToggle(active, filterKey, p)}
+              style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:12, color:T.muted, background:'transparent', border:`1px solid ${T.line}`, borderRadius:20, padding:'3px 10px', cursor:'pointer', transition:'all 0.13s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = T.lineB; e.currentTarget.style.color = T.sub }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = T.line; e.currentTarget.style.color = T.muted }}
+            >{p}</button>
+          ))}
         </div>
       )}
     </div>
-  );
+  )
 }
 
 export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null, filters = null, totalProfiles = 0 }) {
@@ -604,7 +658,6 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
   const [search, setSearch] = React.useState(filters?.q ?? '');
   const [searchFoc, setSearchFoc] = React.useState(false);
   const [roleFilter, setRoleFilter] = React.useState('All');
-  const [filterSearch, setFilterSearch] = React.useState({ geography: '', discipline: '', interests: '' });
   const searchInputRef = React.useRef(null);
 
   const geos  = ['New York','London','Paris','Berlin','Lagos','Tokyo','São Paulo','Cairo','Seoul','Amsterdam','Nairobi','Mexico City'];
@@ -716,36 +769,12 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
       </div>
 
       {/* Triple-filter shelf */}
-      <div style={{ marginBottom:12, padding:'28px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40, flexWrap:'wrap' }}>
-        <DiscoverFilterCol
-          label="Geography"
-          chips={filterGeos}
-          active={geo}
-          filterKey="geography"
-          filterSearch={filterSearch}
-          setFilterSearch={setFilterSearch}
-          onToggle={tog}
-        />
+      <div style={{ marginBottom:12, padding:'24px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40, flexWrap:'wrap' }}>
+        <DiscoverFilterSearch label="Geography" chips={filterGeos} active={geo} filterKey="geography" onToggle={tog} />
         <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <DiscoverFilterCol
-          label="Discipline"
-          chips={filterDiscs}
-          active={disc}
-          filterKey="discipline"
-          filterSearch={filterSearch}
-          setFilterSearch={setFilterSearch}
-          onToggle={tog}
-        />
+        <DiscoverFilterSearch label="Discipline" chips={filterDiscs} active={disc} filterKey="discipline" onToggle={tog} />
         <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <DiscoverFilterCol
-          label="Interest"
-          chips={filterInts}
-          active={int_}
-          filterKey="interests"
-          filterSearch={filterSearch}
-          setFilterSearch={setFilterSearch}
-          onToggle={tog}
-        />
+        <DiscoverFilterSearch label="Interest" chips={filterInts} active={int_} filterKey="interests" onToggle={tog} />
       </div>
 
       {/* Active + clear */}
@@ -755,10 +784,11 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
           {[...geo,...disc,...int_].map(f => (
             <span key={f} style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.artist, background:T.artistDim, border:`1px solid rgba(155,127,248,0.2)`, padding:'3px 12px', borderRadius:2 }}>{f}</span>
           ))}
-          <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setFilterSearch({ geography: '', discipline: '', interests: '' }); router.replace('/discover'); }}
+          <button onClick={() => { setGeo([]); setDisc([]); setInt([]); router.replace('/discover'); }}
             style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
             Clear all ×
           </button>
+
         </>}
       </div>
 
@@ -792,7 +822,7 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
             Try different filters or clear your search.
           </p>
           {(total > 0 || q) && (
-            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); setFilterSearch({ geography: '', discipline: '', interests: '' }); router.replace('/discover'); }}
+            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); router.replace('/discover'); }}
               style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
               Clear everything
             </button>
@@ -1338,22 +1368,32 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     router.push(`/profile/${item.profile_id}?work=${item.id}${options.fullscreen ? '&view=full' : ''}`)
   }
 
+  const [copied, setCopied] = React.useState(false)
+
+  const copyProfileLink = () => {
+    navigator.clipboard?.writeText(window.location.href)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
   const connectToProfile = async () => {
     if (!viewerIsAuthenticated) {
       router.push(`/login?next=/profile/${currentProfile.id}`)
       return
     }
-    if (connected || connectionSaving) return
+    if (connectionSaving) return
 
     setConnectionSaving(true)
     setArchiveError('')
-    const result = await connectProfiles(currentProfile.id)
+    const result = connected
+      ? await disconnectProfiles(currentProfile.id)
+      : await connectProfiles(currentProfile.id)
     setConnectionSaving(false)
     if ('error' in result) {
       setArchiveError(result.error)
       return
     }
-    setConnected(true)
+    setConnected(!connected)
     router.refresh()
   }
 
@@ -1410,9 +1450,9 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
             <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.muted, margin:0 }}>{currentProfile.discipline || 'Unspecified'} · {currentProfile.geography || 'Global'}</p>
           </div>
           <div style={{ display:'flex', gap:10, alignItems:'flex-start', padding:8, flexWrap:'wrap', border:`1px solid rgba(255,255,255,0.1)`, borderRadius:6, background:'rgba(0,0,0,0.24)' }}>
-            {isOwner ? <Btn2 variant="outline" onClick={() => router.push('/build-profile')}>Edit Profile</Btn2> : <Btn2 variant="outline" onClick={() => navigator.clipboard?.writeText(window.location.href)}>Copy Link</Btn2>}
+            {isOwner ? <Btn2 variant="outline" onClick={() => router.push('/build-profile')}>Edit Profile</Btn2> : <Btn2 variant="outline" onClick={copyProfileLink}>{copied ? 'Copied!' : 'Share Profile'}</Btn2>}
             {isOwner && <Btn2 variant="outline" onClick={openBannerPanel}>{heroHasBanner ? 'Edit Banner' : 'Add Banner'}</Btn2>}
-            {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 onClick={connectToProfile}>{connected ? 'You are connected' : connectionSaving ? 'Connecting...' : viewerIsAuthenticated ? 'Connect' : 'Join to Connect ->'}</Btn2>}
+            {isOwner ? <Btn2 onClick={openArchiveComposer}>{`Add ${roleNoun} ->`}</Btn2> : <Btn2 variant={connected ? 'connected' : 'primary'} onClick={connectToProfile}>{connectionSaving ? (connected ? 'Disconnecting...' : 'Connecting...') : connected ? 'Connected' : viewerIsAuthenticated ? 'Connect ->' : 'Join to Connect ->'}</Btn2>}
           </div>
         </div>
 
@@ -1605,19 +1645,26 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
           </div>
         )}
         {tab==='connections' && (() => {
-          const toShow = connectedProfiles.length ? connectedProfiles : suggestedProfiles.length ? suggestedProfiles : connectionSuggestions
+          const isMock = currentProfile.id?.startsWith('demo-')
+          const toShow = isMock
+            ? (connectedProfiles.length ? connectedProfiles : suggestedProfiles.length ? suggestedProfiles : connectionSuggestions)
+            : connectedProfiles
           if (toShow.length === 0) {
             return (
               <div style={{ padding:'72px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
                 <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
-                <Label size={13} color={T.muted}>No connections yet</Label>
-                <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
-                  Discover profiles to find people with similar interests.
+                <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, fontWeight:600, color:T.sub, margin:'0 0 8px' }}>
+                  {isOwner ? 'You have no connections yet' : 'No connections yet'}
                 </p>
-                <button onClick={() => navigate('discover')}
-                  style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
-                  Discover profiles →
-                </button>
+                <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:14, color:T.muted, margin:0, lineHeight:1.6 }}>
+                  {isOwner ? 'Find artists, curators and institutions to connect with.' : `${currentProfile.display_name} hasn't connected with anyone yet.`}
+                </p>
+                {isOwner && (
+                  <button onClick={() => navigate('discover')}
+                    style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+                    Discover profiles →
+                  </button>
+                )}
               </div>
             )
           }

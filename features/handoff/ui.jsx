@@ -151,6 +151,7 @@ export function Btn2({ children, variant = 'primary', onClick, full, disabled, s
     secondary: { background: 'transparent', color: h ? T.text : T.sub, padding: '12px 28px', border: `1px solid ${h ? T.lineB : T.line}` },
     ghost:     { background: h ? T.artistDim : 'transparent', color: T.artist, padding: '10px 20px', border: `1px solid ${h ? 'rgba(155,127,248,0.35)' : 'rgba(155,127,248,0.18)'}` },
     outline:   { background: 'transparent', color: h ? T.text : T.muted, padding: '10px 20px', border: `1px solid ${T.line}` },
+    connected: { background: h ? '#7c5add' : '#6a4fc9', color: '#f2f2f2', padding: '12px 28px' },
   };
   return (
     <button onClick={onClick} disabled={disabled}

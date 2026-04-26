@@ -145,12 +145,35 @@ export async function connectProfiles(targetProfileId: string): Promise<ActionRe
         profile_b_id: profileBId,
         created_by: user.id,
       },
-      { onConflict: 'profile_a_id,profile_b_id' },
+      { onConflict: 'profile_a_id,profile_b_id', ignoreDuplicates: true },
     )
 
   if (error) {
     return { error: error.message }
   }
+
+  revalidatePath(`/profile/${user.id}`)
+  revalidatePath(`/profile/${targetProfileId}`)
+  return { success: true }
+}
+
+export async function disconnectProfiles(targetProfileId: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Unauthorized' }
+  if (!targetProfileId) return { error: 'Profile id is required.' }
+
+  const [profileAId, profileBId] = [user.id, targetProfileId].sort()
+  const { error } = await supabase
+    .from('profile_connections')
+    .delete()
+    .eq('profile_a_id', profileAId)
+    .eq('profile_b_id', profileBId)
+
+  if (error) return { error: error.message }
 
   revalidatePath(`/profile/${user.id}`)
   revalidatePath(`/profile/${targetProfileId}`)
