@@ -1,11 +1,14 @@
 import { addArchiveItem, deleteArchiveItem } from '../../features/archive/actions'
 import { createClient } from '../../lib/supabase/server'
 
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 jest.mock('../../lib/supabase/server', () => ({
   createClient: jest.fn(),
 }))
 
 const mockCreateClient = createClient as jest.Mock
+
+const textCanvas = [{ id: 'b1', type: 'text' as const, content: 'Hello' }]
 
 describe('archive actions', () => {
   beforeEach(() => {
@@ -19,7 +22,7 @@ describe('archive actions', () => {
       },
     })
 
-    const result = await addArchiveItem({ type: 'text', content: 'Hello' })
+    const result = await addArchiveItem({ canvas: textCanvas })
     expect(result).toEqual({ error: 'Unauthorized' })
   })
 
@@ -35,13 +38,14 @@ describe('archive actions', () => {
       }),
     })
 
-    const result = await addArchiveItem({ type: 'text', content: '  Hello  ' })
+    const result = await addArchiveItem({ canvas: textCanvas })
     expect(result).toEqual({ success: true })
-    expect(insert).toHaveBeenCalledWith({
-      profile_id: 'u1',
-      type: 'text',
-      content: 'Hello',
-    })
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        profile_id: 'u1',
+        type: 'text',
+      }),
+    )
   })
 
   test('deleteArchiveItem blocks non-owner deletion', async () => {

@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/ToastProvider'
 import { addArchiveItem } from '@/features/archive/actions'
 import { uploadArchiveImage } from '@/features/archive/upload'
-import type { ArchiveItemType } from '@/lib/types'
+import type { ArchiveCanvasBlock, ArchiveItemType } from '@/lib/types'
 
 interface AddBlockPanelProps {
   profileId: string
@@ -73,7 +73,8 @@ export function AddBlockPanel({ profileId, isOwner, defaultOpen = false }: AddBl
       finalContent = uploadResult.url
     }
 
-    const result = await addArchiveItem({ type, content: finalContent })
+    const block: ArchiveCanvasBlock = { id: `block-${Date.now()}`, type, content: finalContent }
+    const result = await addArchiveItem({ canvas: [block] })
     setLoading(false)
 
     if ('error' in result) {

@@ -1,23 +1,31 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
-  Expand,
   ExternalLink,
+  Maximize2,
+  MapPin,
   Minimize2,
   Pencil,
   Trash2,
   X,
 } from 'lucide-react'
-import { deleteArchiveItem, updateArchiveItem } from '@/features/archive/actions'
+import { fetchProfileArchiveItems, fetchRelatedItems } from '@/features/archive/actions'
+import { deleteArchiveItemClient } from '@/features/archive/clientActions'
+import type { RelatedArchiveItem } from '@/features/archive/actions'
+import {
+  domainFromUrl,
+  isLikelyHttpUrl,
+  normalizeHttpUrl,
+  resolveArchiveEntry,
+} from '@/features/archive/entry'
 import { lockBodyScroll } from '@/lib/ui/bodyScrollLock'
-import type { ArchiveItem } from '@/lib/types'
+import type { ArchiveItem, Profile } from '@/lib/types'
 
 interface PostDetailOverlayProps {
   item: ArchiveItem
@@ -25,34 +33,279 @@ interface PostDetailOverlayProps {
   onClose: () => void
   isOwner?: boolean
   onEditInComposer?: (item: ArchiveItem) => void
+  profile?: Profile | null
 }
 
-const T = {
+const C = {
+  bg: '#0d0d0d',
   surf: '#141414',
+  surfB: '#1a1a1a',
   line: 'rgba(255,255,255,0.07)',
+  lineB: 'rgba(255,255,255,0.14)',
   text: '#f2f2f2',
+  sub: '#d4d4d4',
   muted: '#9a9a9a',
-  artist: '#9b7ff8',
+  faint: '#3a3a3a',
+  accent: '#9b7ff8',
+  accentDim: 'rgba(155,127,248,0.12)',
 }
 
-function normalizeHttpUrl(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return ''
+function renderInlineFormattedText(content: string, keyPrefix: string): ReactNode[] {
+  const output: ReactNode[] = []
+  const pattern = /(\[([^\]]+)\]\(([^)\s]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_|<u>(.*?)<\/u>)/g
+
+  let cursor = 0
+  let match: RegExpExecArray | null = pattern.exec(content)
+  let index = 0
+
+  while (match) {
+    if (match.index > cursor) {
+      output.push(content.slice(cursor, match.index))
+    }
+
+    const [full, , linkText, linkUrl, boldText, italicA, italicB, underlineText] = match
+    const key = `${keyPrefix}-${index}`
+    if (linkText && linkUrl) {
+      const normalizedUrl = normalizeHttpUrl(linkUrl)
+      if (isLikelyHttpUrl(normalizedUrl)) {
+        output.push(
+          <a
+            key={key}
+            href={normalizedUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: C.accent, textDecoration: 'underline' }}
+          >
+            {linkText}
+          </a>,
+        )
+      } else {
+        output.push(full)
+      }
+    } else if (boldText) {
+      output.push(<strong key={key}>{boldText}</strong>)
+    } else if (italicA || italicB) {
+      output.push(<em key={key}>{italicA || italicB}</em>)
+    } else if (underlineText) {
+      output.push(<u key={key}>{underlineText}</u>)
+    } else {
+      output.push(full)
+    }
+
+    cursor = match.index + full.length
+    index += 1
+    match = pattern.exec(content)
   }
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+
+  if (cursor < content.length) {
+    output.push(content.slice(cursor))
+  }
+
+  return output
 }
 
-function isLikelyHttpUrl(value: string) {
-  if (!value) {
-    return false
+function renderTextBlock(content: string, isTitle: boolean, keyPrefix: string) {
+  const lines = content.split('\n')
+  const nodes: ReactNode[] = []
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]
+    const trimmed = line.trim()
+    const key = `${keyPrefix}-${i}`
+
+    if (!trimmed) {
+      nodes.push(<div key={key} style={{ height: isTitle ? 8 : 10 }} />)
+      continue
+    }
+
+    if (trimmed.startsWith('# ')) {
+      nodes.push(
+        <h3
+          key={key}
+          style={{
+            fontFamily: "'Space Grotesk',sans-serif",
+            fontWeight: 700,
+            fontSize: 23,
+            color: '#f1f1f1',
+            lineHeight: 1.24,
+            margin: '0 0 12px',
+          }}
+        >
+          {renderInlineFormattedText(trimmed.slice(2), `${key}-h`)}
+        </h3>,
+      )
+      continue
+    }
+
+    if (trimmed.startsWith('> ')) {
+      nodes.push(
+        <blockquote
+          key={key}
+          style={{
+            margin: '0 0 14px',
+            padding: '6px 0 6px 14px',
+            borderLeft: `2px solid ${C.accent}66`,
+            color: '#cfcfcf',
+            fontFamily: "'Space Grotesk',sans-serif",
+            fontSize: 16,
+            lineHeight: 1.72,
+          }}
+        >
+          {renderInlineFormattedText(trimmed.slice(2), `${key}-q`)}
+        </blockquote>,
+      )
+      continue
+    }
+
+    if (trimmed.startsWith('- ')) {
+      const listItems: string[] = [trimmed.slice(2)]
+      while (i + 1 < lines.length && lines[i + 1].trim().startsWith('- ')) {
+        i += 1
+        listItems.push(lines[i].trim().slice(2))
+      }
+      nodes.push(
+        <ul
+          key={key}
+          style={{
+            margin: '0 0 14px 20px',
+            color: '#c0c0c0',
+            fontFamily: "'Space Grotesk',sans-serif",
+            fontSize: 16,
+            lineHeight: 1.75,
+            padding: 0,
+          }}
+        >
+          {listItems.map((item, idx) => (
+            <li key={`${key}-li-${idx}`} style={{ marginBottom: 4 }}>
+              {renderInlineFormattedText(item, `${key}-li-${idx}`)}
+            </li>
+          ))}
+        </ul>,
+      )
+      continue
+    }
+
+    nodes.push(
+      <p
+        key={key}
+        style={{
+          fontFamily: "'Space Grotesk',sans-serif",
+          fontWeight: isTitle ? 700 : 400,
+          fontSize: isTitle ? 28 : 16,
+          color: isTitle ? '#f1f1f1' : '#c0c0c0',
+          lineHeight: isTitle ? 1.22 : 1.78,
+          margin: isTitle ? '0 0 20px' : '0 0 14px',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {renderInlineFormattedText(line, `${key}-p`)}
+      </p>,
+    )
   }
-  try {
-    const url = new URL(value)
-    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname)
-  } catch {
-    return false
+
+  return <div style={{ marginBottom: isTitle ? 8 : 0 }}>{nodes}</div>
+}
+
+function RolePill({ role }: { role: string }) {
+  const colors: Record<string, string> = {
+    Artist: '#9b7ff8',
+    Curator: '#5eadc9',
+    Institution: '#6abf69',
   }
+  const color = colors[role] ?? C.accent
+  return (
+    <span
+      style={{
+        fontFamily: "'DM Mono',monospace",
+        fontSize: 10,
+        letterSpacing: '0.1em',
+        color,
+        border: `1px solid ${color}44`,
+        borderRadius: 3,
+        padding: '3px 7px',
+        background: `${color}14`,
+      }}
+    >
+      {role.toUpperCase()}
+    </span>
+  )
+}
+
+function MiniCard({
+  item,
+  authorName,
+  onClick,
+}: {
+  item: ArchiveItem
+  authorName?: string
+  onClick: () => void
+}) {
+  const entry = useMemo(() => resolveArchiveEntry(item), [item])
+  const [hov, setHov] = useState(false)
+  const cover = entry.thumbnailUrl || entry.imageUrl
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? C.surfB : C.surf,
+        border: `1px solid ${hov ? C.lineB : C.line}`,
+        borderRadius: 6,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'all 0.15s',
+        transform: hov ? 'translateY(-2px)' : 'none',
+        boxShadow: hov ? '0 10px 28px rgba(0,0,0,0.45)' : 'none',
+        width: '100%',
+      }}
+    >
+      {cover ? (
+        <div style={{ height: 110, overflow: 'hidden', background: '#080808' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={cover}
+            alt={entry.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.82, transition: 'opacity 0.15s' }}
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            height: 64,
+            background: `linear-gradient(135deg, ${C.accentDim}, transparent)`,
+            borderBottom: `1px solid ${C.line}`,
+          }}
+        />
+      )}
+      <div style={{ padding: '10px 12px 12px' }}>
+        <p
+          style={{
+            fontFamily: "'Space Grotesk',sans-serif",
+            fontWeight: 600,
+            fontSize: 13,
+            color: '#e0e0e0',
+            margin: '0 0 5px',
+            lineHeight: 1.3,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {entry.title}
+        </p>
+        {authorName && (
+          <p style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: C.muted, margin: 0 }}>
+            {authorName}
+          </p>
+        )}
+      </div>
+    </button>
+  )
 }
 
 export function PostDetailOverlay({
@@ -61,17 +314,69 @@ export function PostDetailOverlay({
   onClose,
   isOwner = false,
   onEditInComposer,
+  profile,
 }: PostDetailOverlayProps) {
   const router = useRouter()
-  const [currentIndex, setCurrentIndex] = useState(() => Math.max(0, items.findIndex(i => i.id === initialItem.id)))
-  const [isFullScreen, setIsFullScreen] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [draftContent, setDraftContent] = useState(initialItem.content)
+  const [currentIndex, setCurrentIndex] = useState(() =>
+    Math.max(0, items.findIndex(i => i.id === initialItem.id)),
+  )
   const [saving, setSaving] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [profileHeaderVisible, setProfileHeaderVisible] = useState(true)
+  const [relatedItems, setRelatedItems] = useState<RelatedArchiveItem[]>([])
+  const [externalSelection, setExternalSelection] = useState<RelatedArchiveItem | null>(null)
+  const [creatorItems, setCreatorItems] = useState<RelatedArchiveItem[]>([])
 
-  const item = items[currentIndex] ?? initialItem
-  const canUseComposerEdit = Boolean(onEditInComposer)
+  const profileHeaderRef = useRef<HTMLDivElement>(null)
+
+  const item = externalSelection ?? items[currentIndex] ?? initialItem
+  const activeProfile = externalSelection?.profiles
+    ? {
+        id: externalSelection.profile_id,
+        role: externalSelection.profiles.role,
+        display_name: externalSelection.profiles.display_name,
+        bio: null,
+        geography: null,
+        discipline: null,
+        interests: [],
+        avatar_url: null,
+        created_at: externalSelection.created_at,
+      }
+    : profile
+  const entry = useMemo(() => resolveArchiveEntry(item), [item])
+  const firstTextIndex = entry.blocks.findIndex(b => b.type === 'text')
+  const coverImage = entry.thumbnailUrl || ''
+
+  const createdAt = (() => {
+    const date = new Date(item.created_at)
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+  })()
+  const canManageCurrentItem = Boolean(isOwner && profile?.id && item.profile_id === profile.id)
+
+  // Track profile header visibility for sticky compact bar
+  useEffect(() => {
+    const el = profileHeaderRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => setProfileHeaderVisible(entry.isIntersecting),
+      { threshold: 0.1 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [item.id])
+
+  // Fetch related items from other users
+  useEffect(() => {
+    fetchRelatedItems(item.profile_id, 6).then(setRelatedItems).catch(() => {})
+  }, [item.profile_id])
+
+  useEffect(() => {
+    fetchProfileArchiveItems(item.profile_id, item.id, 6).then(setCreatorItems).catch(() => {
+      setCreatorItems([])
+    })
+  }, [item.id, item.profile_id])
 
   useEffect(() => {
     const releaseScrollLock = lockBodyScroll()
@@ -81,173 +386,75 @@ export function PostDetailOverlay({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (isEditing) {
-          setIsEditing(false)
-          setDraftContent(item.content)
-          setActionError('')
+        if (deleteConfirmOpen) {
+          setDeleteConfirmOpen(false)
           return
         }
         onClose()
         return
       }
-
-      if (isEditing) {
-        return
-      }
-
       if (event.key === 'ArrowLeft') {
         setActionError('')
-        setCurrentIndex(index => (index - 1 + items.length) % items.length)
+        setExternalSelection(null)
+        setCurrentIndex(i => (i - 1 + items.length) % items.length)
       }
       if (event.key === 'ArrowRight') {
         setActionError('')
-        setCurrentIndex(index => (index + 1) % items.length)
+        setExternalSelection(null)
+        setCurrentIndex(i => (i + 1) % items.length)
       }
     }
-
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [isEditing, item.content, items.length, onClose])
+  }, [deleteConfirmOpen, items.length, onClose])
 
-  const createdAt = (() => {
-    const date = new Date(item.created_at)
-    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString()
-  })()
-
-  const domain =
-    item.type === 'link'
-      ? (() => {
-          try {
-            return new URL(item.content).hostname
-          } catch {
-            return item.content
-          }
-        })()
-      : ''
-
-  const linkHref = item.type === 'link' ? normalizeHttpUrl(item.content) : null
-  const draftLinkHref = item.type === 'link' || item.type === 'image' ? normalizeHttpUrl(draftContent) : ''
-  const canPreviewDraftImage = item.type === 'image' && isLikelyHttpUrl(draftLinkHref)
-
-  const saveEdit = async () => {
+  const deleteItem = useCallback(async () => {
     setActionError('')
-    const nextContent = draftContent.trim()
-
-    if (!nextContent) {
-      setActionError('Content cannot be empty.')
-      return
-    }
-
-    if (item.type === 'link' || item.type === 'image') {
-      if (!isLikelyHttpUrl(draftLinkHref)) {
-        setActionError('Please use a valid URL.')
-        return
-      }
-    }
-
     setSaving(true)
-    const result = await updateArchiveItem(item.id, {
-      type: item.type,
-      content: item.type === 'text' ? nextContent : draftLinkHref,
-    })
+    const result = await deleteArchiveItemClient(item.id)
     setSaving(false)
-
     if ('error' in result) {
       setActionError(result.error)
       return
     }
-
-    setIsEditing(false)
-    router.refresh()
-  }
-
-  const deleteItem = async () => {
-    setActionError('')
-
-    if (!window.confirm('Delete this archive entry?')) {
-      return
-    }
-
-    setSaving(true)
-    const result = await deleteArchiveItem(item.id)
-    setSaving(false)
-
-    if ('error' in result) {
-      setActionError(result.error)
-      return
-    }
-
+    setDeleteConfirmOpen(false)
     onClose()
     router.refresh()
-  }
+  }, [item.id, onClose, router])
+
+  const moreItems = creatorItems.length
+    ? creatorItems
+    : externalSelection
+      ? []
+      : items.filter(i => i.profile_id === item.profile_id && i.id !== item.id).slice(0, 6)
+
+  const initials = activeProfile?.display_name?.charAt(0)?.toUpperCase() ?? '?'
+
+  const openProfile = useCallback((profileId?: string | null) => {
+    if (!profileId) return
+    onClose()
+    router.push(`/profile/${profileId}`)
+  }, [onClose, router])
 
   const actionBtnStyle: CSSProperties = {
     background: 'rgba(8,8,8,0.74)',
-    border: `1px solid ${T.line}`,
+    border: `1px solid ${C.line}`,
     borderRadius: 4,
     minWidth: 32,
     height: 32,
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: T.muted,
+    color: C.muted,
     cursor: saving ? 'not-allowed' : 'pointer',
     padding: '0 9px',
     transition: 'all 0.15s',
   }
 
-  const editableContent = (
-    <>
-      {item.type === 'text' ? (
-        <textarea
-          value={draftContent}
-          onChange={event => setDraftContent(event.target.value)}
-          style={{
-            width: '100%',
-            minHeight: 260,
-            background: '#0f0f0f',
-            border: `1px solid ${T.line}`,
-            borderRadius: 4,
-            padding: '14px 16px',
-            color: '#e6e6e6',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 15,
-            lineHeight: 1.7,
-            outline: 'none',
-            resize: 'vertical',
-          }}
-        />
-      ) : (
-        <input
-          value={draftContent}
-          onChange={event => setDraftContent(event.target.value)}
-          placeholder={item.type === 'image' ? 'https://example.com/image.jpg' : 'https://example.com'}
-          style={{
-            width: '100%',
-            background: '#0f0f0f',
-            border: `1px solid ${T.line}`,
-            borderRadius: 4,
-            padding: '12px 14px',
-            color: '#e6e6e6',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 14,
-            outline: 'none',
-          }}
-        />
-      )}
-
-      {canPreviewDraftImage && (
-        <div style={{ marginTop: 14, border: `1px solid ${T.line}`, borderRadius: 4, overflow: 'hidden' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={draftLinkHref}
-            alt="Draft preview"
-            style={{ width: '100%', maxHeight: '50vh', objectFit: 'contain', display: 'block' }}
-          />
-        </div>
-      )}
-    </>
-  )
+  const overlayTopOffset = 72
+  const panelHeight = isFullscreen
+    ? `calc(100vh - ${overlayTopOffset + 12}px)`
+    : `calc(100vh - ${overlayTopOffset + 24}px)`
 
   return (
     <motion.div
@@ -260,201 +467,650 @@ export function PostDetailOverlay({
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
-        background: 'rgba(8,8,8,0.88)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(6,6,6,0.92)',
+        backdropFilter: 'blur(14px)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: isFullScreen ? 0 : 24,
+        padding: `${overlayTopOffset}px 12px 12px`,
       }}
     >
+      {/* Panel */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-        onClick={event => event.stopPropagation()}
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        onClick={e => e.stopPropagation()}
         style={{
-          background: T.surf,
-          border: `1px solid ${T.line}`,
-          borderRadius: isFullScreen ? 0 : 6,
-          width: isFullScreen ? '100vw' : '100%',
-          maxWidth: isFullScreen ? '100vw' : 720,
-          maxHeight: isFullScreen ? '100vh' : '90vh',
-          overflow: 'auto',
+          background: C.bg,
+          border: `1px solid ${C.line}`,
+          borderRadius: isFullscreen ? 10 : 8,
+          width: isFullscreen ? 'calc(100vw - 24px)' : '100%',
+          maxWidth: isFullscreen ? 'none' : 900,
+          height: panelHeight,
+          transition: 'width 150ms ease, max-width 150ms ease, height 150ms ease, border-radius 150ms ease',
+          display: 'flex',
+          flexDirection: 'column',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Sticky compact header (shows when profile header scrolls away) */}
+        <AnimatePresence>
+          {!profileHeaderVisible && activeProfile && (
+            <motion.div
+              initial={{ y: -40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -40, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 16px',
+                background: 'rgba(14,14,14,0.96)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: `1px solid ${C.line}`,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => openProfile(item.profile_id)}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: C.accentDim,
+                  border: `1px solid ${C.accent}44`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: C.accent,
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                }}
+                aria-label={`Open ${activeProfile.display_name}'s profile`}
+              >
+                {initials}
+              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => openProfile(item.profile_id)}
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: C.text,
+                    marginRight: 8,
+                    background: 'transparent',
+                    border: 0,
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                  className="profile-link-btn"
+                >
+                  {activeProfile.display_name}
+                </button>
+                <span
+                  style={{
+                    fontFamily: "'DM Mono',monospace",
+                    fontSize: 10,
+                    color: C.accent,
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {activeProfile.role.toUpperCase()}
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Action buttons — top right */}
         <div
           style={{
             position: 'absolute',
             top: 14,
             right: 14,
-            zIndex: 10,
+            zIndex: 30,
             display: 'flex',
             gap: 8,
             padding: 6,
             borderRadius: 8,
             background: 'rgba(8,8,8,0.62)',
-            border: `1px solid ${T.line}`,
+            border: `1px solid ${C.line}`,
             backdropFilter: 'blur(9px)',
           }}
         >
-          <button
-            type="button"
-            onClick={() => setIsFullScreen(value => !value)}
-            aria-label={isFullScreen ? 'Exit full screen' : 'View full screen'}
-            className="overlay-action-btn"
-            style={actionBtnStyle}
-          >
-            {isFullScreen ? <Minimize2 size={14} /> : <Expand size={14} />}
-          </button>
-          {isOwner && (
+          {canManageCurrentItem && (
             <>
               <button
                 type="button"
                 onClick={() => {
-                  if (canUseComposerEdit && onEditInComposer) {
-                    onEditInComposer(item)
-                    return
-                  }
-                  if (isEditing) {
-                    void saveEdit()
-                  } else {
-                    setActionError('')
-                    setIsEditing(true)
-                    setDraftContent(item.content)
-                  }
+                  if (onEditInComposer) onEditInComposer(item)
+                  else setActionError('Edit is available from the composer view.')
                 }}
                 disabled={saving}
-                aria-label={isEditing ? 'Save edits' : canUseComposerEdit ? 'Edit in composer' : 'Edit entry'}
+                aria-label="Edit in composer"
                 className="overlay-action-btn"
                 style={actionBtnStyle}
               >
-                {isEditing ? <Check size={14} /> : <Pencil size={14} />}
+                <Pencil size={14} />
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (isEditing && !canUseComposerEdit) {
-                    setIsEditing(false)
-                    setDraftContent(item.content)
-                    setActionError('')
-                    return
-                  }
-                  void deleteItem()
-                }}
+                onClick={() => setDeleteConfirmOpen(true)}
                 disabled={saving}
-                aria-label={isEditing ? 'Cancel editing' : 'Delete entry'}
-                className={isEditing ? 'overlay-action-btn' : 'overlay-action-btn overlay-action-btn-danger'}
-                style={{
-                  ...actionBtnStyle,
-                  border: `1px solid ${isEditing ? T.line : 'rgba(248,113,113,0.28)'}`,
-                  color: isEditing ? T.muted : '#f87171',
-                }}
+                aria-label="Delete entry"
+                className="overlay-action-btn overlay-action-btn-danger"
+                style={{ ...actionBtnStyle, border: '1px solid rgba(248,113,113,0.28)', color: '#f87171' }}
               >
-                {isEditing ? <X size={14} /> : <Trash2 size={14} />}
+                <Trash2 size={14} />
               </button>
             </>
           )}
-          <button onClick={onClose} aria-label="Close" className="overlay-action-btn" style={actionBtnStyle}>
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(prev => !prev)}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            className="overlay-action-btn"
+            style={actionBtnStyle}
+          >
+            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="overlay-action-btn"
+            style={actionBtnStyle}
+          >
             <X size={14} />
           </button>
         </div>
 
-        {item.type === 'image' && (
-          <div style={{ position: 'relative' }}>
-            {isEditing ? (
-              <div style={{ padding: '48px 24px 22px' }}>{editableContent}</div>
-            ) : /^https?:\/\//i.test(item.content) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <>
-                <img src={item.content} alt="Archive item" style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block' }} />
-                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(to bottom, rgba(8,8,8,0.5) 0%, rgba(8,8,8,0.18) 30%, rgba(8,8,8,0.56) 100%)' }} />
-              </>
-            ) : (
-              <div style={{ minHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'rgba(255,255,255,0.02)' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#9a9a9a', wordBreak: 'break-all' }}>{item.content}</p>
+        {/* Scrollable content */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+
+          {/* ── Profile / uploader header ─────────────────────── */}
+          <div
+            ref={profileHeaderRef}
+            style={{
+              padding: '36px 36px 28px',
+              borderBottom: `1px solid ${C.line}`,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 20,
+              flexWrap: 'wrap',
+            }}
+          >
+            {/* Avatar */}
+            <button
+              type="button"
+              onClick={() => openProfile(item.profile_id)}
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: C.accentDim,
+                border: `2px solid ${C.accent}55`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: "'Space Grotesk',sans-serif",
+                fontWeight: 800,
+                fontSize: 24,
+                color: C.accent,
+                flexShrink: 0,
+                overflow: 'hidden',
+                cursor: 'pointer',
+              }}
+              aria-label={`Open ${activeProfile?.display_name ?? 'profile'}`}
+            >
+              {activeProfile?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={activeProfile.avatar_url}
+                  alt={activeProfile.display_name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                initials
+              )}
+            </button>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => openProfile(item.profile_id)}
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: 20,
+                    color: C.text,
+                    margin: 0,
+                    background: 'transparent',
+                    border: 0,
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                  className="profile-link-btn"
+                >
+                  {activeProfile?.display_name ?? 'Unknown'}
+                </button>
+                {activeProfile?.role && <RolePill role={activeProfile.role} />}
+              </div>
+
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                {activeProfile?.discipline && (
+                  <span
+                    style={{
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: 13,
+                      color: C.sub,
+                      letterSpacing: '0.06em',
+                    }}
+                  >
+                    {activeProfile.discipline}
+                  </span>
+                )}
+                {activeProfile?.geography && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: 13,
+                      color: C.sub,
+                    }}
+                  >
+                    <MapPin size={12} />
+                    {activeProfile.geography}
+                  </span>
+                )}
+                {createdAt && (
+                  <span
+                    style={{
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: 12,
+                      color: '#b8b8b8',
+                    }}
+                  >
+                    {createdAt}
+                  </span>
+                )}
+              </div>
+
+              {activeProfile?.bio && (
+                <p
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontSize: 13,
+                    color: C.muted,
+                    lineHeight: 1.6,
+                    margin: '10px 0 0',
+                    maxWidth: 480,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {activeProfile.bio}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* ── Cover image (thumbnail) ───────────────────────── */}
+          {coverImage && (
+            <div
+              style={{
+                background: '#060606',
+                overflow: 'hidden',
+                borderBottom: `1px solid ${C.line}`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverImage}
+                alt="Cover"
+                style={{
+                  width: '100%',
+                  height: 'clamp(170px, 26vw, 310px)',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </div>
+          )}
+
+          {/* ── Canvas blocks ─────────────────────────────────── */}
+          <div style={{ padding: '32px 36px 28px' }}>
+            {entry.blocks.map((block, index) => {
+              if (block.type === 'image') {
+                return (
+                  <div
+                    key={block.id}
+                    style={{
+                      marginBottom: 24,
+                      border: `1px solid ${C.line}`,
+                      borderRadius: 8,
+                      overflow: 'hidden',
+                      background: '#080808',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={block.content}
+                      alt="Archive item"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: index === 0 && !coverImage ? '60vh' : '50vh',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                )
+              }
+
+              if (block.type === 'link') {
+                const linkDomain = domainFromUrl(block.content)
+                return (
+                  <a
+                    key={block.id}
+                    href={block.content}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      marginBottom: 18,
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: 11,
+                      letterSpacing: '0.08em',
+                      color: C.accent,
+                      textDecoration: 'none',
+                      padding: '9px 15px',
+                      border: '1px solid rgba(155,127,248,0.28)',
+                      borderRadius: 3,
+                      background: 'rgba(155,127,248,0.06)',
+                      transition: 'all 0.15s',
+                    }}
+                    className="detail-link-btn"
+                  >
+                    <ExternalLink size={12} />
+                    OPEN {linkDomain || 'LINK'}
+                  </a>
+                )
+              }
+
+              const isTitle = index === firstTextIndex
+              return <div key={block.id}>{renderTextBlock(block.content, isTitle, block.id)}</div>
+            })}
+
+            {entry.blocks.length === 0 && (
+              <p style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 16, color: '#ddd', lineHeight: 1.75, whiteSpace: 'pre-wrap', margin: '0 0 24px' }}>
+                {item.content}
+              </p>
+            )}
+
+            {actionError && (
+              <div style={{ marginTop: 12, fontFamily: "'DM Mono',monospace", fontSize: 11, color: '#f87171' }}>
+                {actionError}
               </div>
             )}
-            {createdAt && <div style={{ padding: '16px 24px', borderTop: `1px solid ${T.line}` }}><p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: T.muted }}>{createdAt}</p></div>}
           </div>
-        )}
 
-        {item.type === 'text' && (
-          <div style={{ padding: '40px 36px' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '0.12em', color: T.artist, marginBottom: 20 }}>TEXT</div>
-            {isEditing ? (
-              editableContent
-            ) : (
-              <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#ddd', lineHeight: 1.75, whiteSpace: 'pre-wrap', margin: '0 0 24px' }}>{item.content}</p>
-            )}
-            {createdAt && <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: T.muted, marginTop: 20 }}>{createdAt}</p>}
-          </div>
-        )}
-
-        {item.type === 'link' && (
-          <div style={{ padding: '40px 36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.artist }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', color: T.artist }}>LINK</span>
-              {domain && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: T.muted, marginLeft: 'auto' }}>{domain}</span>}
-            </div>
-            {isEditing ? (
-              editableContent
-            ) : (
-              <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#aaa', wordBreak: 'break-all', marginBottom: 24, lineHeight: 1.5 }}>{item.content}</p>
-            )}
-            {!isEditing && linkHref && (
-              <a
-                href={linkHref}
-                target="_blank"
-                rel="noreferrer"
+          {/* ── More by [name] ────────────────────────────────── */}
+          {moreItems.length > 0 && (
+            <div style={{ borderTop: `1px solid ${C.line}`, padding: '36px 36px 32px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 20 }}>
+                <h3
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: C.text,
+                    margin: 0,
+                  }}
+                >
+                  More by
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => openProfile(item.profile_id)}
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: C.accent,
+                    background: 'transparent',
+                    border: 0,
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                  className="profile-link-btn"
+                >
+                  {activeProfile?.display_name ?? 'this artist'}
+                </button>
+              </div>
+              <div
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  letterSpacing: '0.1em',
-                  color: T.artist,
-                  textDecoration: 'none',
-                  padding: '8px 16px',
-                  border: `1px solid rgba(155,127,248,0.25)`,
-                  borderRadius: 2,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                  gap: 12,
                 }}
               >
-                <ExternalLink size={11} />
-                OPEN LINK
-              </a>
-            )}
-            {createdAt && <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: T.muted, marginTop: 24 }}>{createdAt}</p>}
-          </div>
-        )}
+                {moreItems.map(morItem => (
+                  <MiniCard
+                    key={morItem.id}
+                    item={morItem}
+                    onClick={() => {
+                      const idx = items.findIndex(i => i.id === morItem.id)
+                      if (idx >= 0) {
+                        setExternalSelection(null)
+                        setCurrentIndex(idx)
+                      } else {
+                        setExternalSelection(morItem)
+                        setActionError('')
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-        {actionError && (
-          <div style={{ padding: '0 36px 24px', fontFamily: 'var(--font-mono)', fontSize: 11, color: '#f87171' }}>
-            {actionError}
-          </div>
-        )}
+          {/* ── You may also like ─────────────────────────────── */}
+          {relatedItems.length > 0 && (
+            <div
+              style={{
+                borderTop: `1px solid ${C.line}`,
+                background: '#111',
+                padding: '36px 36px 40px',
+              }}
+            >
+              <div style={{ marginBottom: 20 }}>
+                <h3
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: C.text,
+                    margin: '0 0 4px',
+                  }}
+                >
+                  You may also like
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'DM Mono',monospace",
+                    fontSize: 10,
+                    color: C.muted,
+                    margin: 0,
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  FROM THE COLLECTIVE
+                </p>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                  gap: 12,
+                }}
+              >
+                {relatedItems.map(rel => (
+                  <MiniCard
+                    key={rel.id}
+                    item={rel}
+                    authorName={rel.profiles?.display_name}
+                    onClick={() => {
+                      setActionError('')
+                      setExternalSelection(rel)
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {deleteConfirmOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirmOpen(false)}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 40,
+                background: 'rgba(4,4,4,0.74)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 20,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  width: 'min(460px, 100%)',
+                  borderRadius: 8,
+                  border: `1px solid ${C.lineB}`,
+                  background: '#121212',
+                  padding: 18,
+                  boxShadow: '0 18px 46px rgba(0,0,0,0.5)',
+                }}
+              >
+                <h3
+                  style={{
+                    margin: '0 0 8px',
+                    color: C.text,
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontSize: 18,
+                    fontWeight: 700,
+                  }}
+                >
+                  Delete archive entry?
+                </h3>
+                <p
+                  style={{
+                    margin: '0 0 14px',
+                    color: C.muted,
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  This action is permanent and cannot be undone.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmOpen(false)}
+                    disabled={saving}
+                    style={{
+                      border: `1px solid ${C.lineB}`,
+                      borderRadius: 4,
+                      background: 'transparent',
+                      color: C.sub,
+                      fontFamily: "'Space Grotesk',sans-serif",
+                      fontSize: 13,
+                      padding: '8px 13px',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { void deleteItem() }}
+                    disabled={saving}
+                    style={{
+                      border: '1px solid rgba(248,113,113,0.5)',
+                      borderRadius: 4,
+                      background: 'rgba(127,29,29,0.22)',
+                      color: '#fca5a5',
+                      fontFamily: "'Space Grotesk',sans-serif",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      padding: '8px 13px',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {saving ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {items.length > 1 && !isEditing && (
+      {/* Left/right nav */}
+      {items.length > 1 && (
         <>
           <button
             aria-label="Previous item"
-            onClick={event => {
-              event.stopPropagation()
+            onClick={e => {
+              e.stopPropagation()
               setActionError('')
-              setCurrentIndex(index => (index - 1 + items.length) % items.length)
+              setCurrentIndex(i => (i - 1 + items.length) % items.length)
             }}
             style={{
               position: 'fixed',
-              left: 20,
+              left: 16,
               top: '50%',
               transform: 'translateY(-50%)',
               background: 'rgba(20,20,20,0.85)',
-              border: `1px solid ${T.line}`,
+              border: `1px solid ${C.line}`,
               borderRadius: '50%',
               width: 40,
               height: 40,
@@ -463,6 +1119,7 @@ export function PostDetailOverlay({
               justifyContent: 'center',
               cursor: 'pointer',
               color: '#aaa',
+              zIndex: 1001,
             }}
             className="overlay-nav-btn"
           >
@@ -470,18 +1127,18 @@ export function PostDetailOverlay({
           </button>
           <button
             aria-label="Next item"
-            onClick={event => {
-              event.stopPropagation()
+            onClick={e => {
+              e.stopPropagation()
               setActionError('')
-              setCurrentIndex(index => (index + 1) % items.length)
+              setCurrentIndex(i => (i + 1) % items.length)
             }}
             style={{
               position: 'fixed',
-              right: 20,
+              right: 16,
               top: '50%',
               transform: 'translateY(-50%)',
               background: 'rgba(20,20,20,0.85)',
-              border: `1px solid ${T.line}`,
+              border: `1px solid ${C.line}`,
               borderRadius: '50%',
               width: 40,
               height: 40,
@@ -490,6 +1147,7 @@ export function PostDetailOverlay({
               justifyContent: 'center',
               cursor: 'pointer',
               color: '#aaa',
+              zIndex: 1001,
             }}
             className="overlay-nav-btn"
           >
@@ -530,6 +1188,20 @@ export function PostDetailOverlay({
           color: #f2f2f2;
           background: rgba(26, 26, 26, 0.92);
           box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .detail-link-btn:hover {
+          background: rgba(155, 127, 248, 0.12);
+          border-color: rgba(155, 127, 248, 0.5);
+          transform: translateY(-1px);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .profile-link-btn:hover {
+          color: #ffffff !important;
+          text-decoration: underline;
+          text-decoration-color: rgba(155, 127, 248, 0.65);
+          text-underline-offset: 3px;
         }
       `}</style>
     </motion.div>

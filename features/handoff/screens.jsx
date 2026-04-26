@@ -9,6 +9,7 @@ import { buildDiscoverUrl } from '@/features/discover/filters'
 import { upsertProfile } from '@/features/profiles/actions'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS } from '@/lib/constants'
 import { AnimatePresence, motion } from 'framer-motion'
+import { draftFromArchiveEntry, domainFromUrl, resolveArchiveEntry } from '@/features/archive/entry'
 import { PostDetailOverlay } from '@/features/archive/PostDetailOverlay'
 import { ArchiveComposerOverlay } from '@/features/archive/ArchiveComposerOverlay'
 
@@ -17,48 +18,12 @@ function formatArchiveDate(value) {
   return new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(new Date(value))
 }
 
-function domainFromUrl(value) {
-  try {
-    return new URL(value).hostname.replace(/^www\./, '')
-  } catch {
-    return value
-  }
-}
-
 function archiveTitle(item) {
-  if (item.type === 'link') return domainFromUrl(item.content)
-  if (item.type === 'image') return 'Archive image'
-  return item.content.length > 70 ? `${item.content.slice(0, 70)}...` : item.content
+  return resolveArchiveEntry(item).title
 }
 
 function archiveDraftFromItem(item) {
-  if (item.type === 'image') {
-    return {
-      title: '',
-      body: '',
-      link: '',
-      imageUrl: item.content,
-    }
-  }
-
-  if (item.type === 'link') {
-    return {
-      title: '',
-      body: '',
-      link: item.content,
-      imageUrl: '',
-    }
-  }
-
-  const normalized = (item.content || '').replace(/\r\n/g, '\n')
-  const [head = '', ...rest] = normalized.split('\n\n')
-
-  return {
-    title: head,
-    body: rest.join('\n\n'),
-    link: '',
-    imageUrl: '',
-  }
+  return draftFromArchiveEntry(item)
 }
 
 const ROLE_PROFILE_COPY = {
@@ -832,22 +797,45 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
   const [addOpen, setAddOpen] = React.useState(false);
   const [composerDraft, setComposerDraft] = React.useState(null);
   const [composerEditTarget, setComposerEditTarget] = React.useState(null);
+  const [localItems, setLocalItems] = React.useState(items);
+
+  React.useEffect(() => {
+    setLocalItems(items)
+  }, [items])
+
+  const refreshLocalArchiveItems = React.useCallback(async () => {
+    if (!userProfileId) return
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('archive_items')
+      .select('id, profile_id, type, content, created_at')
+      .eq('profile_id', userProfileId)
+      .order('created_at', { ascending: false })
+    if (data) setLocalItems(data)
+  }, [userProfileId])
 
   const ownerName = profile?.display_name || 'Your profile';
   const ownerRole = profile?.role || 'Artist';
   const isSignedOut = state === 'signedOut';
   const isMissingProfile = state === 'missingProfile';
-  const archiveItems = items.map(item => ({
-    id: item.id,
-    type: item.type,
-    title: archiveTitle(item),
-    content: item.content,
-    author: ownerName,
-    authorRole: ownerRole,
-    date: formatArchiveDate(item.created_at),
-    link: item.type === 'link' ? domainFromUrl(item.content) : undefined,
-    hint: item.type === 'image' ? 'image' : undefined,
-  }));
+  const archiveItems = localItems.map(item => {
+    const entry = resolveArchiveEntry(item)
+    const coverUrl = entry.thumbnailUrl || entry.imageUrl
+    return {
+      id: item.id,
+      type: entry.primaryType,
+      title: entry.title,
+      content: coverUrl || entry.body || entry.referenceUrl || '',
+      body: entry.body,
+      imageUrl: coverUrl,
+      referenceUrl: entry.referenceUrl,
+      author: ownerName,
+      authorRole: ownerRole,
+      date: formatArchiveDate(item.created_at),
+      link: entry.referenceUrl ? domainFromUrl(entry.referenceUrl) : undefined,
+      hint: coverUrl ? 'image' : undefined,
+    }
+  });
 
   const filtered = typeFilter==='all' ? archiveItems : archiveItems.filter(p=>p.type===typeFilter);
   const ctaLabel = isSignedOut ? 'Join to Build Archive' : isMissingProfile ? 'Complete Profile' : '+ Add to Archive';
@@ -902,7 +890,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
                 {...p}
                 itemId={p.id}
                 onExpand={() => {
-                  const raw = items.find(item => item.id === p.id)
+                  const raw = localItems.find(item => item.id === p.id)
                   if (raw) setSelectedItem(raw)
                 }}
               />
@@ -933,10 +921,11 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
           <PostDetailOverlay
             key={selectedItem.id}
             item={selectedItem}
-            items={items.filter(item => typeFilter === 'all' || item.type === typeFilter)}
+            items={localItems.filter(item => typeFilter === 'all' || item.type === typeFilter)}
             onClose={() => setSelectedItem(null)}
             isOwner={isOwner}
             onEditInComposer={isOwner ? editInArchiveComposer : undefined}
+            profile={profile}
           />
         )}
       </AnimatePresence>
@@ -952,9 +941,10 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
             setComposerEditTarget(null)
             setComposerDraft(null)
           }}
-          onSaved={() => {
+          onSaved={async () => {
             setComposerEditTarget(null)
             setComposerDraft(null)
+            await refreshLocalArchiveItems()
             router.refresh()
           }}
         />
@@ -972,6 +962,11 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
   const [selectedArchiveItem, setSelectedArchiveItem] = React.useState(null);
   const [composerDraft, setComposerDraft] = React.useState(null);
   const [composerEditTarget, setComposerEditTarget] = React.useState(null);
+  const [localArchiveItems, setLocalArchiveItems] = React.useState(archiveItems);
+
+  React.useEffect(() => {
+    setLocalArchiveItems(archiveItems)
+  }, [archiveItems])
 
   const work = [
     { type:'image', title:'Untitled (After the Rain)', authorRole:'Artist', date:'Apr 2026', hint:'photograph', author:'Amara Osei' },
@@ -988,18 +983,26 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     discipline: 'Photography',
     interests: ['conceptual','documentary','large-format','silver-gelatin','africa','diaspora'],
   };
-  const mappedArchiveItems = archiveItems.map(item => ({
-    id: item.id,
-    type: item.type,
-    title: archiveTitle(item),
-    content: item.content,
-    author: currentProfile.display_name,
-    authorRole: currentProfile.role,
-    date: formatArchiveDate(item.created_at),
-    link: item.type === 'link' ? domainFromUrl(item.content) : undefined,
-    hint: item.type === 'image' ? 'image' : undefined,
-  }));
-  const profileWork = archiveItems.length ? mappedArchiveItems : profile ? [] : work;
+  const currentProfileId = currentProfile.id
+  const mappedArchiveItems = localArchiveItems.map(item => {
+    const entry = resolveArchiveEntry(item)
+    const coverUrl = entry.thumbnailUrl || entry.imageUrl
+    return {
+      id: item.id,
+      type: entry.primaryType,
+      title: entry.title,
+      content: coverUrl || entry.body || entry.referenceUrl || '',
+      body: entry.body,
+      imageUrl: coverUrl,
+      referenceUrl: entry.referenceUrl,
+      author: currentProfile.display_name,
+      authorRole: currentProfile.role,
+      date: formatArchiveDate(item.created_at),
+      link: entry.referenceUrl ? domainFromUrl(entry.referenceUrl) : undefined,
+      hint: coverUrl ? 'image' : undefined,
+    }
+  });
+  const profileWork = localArchiveItems.length ? mappedArchiveItems : profile ? [] : work;
   const initials = currentProfile.display_name?.charAt(0)?.toUpperCase() || 'S';
   const roleNoun = currentProfile.role === 'Curator'
     ? 'research note'
@@ -1007,7 +1010,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       ? 'program'
       : 'work';
   const stats = [
-    [String(archiveItems.length), currentProfile.role === 'Institution' ? 'Programs' : currentProfile.role === 'Curator' ? 'Notes' : 'Works'],
+    [String(localArchiveItems.length), currentProfile.role === 'Institution' ? 'Programs' : currentProfile.role === 'Curator' ? 'Notes' : 'Works'],
     [String(currentProfile.interests?.length ?? 0), 'Interests'],
     [currentProfile.discipline ? '1' : '0', 'Focus'],
     [currentProfile.geography ? '1' : '0', 'Place'],
@@ -1030,6 +1033,17 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     ],
   };
   const connectionSuggestions = connectionsByRole[currentProfile.role] ?? connectionsByRole.Artist;
+
+  const refreshLocalProfileArchiveItems = React.useCallback(async () => {
+    if (!currentProfileId) return
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('archive_items')
+      .select('id, profile_id, type, content, created_at')
+      .eq('profile_id', currentProfileId)
+      .order('created_at', { ascending: false })
+    if (data) setLocalArchiveItems(data)
+  }, [currentProfileId])
 
   const openArchiveComposer = () => {
     setTab('work')
@@ -1111,7 +1125,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
                     itemId={w.id}
                     isOwner={isOwner}
                     onExpand={() => {
-                      const raw = archiveItems.find(item => item.id === w.id)
+                      const raw = localArchiveItems.find(item => item.id === w.id)
                       if (raw) setSelectedArchiveItem(raw)
                     }}
                   />
@@ -1138,10 +1152,11 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
               <PostDetailOverlay
                 key={selectedArchiveItem.id}
                 item={selectedArchiveItem}
-                items={archiveItems}
+                items={localArchiveItems}
                 onClose={() => setSelectedArchiveItem(null)}
                 isOwner={isOwner}
                 onEditInComposer={isOwner ? editInArchiveComposer : undefined}
+                profile={currentProfile}
               />
             )}
           </AnimatePresence>
@@ -1209,10 +1224,11 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
             setComposerEditTarget(null)
             setComposerDraft(null)
           }}
-          onSaved={() => {
+          onSaved={async () => {
             setArchiveError('')
             setComposerEditTarget(null)
             setComposerDraft(null)
+            await refreshLocalProfileArchiveItems()
             router.refresh()
           }}
         />

@@ -1,13 +1,29 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ImageIcon, LinkIcon, ListIcon, Pilcrow, Type, UnderlineIcon, X } from 'lucide-react'
-import { addArchiveItem, updateArchiveItem } from '@/features/archive/actions'
+import {
+  ArrowDown,
+  ArrowUp,
+  ImageIcon,
+  Link2,
+  LinkIcon,
+  ListIcon,
+  Pilcrow,
+  Type,
+  UnderlineIcon,
+  X,
+} from 'lucide-react'
+import { addArchiveItemClient, updateArchiveItemClient } from '@/features/archive/clientActions'
+import {
+  hasUsefulContent,
+  isLikelyHttpUrl,
+  normalizeHttpUrl,
+} from '@/features/archive/entry'
 import { uploadArchiveImage } from '@/features/archive/upload'
 import { lockBodyScroll } from '@/lib/ui/bodyScrollLock'
-import type { ArchiveItemType } from '@/lib/types'
+import type { ArchiveCanvasBlock, ArchiveCanvasBlockType, ArchiveItemType } from '@/lib/types'
 
 interface ArchiveComposerOverlayProps {
   open: boolean
@@ -19,6 +35,8 @@ interface ArchiveComposerOverlayProps {
     body?: string
     link?: string
     imageUrl?: string
+    thumbnailUrl?: string
+    blocks?: ArchiveCanvasBlock[]
   }
   editTarget?: {
     id: string
@@ -26,29 +44,370 @@ interface ArchiveComposerOverlayProps {
   } | null
 }
 
-function hasUsefulContent(value: string) {
-  return Boolean(value && value.trim())
+interface CanvasBlockDraft {
+  id: string
+  type: ArchiveCanvasBlockType
+  content: string
+  file?: File | null
+  filePreview?: string
 }
 
-function normalizeHttpUrl(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return ''
-  }
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+function makeId() {
+  return `block-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function isLikelyHttpUrl(value: string) {
-  if (!hasUsefulContent(value)) {
-    return false
-  }
-  try {
-    const url = new URL(value)
-    return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname)
-  } catch {
-    return false
-  }
+function newBlock(type: ArchiveCanvasBlockType, content = ''): CanvasBlockDraft {
+  return { id: makeId(), type, content, ...(type === 'image' ? { file: null } : {}) }
 }
+
+// ─── Sub-block components (defined at module level to avoid remount) ──────────
+
+interface BlockShellProps {
+  label: string
+  icon: React.ReactNode
+  isFirst: boolean
+  isLast: boolean
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+  children: React.ReactNode
+}
+
+function BlockShell({ label, icon, isFirst, isLast, onMove, onRemove, children }: BlockShellProps) {
+  return (
+    <div
+      className="canvas-block"
+      style={{
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 6,
+        overflow: 'hidden',
+        background: '#111',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '7px 10px',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: '#0e0e0e',
+        }}
+      >
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            fontFamily: "'DM Mono',monospace",
+            fontSize: 10,
+            letterSpacing: '0.1em',
+            color: '#606060',
+          }}
+        >
+          {icon}
+          {label}
+        </span>
+        <div style={{ display: 'flex', gap: 3 }}>
+          <button
+            type="button"
+            onClick={() => onMove(-1)}
+            disabled={isFirst}
+            style={ctrlBtnStyle}
+            aria-label="Move block up"
+          >
+            <ArrowUp size={12} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(1)}
+            disabled={isLast}
+            style={ctrlBtnStyle}
+            aria-label="Move block down"
+          >
+            <ArrowDown size={12} />
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            style={{ ...ctrlBtnStyle, color: '#f87171' }}
+            aria-label="Remove block"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+interface TextBlockProps {
+  block: CanvasBlockDraft
+  isFirst: boolean
+  isLast: boolean
+  onContentChange: (v: string) => void
+  onApplyWrap: (prefix: string, suffix?: string, placeholder?: string) => void
+  onPrefixLines: (token: string) => void
+  onInsertLink: () => void
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+  textareaRef: (el: HTMLTextAreaElement | null) => void
+}
+
+function TextBlock({
+  block,
+  isFirst,
+  isLast,
+  onContentChange,
+  onApplyWrap,
+  onPrefixLines,
+  onInsertLink,
+  onMove,
+  onRemove,
+  textareaRef,
+}: TextBlockProps) {
+  return (
+    <BlockShell
+      label="TEXT"
+      icon={<Type size={11} />}
+      isFirst={isFirst}
+      isLast={isLast}
+      onMove={onMove}
+      onRemove={onRemove}
+    >
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          alignItems: 'center',
+          padding: '6px 8px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: '#0f0f0f',
+          flexWrap: 'wrap',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onApplyWrap('**')}
+          style={toolBtnStyle}
+          className="composer-tool-btn"
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onClick={() => onApplyWrap('*')}
+          style={{ ...toolBtnStyle, fontStyle: 'italic' }}
+          className="composer-tool-btn"
+        >
+          I
+        </button>
+        <button
+          type="button"
+          onClick={() => onApplyWrap('<u>', '</u>')}
+          style={{ ...toolBtnStyle, textDecoration: 'underline' }}
+          className="composer-tool-btn"
+        >
+          <UnderlineIcon size={11} />
+        </button>
+        <button
+          type="button"
+          onClick={() => onPrefixLines('# ')}
+          style={toolBtnStyle}
+          className="composer-tool-btn"
+        >
+          <Pilcrow size={11} /> H1
+        </button>
+        <button
+          type="button"
+          onClick={() => onPrefixLines('- ')}
+          style={toolBtnStyle}
+          className="composer-tool-btn"
+        >
+          <ListIcon size={11} /> List
+        </button>
+        <button
+          type="button"
+          onClick={() => onPrefixLines('> ')}
+          style={toolBtnStyle}
+          className="composer-tool-btn"
+        >
+          Quote
+        </button>
+        <button
+          type="button"
+          onClick={onInsertLink}
+          style={toolBtnStyle}
+          className="composer-tool-btn"
+        >
+          <Link2 size={11} /> Link
+        </button>
+      </div>
+      <textarea
+        ref={textareaRef}
+        value={block.content}
+        onChange={e => onContentChange(e.target.value)}
+        placeholder="Write something..."
+        style={{
+          width: '100%',
+          minHeight: 140,
+          border: 'none',
+          outline: 'none',
+          resize: 'vertical',
+          background: '#111',
+          color: '#e8e8e8',
+          padding: '14px 14px',
+          fontFamily: "'Space Grotesk',sans-serif",
+          fontSize: 15,
+          lineHeight: 1.7,
+        }}
+      />
+    </BlockShell>
+  )
+}
+
+interface ImageBlockProps {
+  block: CanvasBlockDraft
+  isFirst: boolean
+  isLast: boolean
+  onFileSelect: (file: File | null) => void
+  onUrlChange: (url: string) => void
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+}
+
+function ImageBlock({
+  block,
+  isFirst,
+  isLast,
+  onFileSelect,
+  onUrlChange,
+  onMove,
+  onRemove,
+}: ImageBlockProps) {
+  const preview = block.filePreview || (isLikelyHttpUrl(normalizeHttpUrl(block.content)) ? normalizeHttpUrl(block.content) : '')
+  const showUrl = !block.file
+
+  return (
+    <BlockShell
+      label="IMAGE"
+      icon={<ImageIcon size={11} />}
+      isFirst={isFirst}
+      isLast={isLast}
+      onMove={onMove}
+      onRemove={onRemove}
+    >
+      <div style={{ padding: 12 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+          <label
+            className="composer-upload-btn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              border: '1px dashed rgba(255,255,255,0.18)',
+              borderRadius: 5,
+              padding: '8px 12px',
+              color: '#b6b6b6',
+              fontFamily: "'Space Grotesk',sans-serif",
+              fontSize: 12,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <ImageIcon size={12} />
+            Upload file
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={e => onFileSelect(e.target.files?.[0] ?? null)}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: '#484848' }}>or</span>
+          {showUrl && (
+            <input
+              value={block.content}
+              onChange={e => onUrlChange(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="composer-side-input"
+              style={{ ...sideInputStyle, flex: 1, minWidth: 180 }}
+            />
+          )}
+          {block.file && (
+            <button
+              type="button"
+              onClick={() => onFileSelect(null)}
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(248,113,113,0.3)',
+                borderRadius: 4,
+                color: '#f87171',
+                fontFamily: "'DM Mono',monospace",
+                fontSize: 10,
+                padding: '6px 10px',
+                cursor: 'pointer',
+              }}
+            >
+              Remove file
+            </button>
+          )}
+        </div>
+        {preview && (
+          <div
+            style={{
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 5,
+              overflow: 'hidden',
+              background: '#0d0d0d',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={preview}
+              alt="Preview"
+              style={{ display: 'block', width: '100%', maxHeight: 280, objectFit: 'cover' }}
+            />
+          </div>
+        )}
+      </div>
+    </BlockShell>
+  )
+}
+
+interface LinkBlockProps {
+  block: CanvasBlockDraft
+  isFirst: boolean
+  isLast: boolean
+  onContentChange: (v: string) => void
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+}
+
+function LinkBlock({ block, isFirst, isLast, onContentChange, onMove, onRemove }: LinkBlockProps) {
+  return (
+    <BlockShell
+      label="LINK"
+      icon={<LinkIcon size={11} />}
+      isFirst={isFirst}
+      isLast={isLast}
+      onMove={onMove}
+      onRemove={onRemove}
+    >
+      <div style={{ padding: 12 }}>
+        <input
+          value={block.content}
+          onChange={e => onContentChange(e.target.value)}
+          placeholder="https://example.com"
+          className="composer-side-input"
+          style={sideInputStyle}
+        />
+      </div>
+    </BlockShell>
+  )
+}
+
+// ─── Main overlay ─────────────────────────────────────────────────────────────
 
 export function ArchiveComposerOverlay({
   open,
@@ -59,116 +418,197 @@ export function ArchiveComposerOverlay({
   editTarget,
 }: ArchiveComposerOverlayProps) {
   const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
-  const [link, setLink] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailContent, setThumbnailContent] = useState('')
+  const [thumbnailPreview, setThumbnailPreview] = useState('')
+  const [blocks, setBlocks] = useState<CanvasBlockDraft[]>([newBlock('text')])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const bodyRef = useRef<HTMLTextAreaElement>(null)
 
-  const filePreview = useMemo(
-    () => (selectedFile ? URL.createObjectURL(selectedFile) : ''),
-    [selectedFile],
-  )
+  const textareaRefs = useRef(new Map<string, HTMLTextAreaElement>())
+  const blocksRef = useRef(blocks)
 
-  const normalizedImageUrl = normalizeHttpUrl(imageUrl)
-  const showImagePreview = !selectedFile && isLikelyHttpUrl(normalizedImageUrl)
   const isEditingExisting = Boolean(editTarget)
 
-  useEffect(() => {
-    return () => {
-      if (filePreview) {
-        URL.revokeObjectURL(filePreview)
-      }
-    }
-  }, [filePreview])
+  const thumbnailPreviewRef = useRef(thumbnailPreview)
 
   useEffect(() => {
-    if (!open) {
-      return
+    blocksRef.current = blocks
+  }, [blocks])
+
+  useEffect(() => {
+    thumbnailPreviewRef.current = thumbnailPreview
+  }, [thumbnailPreview])
+
+  // Cleanup all file previews on unmount
+  useEffect(() => {
+    return () => {
+      for (const b of blocksRef.current) {
+        if (b.filePreview) URL.revokeObjectURL(b.filePreview)
+      }
+      if (thumbnailPreviewRef.current) URL.revokeObjectURL(thumbnailPreviewRef.current)
     }
-    const releaseScrollLock = lockBodyScroll()
-    return releaseScrollLock
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    return lockBodyScroll()
   }, [open])
 
   useEffect(() => {
-    if (!open) {
-      return
-    }
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !saving) {
-        onClose()
-      }
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving) onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose, saving])
 
+  // Hydrate from initialDraft / editTarget
   useEffect(() => {
-    if (!open || (!initialDraft && !editTarget)) {
-      return
-    }
+    if (!open) return
 
-    setTitle(initialDraft?.title ?? '')
-    setBody(initialDraft?.body ?? '')
-    setLink(initialDraft?.link ?? '')
-    setImageUrl(initialDraft?.imageUrl ?? '')
-    setSelectedFile(null)
+    /* eslint-disable react-hooks/set-state-in-effect */
+    // Revoke existing previews
+    for (const b of blocksRef.current) {
+      if (b.filePreview) URL.revokeObjectURL(b.filePreview)
+    }
+    if (thumbnailPreviewRef.current) {
+      URL.revokeObjectURL(thumbnailPreviewRef.current)
+      setThumbnailPreview('')
+    }
+    setThumbnailFile(null)
+    setThumbnailContent(initialDraft?.thumbnailUrl ?? '')
+
+    if (initialDraft?.blocks && initialDraft.blocks.length > 0) {
+      // Extract title from first text block, rest become the canvas
+      const [firstText, ...rest] = initialDraft.blocks
+      if (firstText?.type === 'text') {
+        setTitle(firstText.content)
+        setBlocks(
+          rest.length
+            ? rest.map(b => ({ id: b.id || makeId(), type: b.type, content: b.content, ...(b.type === 'image' ? { file: null } : {}) }))
+            : [newBlock('text')],
+        )
+      } else {
+        setTitle('')
+        setBlocks(initialDraft.blocks.map(b => ({ id: b.id || makeId(), type: b.type, content: b.content, ...(b.type === 'image' ? { file: null } : {}) })))
+      }
+    } else if (initialDraft) {
+      setTitle(initialDraft.title ?? '')
+      const legacyBlocks: CanvasBlockDraft[] = []
+      if (hasUsefulContent(initialDraft.body))
+        legacyBlocks.push(newBlock('text', initialDraft.body!))
+      if (hasUsefulContent(initialDraft.imageUrl))
+        legacyBlocks.push(newBlock('image', initialDraft.imageUrl!))
+      if (hasUsefulContent(initialDraft.link))
+        legacyBlocks.push(newBlock('link', initialDraft.link!))
+      setBlocks(legacyBlocks.length ? legacyBlocks : [newBlock('text')])
+    } else {
+      setTitle('')
+      setBlocks([newBlock('text')])
+    }
     setError('')
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, initialDraft, editTarget])
 
-  const resetComposer = () => {
-    setTitle('')
-    setBody('')
-    setLink('')
-    setImageUrl('')
-    setSelectedFile(null)
-    setError('')
+  const updateBlock = (id: string, updates: Partial<CanvasBlockDraft>) => {
+    setBlocks(prev => prev.map(b => (b.id === id ? { ...b, ...updates } : b)))
   }
 
-  const applyWrap = (prefix: string, suffix = prefix, placeholder = 'text') => {
-    const textarea = bodyRef.current
+  const handleFileSelect = (id: string, file: File | null) => {
+    const old = blocksRef.current.find(b => b.id === id)
+    if (old?.filePreview) URL.revokeObjectURL(old.filePreview)
+    const filePreview = file ? URL.createObjectURL(file) : undefined
+    updateBlock(id, { file, filePreview, content: '' })
+  }
+
+  const removeBlock = (id: string) => {
+    const block = blocksRef.current.find(b => b.id === id)
+    if (block?.filePreview) URL.revokeObjectURL(block.filePreview)
+    textareaRefs.current.delete(id)
+    setBlocks(prev => prev.filter(b => b.id !== id))
+  }
+
+  const moveBlock = (id: string, dir: -1 | 1) => {
+    setBlocks(prev => {
+      const i = prev.findIndex(b => b.id === id)
+      if (i < 0) return prev
+      const j = i + dir
+      if (j < 0 || j >= prev.length) return prev
+      const clone = [...prev]
+      const [moved] = clone.splice(i, 1)
+      clone.splice(j, 0, moved)
+      return clone
+    })
+  }
+
+  const applyWrap = (id: string, prefix: string, suffix = prefix, placeholder = 'text') => {
+    const textarea = textareaRefs.current.get(id)
+    const current = blocksRef.current.find(b => b.id === id)?.content ?? ''
     if (!textarea) {
-      setBody(prev => `${prev}${prefix}${placeholder}${suffix}`)
+      updateBlock(id, { content: `${current}${prefix}${placeholder}${suffix}` })
+      return
+    }
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = current.slice(start, end) || placeholder
+    updateBlock(id, {
+      content: `${current.slice(0, start)}${prefix}${selected}${suffix}${current.slice(end)}`,
+    })
+    requestAnimationFrame(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length)
+    })
+  }
+
+  const prefixLines = (id: string, token: string) => {
+    const textarea = textareaRefs.current.get(id)
+    const current = blocksRef.current.find(b => b.id === id)?.content ?? ''
+    if (!textarea) {
+      updateBlock(id, { content: `${current}${token}List item` })
+      return
+    }
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = current.slice(start, end) || 'List item'
+    const transformed = selected
+      .split('\n')
+      .map(l => `${token}${l}`)
+      .join('\n')
+    updateBlock(id, {
+      content: `${current.slice(0, start)}${transformed}${current.slice(end)}`,
+    })
+    requestAnimationFrame(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start, start + transformed.length)
+    })
+  }
+
+  const insertMarkdownLink = (id: string) => {
+    const textarea = textareaRefs.current.get(id)
+    const current = blocksRef.current.find(b => b.id === id)?.content ?? ''
+    const defaultText = 'link text'
+    const defaultUrl = 'https://example.com'
+
+    if (!textarea) {
+      updateBlock(id, { content: `${current}[${defaultText}](${defaultUrl})` })
       return
     }
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    setBody(prev => {
-      const selected = prev.slice(start, end) || placeholder
-      return `${prev.slice(0, start)}${prefix}${selected}${suffix}${prev.slice(end)}`
+    const selected = current.slice(start, end).trim() || defaultText
+    const replacement = `[${selected}](${defaultUrl})`
+
+    updateBlock(id, {
+      content: `${current.slice(0, start)}${replacement}${current.slice(end)}`,
     })
 
-    window.requestAnimationFrame(() => {
-      const selectedLength = (textarea.value.slice(start, end) || placeholder).length
+    requestAnimationFrame(() => {
+      const urlStart = start + selected.length + 3
       textarea.focus()
-      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedLength)
-    })
-  }
-
-  const prefixLines = (token: string) => {
-    const textarea = bodyRef.current
-    if (!textarea) {
-      setBody(prev => `${prev}${token}List item`)
-      return
-    }
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    setBody(prev => {
-      const selected = prev.slice(start, end) || 'List item'
-      const transformed = selected
-        .split('\n')
-        .map(line => `${token}${line}`)
-        .join('\n')
-      return `${prev.slice(0, start)}${transformed}${prev.slice(end)}`
-    })
-
-    window.requestAnimationFrame(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start, end + token.length)
+      textarea.setSelectionRange(urlStart, urlStart + defaultUrl.length)
     })
   }
 
@@ -176,149 +616,102 @@ export function ArchiveComposerOverlay({
     setSaving(true)
     setError('')
 
-    const textPayload = [title.trim(), body.trim()].filter(Boolean).join('\n\n')
-    const normalizedLink = normalizeHttpUrl(link)
-
-    if (isEditingExisting && editTarget) {
-      if (editTarget.type === 'text') {
-        if (!hasUsefulContent(textPayload)) {
-          setSaving(false)
-          setError('Add title or body text before saving.')
-          return
-        }
-
-        const result = await updateArchiveItem(editTarget.id, {
-          type: 'text',
-          content: textPayload,
-        })
-
-        if ('error' in result) {
-          setSaving(false)
-          setError(result.error)
-          return
-        }
-
-        setSaving(false)
-        resetComposer()
-        onSaved()
-        onClose()
-        return
-      }
-
-      if (editTarget.type === 'link') {
-        if (!hasUsefulContent(normalizedLink) || !isLikelyHttpUrl(normalizedLink)) {
-          setSaving(false)
-          setError('Add a valid web link.')
-          return
-        }
-
-        const result = await updateArchiveItem(editTarget.id, {
-          type: 'link',
-          content: normalizedLink,
-        })
-
-        if ('error' in result) {
-          setSaving(false)
-          setError(result.error)
-          return
-        }
-
-        setSaving(false)
-        resetComposer()
-        onSaved()
-        onClose()
-        return
-      }
-
-      let resolvedImage = ''
-      if (selectedFile) {
-        const uploadResult = await uploadArchiveImage(selectedFile, profileId)
-        if ('error' in uploadResult) {
-          setSaving(false)
-          setError(uploadResult.error)
-          return
-        }
-        resolvedImage = uploadResult.url
-      } else if (hasUsefulContent(imageUrl) && isLikelyHttpUrl(normalizedImageUrl)) {
-        resolvedImage = normalizedImageUrl
-      }
-
-      if (!hasUsefulContent(resolvedImage)) {
-        setSaving(false)
-        setError('Add a valid image URL (for example: https://example.com/image.jpg).')
-        return
-      }
-
-      const result = await updateArchiveItem(editTarget.id, {
-        type: 'image',
-        content: resolvedImage,
-      })
-
+    // Upload thumbnail file if set
+    let resolvedThumbnail = thumbnailContent.trim()
+    if (thumbnailFile) {
+      const result = await uploadArchiveImage(thumbnailFile, profileId)
       if ('error' in result) {
         setSaving(false)
         setError(result.error)
         return
       }
-
-      setSaving(false)
-      resetComposer()
-      onSaved()
-      onClose()
-      return
+      resolvedThumbnail = result.url
     }
 
-    if (hasUsefulContent(link) && !isLikelyHttpUrl(normalizedLink)) {
-      setSaving(false)
-      setError('Add a valid web link.')
-      return
-    }
-
-    let resolvedImage = ''
-    if (selectedFile) {
-      const uploadResult = await uploadArchiveImage(selectedFile, profileId)
-      if ('error' in uploadResult) {
-        setSaving(false)
-        setError(uploadResult.error)
-        return
+    // Upload file-backed image blocks
+    const resolved: CanvasBlockDraft[] = []
+    for (const block of blocks) {
+      if (block.type === 'image' && block.file) {
+        const result = await uploadArchiveImage(block.file, profileId)
+        if ('error' in result) {
+          setSaving(false)
+          setError(result.error)
+          return
+        }
+        resolved.push({ ...block, content: result.url, file: null })
+      } else {
+        resolved.push(block)
       }
-      resolvedImage = uploadResult.url
-    } else if (hasUsefulContent(imageUrl)) {
-      if (!isLikelyHttpUrl(normalizedImageUrl)) {
-        setSaving(false)
-        setError('Add a valid image URL (for example: https://example.com/image.jpg).')
-        return
+    }
+
+    // Validate URL blocks before building canvas
+    for (const block of resolved) {
+      if (block.type === 'image' || block.type === 'link') {
+        if (!hasUsefulContent(block.content)) continue
+        if (!isLikelyHttpUrl(normalizeHttpUrl(block.content))) {
+          setSaving(false)
+          setError(
+            block.type === 'image'
+              ? 'One of your image blocks has an invalid URL.'
+              : 'One of your link blocks has an invalid URL.',
+          )
+          return
+        }
       }
-      resolvedImage = normalizedImageUrl
     }
 
-    const entries: Array<{ type: 'text' | 'link' | 'image'; content: string }> = []
-    if (hasUsefulContent(textPayload)) {
-      entries.push({ type: 'text', content: textPayload })
-    }
-    if (hasUsefulContent(normalizedLink)) {
-      entries.push({ type: 'link', content: normalizedLink })
-    }
-    if (hasUsefulContent(resolvedImage)) {
-      entries.push({ type: 'image', content: resolvedImage })
-    }
+    // Build canvas — title always goes first if set
+    const titleBlock: ArchiveCanvasBlock[] = title.trim()
+      ? [{ id: 'title', type: 'text', content: title.trim() }]
+      : []
 
-    if (entries.length === 0) {
+    const bodyBlocks: ArchiveCanvasBlock[] = resolved
+      .map(block => {
+        const raw = block.content.trim()
+        if (!raw) return null
+        if (block.type === 'image' || block.type === 'link') {
+          const url = normalizeHttpUrl(raw)
+          if (!isLikelyHttpUrl(url)) return null
+          return { id: block.id, type: block.type, content: url }
+        }
+        return { id: block.id, type: block.type, content: raw }
+      })
+      .filter((b): b is ArchiveCanvasBlock => b !== null)
+
+    const canvas = [...titleBlock, ...bodyBlocks]
+
+    if (canvas.length === 0) {
       setSaving(false)
       setError('Add at least one piece of content: text, link, or image.')
       return
     }
 
-    for (const entry of entries) {
-      const result = await addArchiveItem(entry)
-      if ('error' in result) {
-        setSaving(false)
-        setError(result.error)
-        return
-      }
+    const thumbnailArg = resolvedThumbnail && isLikelyHttpUrl(normalizeHttpUrl(resolvedThumbnail))
+      ? normalizeHttpUrl(resolvedThumbnail)
+      : undefined
+
+    const result = editTarget
+      ? await updateArchiveItemClient(editTarget.id, { canvas, thumbnail: thumbnailArg })
+      : await addArchiveItemClient({ canvas, thumbnail: thumbnailArg })
+
+    if ('error' in result) {
+      setSaving(false)
+      setError(result.error)
+      return
+    }
+
+    // Cleanup previews before reset
+    for (const b of blocksRef.current) {
+      if (b.filePreview) URL.revokeObjectURL(b.filePreview)
     }
 
     setSaving(false)
-    resetComposer()
+    setTitle('')
+    setThumbnailFile(null)
+    setThumbnailContent('')
+    setThumbnailPreview('')
+    setBlocks([newBlock('text')])
+    setError('')
     onSaved()
     onClose()
   }
@@ -327,232 +720,324 @@ export function ArchiveComposerOverlay({
     <>
       <AnimatePresence>
         {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1200,
-            background: 'rgba(8,8,8,0.86)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
-          onClick={onClose}
-        >
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            onClick={event => event.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
             style={{
-              width: 'min(1080px, 100%)',
-              maxHeight: '92vh',
-              overflow: 'auto',
-              background: '#141414',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8,
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1200,
+              background: 'rgba(8,8,8,0.86)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              padding: '76px 24px 24px',
+              overflowY: 'auto',
             }}
+            onClick={onClose}
           >
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              onClick={e => e.stopPropagation()}
               style={{
+                width: 'min(860px, 100%)',
+                maxHeight: 'calc(100vh - 112px)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '18px 22px',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                position: 'sticky',
-                top: 0,
-                background: 'rgba(20,20,20,0.96)',
-                backdropFilter: 'blur(8px)',
-                zIndex: 2,
+                flexDirection: 'column',
+                background: '#141414',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8,
               }}
             >
-              <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, color: '#9b7ff8', letterSpacing: '0.12em' }}>
-                {isEditingExisting ? 'EDIT ARCHIVE ENTRY' : 'NEW ARCHIVE ENTRY'}
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={saving}
-                className="composer-icon-btn"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  background: 'transparent',
-                  color: '#9a9a9a',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                }}
-                aria-label="Close composer"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            <div style={{ padding: '22px 22px 26px' }}>
-              <input
-                value={title}
-                onChange={event => setTitle(event.target.value)}
-                placeholder="Untitled"
-                style={{
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: '#f2f2f2',
-                  fontFamily: "'Space Grotesk',sans-serif",
-                  fontWeight: 800,
-                  fontSize: 'clamp(30px, 4vw, 54px)',
-                  lineHeight: 1.02,
-                  letterSpacing: '-0.02em',
-                  marginBottom: 18,
-                }}
-              />
-
+              {/* Sticky header */}
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1.7fr 1fr',
-                  gap: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '18px 22px',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(20,20,20,0.96)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '8px 8px 0 0',
+                  flexShrink: 0,
                 }}
               >
-                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 6,
-                      alignItems: 'center',
-                      padding: '8px 10px',
-                      borderBottom: '1px solid rgba(255,255,255,0.07)',
-                      background: '#111111',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <button type="button" onClick={() => applyWrap('**')} style={toolBtnStyle} className="composer-tool-btn"><Type size={14} /> B</button>
-                    <button type="button" onClick={() => applyWrap('_')} style={toolBtnStyle} className="composer-tool-btn"><Type size={14} /> I</button>
-                    <button type="button" onClick={() => applyWrap('<u>', '</u>')} style={toolBtnStyle} className="composer-tool-btn"><UnderlineIcon size={14} /> U</button>
-                    <button type="button" onClick={() => applyWrap('# ', '')} style={toolBtnStyle} className="composer-tool-btn"><Pilcrow size={14} /> H1</button>
-                    <button type="button" onClick={() => prefixLines('- ')} style={toolBtnStyle} className="composer-tool-btn"><ListIcon size={14} /> List</button>
-                    <button type="button" onClick={() => prefixLines('> ')} style={toolBtnStyle} className="composer-tool-btn">Quote</button>
-                    <button type="button" onClick={() => applyWrap('[', '](https://)')} style={toolBtnStyle} className="composer-tool-btn"><LinkIcon size={14} /> Link</button>
-                  </div>
-                  <textarea
-                    ref={bodyRef}
-                    value={body}
-                    onChange={event => setBody(event.target.value)}
-                    placeholder="Write your notes, process, references, or context..."
-                    style={{
-                      width: '100%',
-                      minHeight: 360,
-                      border: 'none',
-                      outline: 'none',
-                      resize: 'vertical',
-                      background: '#141414',
-                      color: '#e8e8e8',
-                      padding: 16,
-                      fontFamily: "'Space Grotesk',sans-serif",
-                      fontSize: 15,
-                      lineHeight: 1.7,
-                    }}
-                  />
+                <div
+                  style={{
+                    fontFamily: "'DM Mono',monospace",
+                    fontSize: 11,
+                    color: '#9b7ff8',
+                    letterSpacing: '0.12em',
+                  }}
+                >
+                  {isEditingExisting ? 'EDIT ARCHIVE ENTRY' : 'NEW ARCHIVE ENTRY'}
                 </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={saving}
+                  className="composer-icon-btn"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'transparent',
+                    color: '#9a9a9a',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                  }}
+                  aria-label="Close composer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
 
-                <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: 14, background: '#101010' }}>
-                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.1em', color: '#9a9a9a', marginBottom: 10 }}>
-                    ASSETS
+              {/* Scrollable canvas */}
+              <div style={{ padding: '18px 22px 6px', overflowY: 'auto', flex: 1 }}>
+
+                {/* Thumbnail / Cover Image */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: '#606060', letterSpacing: '0.1em', marginBottom: 8 }}>
+                    COVER IMAGE
                   </div>
-
-                  <label
-                    className="composer-upload-btn"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      border: '1px dashed rgba(255,255,255,0.18)',
-                      borderRadius: 6,
-                      padding: '12px 10px',
-                      color: '#b6b6b6',
-                      fontFamily: "'Space Grotesk',sans-serif",
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      marginBottom: 10,
-                    }}
-                  >
-                    <ImageIcon size={14} />
-                    Upload image file
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      onChange={event => setSelectedFile(event.target.files?.[0] ?? null)}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-
-                  <input
-                    value={imageUrl}
-                    onChange={event => setImageUrl(event.target.value)}
-                    placeholder="Image URL"
-                    className="composer-side-input"
-                    style={sideInputStyle}
-                  />
-                  <input
-                    value={link}
-                    onChange={event => setLink(event.target.value)}
-                    placeholder="Reference link"
-                    className="composer-side-input"
-                    style={{ ...sideInputStyle, marginTop: 8 }}
-                  />
-
-                  {(selectedFile || showImagePreview) && (
-                    <div
-                      style={{
-                        marginTop: 12,
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        background: '#0d0d0d',
-                      }}
-                    >
+                  {(thumbnailPreview || (thumbnailContent && isLikelyHttpUrl(normalizeHttpUrl(thumbnailContent)))) ? (
+                    <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0d0d0d', marginBottom: 8, width: '100%', aspectRatio: '21 / 7' }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={selectedFile ? filePreview : normalizedImageUrl}
-                        alt="Selected image preview"
-                        style={{ display: 'block', width: '100%', maxHeight: 200, objectFit: 'cover' }}
+                        src={thumbnailPreview || normalizeHttpUrl(thumbnailContent)}
+                        alt="Cover"
+                        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
+                          setThumbnailFile(null)
+                          setThumbnailContent('')
+                          setThumbnailPreview('')
+                        }}
+                        style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(8,8,8,0.74)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 4, color: '#f87171', padding: '5px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Mono',monospace", fontSize: 10 }}
+                      >
+                        <X size={10} /> Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <label
+                        className="composer-upload-btn"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px dashed rgba(255,255,255,0.18)', borderRadius: 5, padding: '8px 12px', color: '#b6b6b6', fontFamily: "'Space Grotesk',sans-serif", fontSize: 12, cursor: 'pointer', flexShrink: 0 }}
+                      >
+                        <ImageIcon size={12} /> Upload cover
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={e => {
+                            const file = e.target.files?.[0] ?? null
+                            if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview)
+                            setThumbnailFile(file)
+                            setThumbnailPreview(file ? URL.createObjectURL(file) : '')
+                            setThumbnailContent('')
+                          }}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: '#484848' }}>or</span>
+                      <input
+                        value={thumbnailContent}
+                        onChange={e => {
+                          if (thumbnailPreview) { URL.revokeObjectURL(thumbnailPreview); setThumbnailPreview(''); setThumbnailFile(null) }
+                          setThumbnailContent(e.target.value)
+                        }}
+                        placeholder="https://example.com/cover.jpg"
+                        className="composer-side-input"
+                        style={{ ...sideInputStyle, flex: 1, minWidth: 180 }}
                       />
                     </div>
                   )}
                 </div>
-              </div>
 
-              {error && (
-                <div style={{ marginTop: 12, fontFamily: "'DM Mono',monospace", fontSize: 11, color: '#f87171' }}>
-                  {error}
+                {/* Title input */}
+                <input
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Untitled"
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: '#f2f2f2',
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 800,
+                    fontSize: 'clamp(28px, 3.5vw, 46px)',
+                    lineHeight: 1.05,
+                    letterSpacing: '-0.02em',
+                    marginBottom: 18,
+                    padding: '0 2px',
+                  }}
+                />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {blocks.map((block, index) => {
+                    const isFirst = index === 0
+                    const isLast = index === blocks.length - 1
+
+                    if (block.type === 'text') {
+                      return (
+                        <TextBlock
+                          key={block.id}
+                          block={block}
+                          isFirst={isFirst}
+                          isLast={isLast}
+                          onContentChange={v => updateBlock(block.id, { content: v })}
+                          onApplyWrap={(p, s, ph) => applyWrap(block.id, p, s, ph)}
+                          onPrefixLines={t => prefixLines(block.id, t)}
+                          onInsertLink={() => insertMarkdownLink(block.id)}
+                          onMove={dir => moveBlock(block.id, dir)}
+                          onRemove={() => removeBlock(block.id)}
+                          textareaRef={el => {
+                            if (el) textareaRefs.current.set(block.id, el)
+                            else textareaRefs.current.delete(block.id)
+                          }}
+                        />
+                      )
+                    }
+
+                    if (block.type === 'image') {
+                      return (
+                        <ImageBlock
+                          key={block.id}
+                          block={block}
+                          isFirst={isFirst}
+                          isLast={isLast}
+                          onFileSelect={file => handleFileSelect(block.id, file)}
+                          onUrlChange={url => {
+                            const old = blocksRef.current.find(b => b.id === block.id)
+                            if (old?.filePreview) URL.revokeObjectURL(old.filePreview)
+                            updateBlock(block.id, { content: url, file: null, filePreview: undefined })
+                          }}
+                          onMove={dir => moveBlock(block.id, dir)}
+                          onRemove={() => removeBlock(block.id)}
+                        />
+                      )
+                    }
+
+                    return (
+                      <LinkBlock
+                        key={block.id}
+                        block={block}
+                        isFirst={isFirst}
+                        isLast={isLast}
+                        onContentChange={v => updateBlock(block.id, { content: v })}
+                        onMove={dir => moveBlock(block.id, dir)}
+                        onRemove={() => removeBlock(block.id)}
+                      />
+                    )
+                  })}
                 </div>
-              )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18 }}>
-                <button type="button" onClick={onClose} disabled={saving} style={secondaryActionStyle} className="composer-secondary-btn">
-                  Cancel
-                </button>
-                <button type="button" onClick={save} disabled={saving} style={primaryActionStyle} className="composer-primary-btn">
-                  {saving ? (isEditingExisting ? 'Saving...' : 'Publishing...') : (isEditingExisting ? 'Save Changes' : 'Publish to Archive')}
-                </button>
+                {/* Add block strip */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 8,
+                    marginTop: 14,
+                    paddingTop: 14,
+                    paddingBottom: 14,
+                    borderTop: '1px dashed rgba(255,255,255,0.07)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setBlocks(prev => [...prev, newBlock('text')])}
+                    className="add-block-btn"
+                    style={addBlockBtnStyle}
+                  >
+                    <Type size={12} />
+                    Text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBlocks(prev => [...prev, newBlock('image')])}
+                    className="add-block-btn"
+                    style={addBlockBtnStyle}
+                  >
+                    <ImageIcon size={12} />
+                    Image
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBlocks(prev => [...prev, newBlock('link')])}
+                    className="add-block-btn"
+                    style={addBlockBtnStyle}
+                  >
+                    <LinkIcon size={12} />
+                    Link
+                  </button>
+                </div>
               </div>
-            </div>
+
+              {/* Sticky footer */}
+              <div
+                style={{
+                  padding: '14px 22px',
+                  borderTop: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(14,14,14,0.96)',
+                  borderRadius: '0 0 8px 8px',
+                  flexShrink: 0,
+                }}
+              >
+                {error && (
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono',monospace",
+                      fontSize: 11,
+                      color: '#f87171',
+                      marginBottom: 10,
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={saving}
+                    style={secondaryActionStyle}
+                    className="composer-secondary-btn"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={save}
+                    disabled={saving}
+                    style={primaryActionStyle}
+                    className="composer-primary-btn"
+                  >
+                    {saving
+                      ? isEditingExisting
+                        ? 'Saving...'
+                        : 'Publishing...'
+                      : isEditingExisting
+                        ? 'Save Changes'
+                        : 'Publish to Archive'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
         )}
       </AnimatePresence>
 
@@ -562,7 +1047,8 @@ export function ArchiveComposerOverlay({
         .composer-upload-btn,
         .composer-secondary-btn,
         .composer-primary-btn,
-        .composer-side-input {
+        .composer-side-input,
+        .add-block-btn {
           transition: all 0.15s ease;
         }
 
@@ -597,6 +1083,7 @@ export function ArchiveComposerOverlay({
         .composer-side-input:focus {
           border-color: rgba(155, 127, 248, 0.6);
           box-shadow: 0 0 0 3px rgba(155, 127, 248, 0.18);
+          outline: none;
         }
 
         .composer-secondary-btn:not(:disabled):hover {
@@ -612,23 +1099,55 @@ export function ArchiveComposerOverlay({
           background: #b49fff;
           box-shadow: 0 12px 24px rgba(155, 127, 248, 0.3);
         }
+
+        .add-block-btn:hover {
+          transform: translateY(-1px);
+          border-color: rgba(155, 127, 248, 0.5);
+          color: #9b7ff8;
+          background: rgba(155, 127, 248, 0.06);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        .canvas-block {
+          transition: box-shadow 0.15s ease;
+        }
+
+        .canvas-block:focus-within {
+          box-shadow: 0 0 0 1px rgba(155, 127, 248, 0.25);
+          border-color: rgba(155, 127, 248, 0.22) !important;
+        }
       `}</style>
     </>
   )
 }
 
+const ctrlBtnStyle: CSSProperties = {
+  width: 24,
+  height: 24,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 4,
+  background: 'transparent',
+  color: '#606060',
+  cursor: 'pointer',
+  padding: 0,
+}
+
 const toolBtnStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 5,
-  border: '1px solid rgba(255,255,255,0.14)',
+  gap: 4,
+  border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: 4,
   background: 'transparent',
-  color: '#9a9a9a',
-  padding: '5px 8px',
+  color: '#808080',
+  padding: '4px 7px',
   fontFamily: "'DM Mono',monospace",
   fontSize: 10,
   cursor: 'pointer',
+  fontWeight: 700,
 }
 
 const sideInputStyle: CSSProperties = {
@@ -637,10 +1156,24 @@ const sideInputStyle: CSSProperties = {
   borderRadius: 5,
   background: '#141414',
   color: '#e8e8e8',
-  padding: '10px 11px',
+  padding: '9px 11px',
   outline: 'none',
   fontFamily: "'Space Grotesk',sans-serif",
   fontSize: 13,
+}
+
+const addBlockBtnStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 5,
+  background: 'transparent',
+  color: '#707070',
+  padding: '7px 12px',
+  fontFamily: "'Space Grotesk',sans-serif",
+  fontSize: 12,
+  cursor: 'pointer',
 }
 
 const secondaryActionStyle: CSSProperties = {

@@ -14,10 +14,23 @@ export type Profile = {
 
 export type ArchiveItemType = 'image' | 'text' | 'link'
 
+export type ArchiveCanvasBlockType = 'text' | 'image' | 'link'
+
+export type ArchiveCanvasBlock = {
+  id: string
+  type: ArchiveCanvasBlockType
+  content: string
+}
+
 export type ArchiveItem = {
   id: string
   profile_id: string
   type: ArchiveItemType
   content: string
   created_at: string
+}
+
+export type ArchiveEntryInput = {
+  canvas?: ArchiveCanvasBlock[]
+  thumbnail?: string
 }

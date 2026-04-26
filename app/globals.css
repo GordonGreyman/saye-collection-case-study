@@ -70,6 +70,11 @@ input::placeholder, textarea::placeholder {
   100% { opacity: 0.4; }
 }
 
+@keyframes screenFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .screen {
-  animation: fadeUp 0.25s ease forwards;
+  animation: screenFade 0.25s ease forwards;
 }
