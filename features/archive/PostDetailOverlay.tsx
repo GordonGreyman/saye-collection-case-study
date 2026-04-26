@@ -11,12 +11,18 @@ import {
   Maximize2,
   MapPin,
   Minimize2,
+  Move,
   Pencil,
   Trash2,
   X,
 } from 'lucide-react'
 import { fetchProfileArchiveItems, fetchRelatedItems } from '@/features/archive/actions'
-import { deleteArchiveItemClient } from '@/features/archive/clientActions'
+import {
+  getRelatedMockArchiveItems,
+  getMockProfileArchiveItems,
+  isMockProfileId,
+} from '@/features/discover/mockArchiveItems'
+import { deleteArchiveItemClient, saveThumbPositionClient } from '@/features/archive/clientActions'
 import type { RelatedArchiveItem } from '@/features/archive/actions'
 import {
   domainFromUrl,
@@ -235,6 +241,28 @@ function RolePill({ role }: { role: string }) {
   )
 }
 
+function BrokenImageNotice({ url }: { url: string }) {
+  return (
+    <div
+      style={{
+        padding: '18px 20px',
+        border: `1px solid ${C.line}`,
+        borderRadius: 8,
+        background: '#080808',
+        color: C.muted,
+        fontFamily: "'Space Grotesk',sans-serif",
+        fontSize: 14,
+        lineHeight: 1.55,
+      }}
+    >
+      Image could not be loaded.{' '}
+      <a href={url} target="_blank" rel="noreferrer" style={{ color: C.accent }}>
+        Open source
+      </a>
+    </div>
+  )
+}
+
 function MiniCard({
   item,
   authorName,
@@ -332,6 +360,14 @@ export function PostDetailOverlay({
   const [relatedItems, setRelatedItems] = useState<RelatedArchiveItem[]>([])
   const [externalSelection, setExternalSelection] = useState<RelatedArchiveItem | null>(null)
   const [creatorItems, setCreatorItems] = useState<RelatedArchiveItem[]>([])
+  const [failedImages, setFailedImages] = useState<{ itemId: string; urls: string[] }>({ itemId: '', urls: [] })
+
+  const [isRepositioning, setIsRepositioning] = useState(false)
+  const [thumbPos, setThumbPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 })
+  const [draftPos, setDraftPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 })
+  const [isSavingPos, setIsSavingPos] = useState(false)
+  const dragState = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null)
+  const coverContainerRef = useRef<HTMLDivElement>(null)
 
   const profileHeaderRef = useRef<HTMLDivElement>(null)
 
@@ -351,7 +387,66 @@ export function PostDetailOverlay({
     : profile
   const entry = useMemo(() => resolveArchiveEntry(item), [item])
   const firstTextIndex = entry.blocks.findIndex(b => b.type === 'text')
-  const coverImage = entry.thumbnailUrl || ''
+  const coverImage = entry.thumbnailUrl || entry.imageUrl
+  const imageFailed = useCallback((url: string) => failedImages.itemId === item.id && failedImages.urls.includes(url), [failedImages, item.id])
+  const markImageFailed = useCallback((url: string) => {
+    setFailedImages(prev => {
+      if (prev.itemId !== item.id) return { itemId: item.id, urls: [url] }
+      return prev.urls.includes(url) ? prev : { itemId: item.id, urls: [...prev.urls, url] }
+    })
+  }, [item.id])
+
+  useEffect(() => {
+    const pos = entry.thumbnailPosition ?? { x: 50, y: 50 }
+    setThumbPos(pos)
+    setDraftPos(pos)
+    setIsRepositioning(false)
+  }, [item.id, entry.thumbnailPosition])
+
+  const handleRepoDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    dragState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: draftPos.x,
+      startPosY: draftPos.y,
+    }
+
+    const onMove = (ev: MouseEvent) => {
+      if (!dragState.current || !coverContainerRef.current) return
+      const rect = coverContainerRef.current.getBoundingClientRect()
+      const dx = ((ev.clientX - dragState.current.startX) / rect.width) * 100
+      const dy = ((ev.clientY - dragState.current.startY) / rect.height) * 100
+      setDraftPos({
+        x: Math.max(0, Math.min(100, dragState.current.startPosX - dx)),
+        y: Math.max(0, Math.min(100, dragState.current.startPosY - dy)),
+      })
+    }
+    const onUp = () => {
+      dragState.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }, [draftPos])
+
+  const handleRepoSave = useCallback(async () => {
+    setIsSavingPos(true)
+    const result = await saveThumbPositionClient(item.id, item.content, draftPos)
+    setIsSavingPos(false)
+    if ('error' in result) {
+      setActionError(result.error)
+      return
+    }
+    setThumbPos(draftPos)
+    setIsRepositioning(false)
+  }, [item.id, item.content, draftPos])
+
+  const handleRepoCancel = useCallback(() => {
+    setDraftPos(thumbPos)
+    setIsRepositioning(false)
+  }, [thumbPos])
 
   const createdAt = (() => {
     const date = new Date(item.created_at)
@@ -373,10 +468,20 @@ export function PostDetailOverlay({
 
   // Fetch related items from other users
   useEffect(() => {
-    fetchRelatedItems(item.profile_id, 6).then(setRelatedItems).catch(() => {})
+    if (isMockProfileId(item.profile_id)) {
+      setRelatedItems(getRelatedMockArchiveItems(item.profile_id, 6))
+      return
+    }
+    fetchRelatedItems(item.profile_id, 6).then(results => {
+      setRelatedItems(results.length ? results : getRelatedMockArchiveItems(item.profile_id, 6))
+    }).catch(() => {})
   }, [item.profile_id])
 
   useEffect(() => {
+    if (isMockProfileId(item.profile_id)) {
+      setCreatorItems(getMockProfileArchiveItems(item.profile_id, item.id, 6))
+      return
+    }
     fetchProfileArchiveItems(item.profile_id, item.id, 6).then(setCreatorItems).catch(() => {
       setCreatorItems([])
     })
@@ -780,25 +885,147 @@ export function PostDetailOverlay({
           </div>
 
           {/* ── Cover image (thumbnail) ───────────────────────── */}
-          {coverImage && (
+          {coverImage && !imageFailed(coverImage) && (
             <div
+              ref={coverContainerRef}
               style={{
                 background: '#060606',
                 overflow: 'hidden',
                 borderBottom: `1px solid ${C.line}`,
+                position: 'relative',
+                cursor: isRepositioning ? 'grab' : undefined,
+                userSelect: isRepositioning ? 'none' : undefined,
               }}
+              onMouseDown={isRepositioning ? handleRepoDragStart : undefined}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={coverImage}
                 alt="Cover"
+                onError={() => markImageFailed(coverImage)}
+                draggable={false}
                 style={{
                   width: '100%',
                   height: 'clamp(170px, 26vw, 310px)',
                   objectFit: 'cover',
+                  objectPosition: `${isRepositioning ? draftPos.x : thumbPos.x}% ${isRepositioning ? draftPos.y : thumbPos.y}%`,
                   display: 'block',
+                  pointerEvents: 'none',
+                  transition: isRepositioning ? 'none' : 'object-position 0.25s ease',
                 }}
               />
+
+              {/* Reposition mode: hint + save/cancel */}
+              {isRepositioning && (
+                <>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <span
+                      style={{
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        fontFamily: "'Space Grotesk',sans-serif",
+                        fontSize: 13,
+                        padding: '6px 14px',
+                        borderRadius: 4,
+                        backdropFilter: 'blur(4px)',
+                      }}
+                    >
+                      Drag image to reposition
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      display: 'flex',
+                      gap: 8,
+                      zIndex: 10,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={handleRepoCancel}
+                      style={{
+                        background: 'rgba(20,20,20,0.82)',
+                        border: `1px solid ${C.lineB}`,
+                        borderRadius: 4,
+                        color: C.sub,
+                        fontFamily: "'Space Grotesk',sans-serif",
+                        fontSize: 12,
+                        padding: '5px 12px',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(6px)',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { void handleRepoSave() }}
+                      disabled={isSavingPos}
+                      style={{
+                        background: 'rgba(155,127,248,0.18)',
+                        border: `1px solid ${C.accent}66`,
+                        borderRadius: 4,
+                        color: C.accent,
+                        fontFamily: "'Space Grotesk',sans-serif",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: '5px 12px',
+                        cursor: isSavingPos ? 'not-allowed' : 'pointer',
+                        backdropFilter: 'blur(6px)',
+                      }}
+                    >
+                      {isSavingPos ? 'Saving…' : 'Save position'}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Reposition trigger (owner, not in reposition mode) */}
+              {!isRepositioning && canManageCurrentItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPos(thumbPos)
+                    setIsRepositioning(true)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    bottom: 10,
+                    right: 10,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'rgba(14,14,14,0.72)',
+                    border: `1px solid ${C.lineB}`,
+                    borderRadius: 4,
+                    color: C.sub,
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontSize: 12,
+                    padding: '5px 11px',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(6px)',
+                    opacity: 0,
+                    transition: 'opacity 0.15s, transform 0.15s',
+                  }}
+                  className="cover-reposition-btn"
+                  aria-label="Reposition cover image"
+                >
+                  <Move size={12} />
+                  Reposition
+                </button>
+              )}
             </div>
           )}
 
@@ -806,6 +1033,13 @@ export function PostDetailOverlay({
           <div style={{ padding: '32px 36px 28px' }}>
             {entry.blocks.map((block, index) => {
               if (block.type === 'image') {
+                const imageUrl = normalizeHttpUrl(block.content)
+                if (coverImage && imageUrl === coverImage && !imageFailed(coverImage)) {
+                  return null
+                }
+                if (imageFailed(imageUrl)) {
+                  return <BrokenImageNotice key={block.id} url={imageUrl} />
+                }
                 return (
                   <div
                     key={block.id}
@@ -822,8 +1056,9 @@ export function PostDetailOverlay({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={block.content}
+                      src={imageUrl}
                       alt="Archive item"
+                      onError={() => markImageFailed(imageUrl)}
                       style={{
                         maxWidth: '100%',
                         maxHeight: index === 0 && !coverImage ? '60vh' : '50vh',
@@ -1206,6 +1441,17 @@ export function PostDetailOverlay({
           text-decoration: underline;
           text-decoration-color: rgba(155, 127, 248, 0.65);
           text-underline-offset: 3px;
+        }
+
+        :hover > .cover-reposition-btn,
+        .cover-reposition-btn:focus-visible {
+          opacity: 1 !important;
+        }
+
+        .cover-reposition-btn:hover {
+          border-color: rgba(255, 255, 255, 0.22);
+          color: #f2f2f2;
+          background: rgba(26, 26, 26, 0.88);
         }
       `}</style>
     </motion.div>

@@ -473,8 +473,8 @@ export function ArchivePrimeCard({ type, title, content, body, imageUrl, referen
         {previewImage ? (
           <img src={previewImage} alt={displayTitle} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.86 }} />
         ) : (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, textAlign: 'center', fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, color: T.text, lineHeight: 1.15 }}>
-            {displayTitle}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, textAlign: 'center', fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, fontWeight: 800, color: T.text, lineHeight: 1.15, overflow: 'hidden' }}>
+            <span className="clamp-4">{displayTitle}</span>
           </div>
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.18), rgba(0,0,0,0))', pointerEvents: 'none' }} />
@@ -495,16 +495,19 @@ export function ArchivePrimeCard({ type, title, content, body, imageUrl, referen
           overflow: 'hidden',
         }}
       >
-        <div style={{ padding: '13px 15px 15px' }}>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 17, color: T.text, lineHeight: 1.2, marginBottom: 7 }}>{displayTitle}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: description ? 9 : 0 }}>
+        <div style={{ padding: '14px 16px 16px' }}>
+          <div className="clamp-2" style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 17, color: T.text, lineHeight: 1.22, marginBottom: 8 }}>{displayTitle}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: description ? 10 : 0 }}>
             <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.sub }}>{author}</span>
             {authorRole && <RoleBadge role={authorRole} size={10} />}
             {date && <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, color: T.faint }}>{date}</span>}
           </div>
           {type === 'link' && link && <Label size={10} color={T.artist}>{link}</Label>}
           {description && (
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.muted, lineHeight: 1.45, marginTop: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <div
+              className="clamp-3"
+              style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: T.muted, lineHeight: 1.55, marginTop: type === 'link' && link ? 8 : 0 }}
+            >
               {description}
             </div>
           )}
@@ -609,7 +612,7 @@ export function ArchivePrimeRail({ title, items, onExpand }) {
       <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: 22, color: T.text, margin: '0 0 12px' }}>{title}</h2>
       <div
         ref={wrapperRef}
-        style={{ position: 'relative', height: 330, overflow: 'visible', overscrollBehaviorX: 'contain', touchAction: 'pan-x' }}
+        style={{ position: 'relative', height: 330, overflow: 'visible', overscrollBehaviorX: canScroll ? 'contain' : 'auto', touchAction: canScroll ? 'pan-x' : 'auto' }}
         onMouseEnter={() => setRowActive(true)}
         onMouseMove={event => {
           pointerRef.current = { x: event.clientX, y: event.clientY };
@@ -656,7 +659,7 @@ export function ArchivePrimeRail({ title, items, onExpand }) {
             padding: '4px 28px 18px 0',
             scrollbarWidth: 'none',
             height: 330,
-            overscrollBehaviorX: 'contain',
+            overscrollBehaviorX: canScroll ? 'contain' : 'auto',
           }}
           onScroll={() => {
             updateCanScroll();

@@ -10,6 +10,7 @@ export type ArchiveEntryResolved = {
   body: string
   imageUrl: string
   thumbnailUrl: string
+  thumbnailPosition?: { x: number; y: number }
   referenceUrl: string
   primaryType: ArchiveItemType
   blocks: ArchiveCanvasBlock[]
@@ -62,6 +63,13 @@ function splitLegacyText(content: string) {
   return { title: head, body: rest.join('\n\n') }
 }
 
+function findFirstHttpUrl(value: string) {
+  const match = value.match(/https?:\/\/[^\s<>)\]]+|(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s<>)\]]*)?/i)
+  if (!match) return ''
+  const normalized = normalizeHttpUrl(match[0])
+  return isLikelyHttpUrl(normalized) ? normalized : ''
+}
+
 function normalizeBlockType(value: unknown): ArchiveCanvasBlockType | null {
   return value === 'text' || value === 'image' || value === 'link' ? value : null
 }
@@ -95,7 +103,7 @@ export function sanitizeCanvasBlocks(input: unknown): ArchiveCanvasBlock[] {
     .filter((block): block is ArchiveCanvasBlock => Boolean(block))
 }
 
-type ParsedCanvas = { blocks: ArchiveCanvasBlock[]; thumbnailUrl: string }
+type ParsedCanvas = { blocks: ArchiveCanvasBlock[]; thumbnailUrl: string; thumbnailPosition?: { x: number; y: number } }
 
 // Detect canvas stored as JSON in the content field (new format).
 function tryParseCanvasFromContent(content: string): ParsedCanvas | null {
@@ -106,7 +114,14 @@ function tryParseCanvasFromContent(content: string): ParsedCanvas | null {
       const blocks = sanitizeCanvasBlocks(parsed.blocks)
       const rawThumb = typeof parsed.thumbnail === 'string' ? normalizeHttpUrl(parsed.thumbnail) : ''
       const thumbnailUrl = rawThumb && isLikelyHttpUrl(rawThumb) ? rawThumb : ''
-      return { blocks, thumbnailUrl }
+      const rawPos = parsed.thumbnailPosition
+      const thumbnailPosition =
+        rawPos && typeof rawPos === 'object' &&
+        typeof (rawPos as Record<string, unknown>).x === 'number' &&
+        typeof (rawPos as Record<string, unknown>).y === 'number'
+          ? { x: (rawPos as { x: number; y: number }).x, y: (rawPos as { x: number; y: number }).y }
+          : undefined
+      return { blocks, thumbnailUrl, thumbnailPosition }
     }
   } catch {
     // not JSON — fall through to legacy parser
@@ -155,11 +170,12 @@ export function summarizeCanvasBlocks(blocks: ArchiveCanvasBlock[]) {
   const textBlocks = blocks.filter(b => b.type === 'text').map(b => clean(b.content))
   const imageBlock = blocks.find(b => b.type === 'image')
   const linkBlock = blocks.find(b => b.type === 'link')
+  const inlineLink = textBlocks.map(findFirstHttpUrl).find(Boolean) || ''
 
   const title = textBlocks[0] || ''
   const body = textBlocks.slice(1).join('\n\n')
   const imageUrl = imageBlock ? normalizeHttpUrl(imageBlock.content) : ''
-  const referenceUrl = linkBlock ? normalizeHttpUrl(linkBlock.content) : ''
+  const referenceUrl = linkBlock ? normalizeHttpUrl(linkBlock.content) : inlineLink
 
   let primaryType: ArchiveItemType = 'text'
   if (referenceUrl) primaryType = 'link'
@@ -176,6 +192,7 @@ export function resolveArchiveEntry(item: ArchiveEntrySource): ArchiveEntryResol
 
   const blocks = parsed ? parsed.blocks : buildCanvasFromLegacyContent(item)
   const thumbnailUrl = parsed?.thumbnailUrl ?? ''
+  const thumbnailPosition = parsed?.thumbnailPosition
   const summary = summarizeCanvasBlocks(blocks)
 
   const resolvedTitle =
@@ -191,6 +208,7 @@ export function resolveArchiveEntry(item: ArchiveEntrySource): ArchiveEntryResol
     body: summary.body,
     imageUrl: summary.imageUrl,
     thumbnailUrl,
+    thumbnailPosition,
     referenceUrl: summary.referenceUrl,
     primaryType: summary.primaryType,
     blocks,

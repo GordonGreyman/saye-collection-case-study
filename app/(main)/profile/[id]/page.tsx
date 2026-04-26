@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getHandoffNavState } from '@/features/handoff/server'
 import { getSuggestedProfiles } from '@/features/profiles/queries'
 import { getMockPersonaById, getSuggestedMockPersonas } from '@/features/discover/mockPersonas'
+import { getMockArchiveItemsForProfile } from '@/features/discover/mockArchiveItems'
 
 export default async function ProfilePage({
   params,
@@ -45,7 +46,7 @@ export default async function ProfilePage({
         navState={navState}
         screenProps={{
           profile,
-          archiveItems: [],
+          archiveItems: getMockArchiveItemsForProfile(mockPersona?.id ?? id),
           isOwner: false,
           viewerIsAuthenticated: Boolean(userResult.data.user),
           suggestedProfiles,

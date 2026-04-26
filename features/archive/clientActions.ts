@@ -131,6 +131,34 @@ export async function updateArchiveItemClient(id: string, input: ArchiveEntryInp
   return fallbackUpdate(id, write.payload)
 }
 
+export async function saveThumbPositionClient(
+  id: string,
+  rawContent: string,
+  position: { x: number; y: number },
+): Promise<ActionResult> {
+  if (!id) return { error: 'Archive item id is required.' }
+
+  let json: Record<string, unknown> = {}
+  if (rawContent.startsWith('{')) {
+    try { json = JSON.parse(rawContent) as Record<string, unknown> } catch {}
+  }
+  if (!json._v) return { error: 'Cannot reposition on a legacy item.' }
+
+  json.thumbnailPosition = position
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const { error } = await supabase
+    .from('archive_items')
+    .update({ content: JSON.stringify(json) })
+    .eq('id', id)
+    .eq('profile_id', user.id)
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function deleteArchiveItemClient(id: string): Promise<ActionResult> {
   if (!id) return { error: 'Archive item id is required.' }
 
