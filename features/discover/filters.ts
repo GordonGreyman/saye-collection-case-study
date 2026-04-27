@@ -11,7 +11,7 @@ export type DiscoverFilters = {
 
 export type DiscoverSort = 'newest' | 'name_asc' | 'name_desc'
 
-export const DISCOVER_PAGE_SIZE = 24
+export const DISCOVER_PAGE_SIZE = 12
 
 function parseFilterValue(value: string | string[] | undefined): string[] {
   const list = Array.isArray(value) ? value : value ? [value] : []

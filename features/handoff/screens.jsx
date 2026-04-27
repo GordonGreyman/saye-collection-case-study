@@ -666,22 +666,117 @@ function DiscoverFilterSearch({ label, chips, active, filterKey, onToggle }) {
   )
 }
 
-export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null, filters = null, totalProfiles = 0 }) {
+const DISCOVER_MOTIFS = {
+  Photography:  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="28" stroke="currentColor" strokeWidth="0.7"/><circle cx="40" cy="40" r="16" stroke="currentColor" strokeWidth="0.7"/><circle cx="40" cy="40" r="5" fill="currentColor"/><line x1="12" y1="40" x2="68" y2="40" stroke="currentColor" strokeWidth="0.4" opacity="0.4"/><line x1="40" y1="12" x2="40" y2="68" stroke="currentColor" strokeWidth="0.4" opacity="0.4"/></svg>,
+  Contemporary: <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="12" width="56" height="56" stroke="currentColor" strokeWidth="0.7"/><rect x="24" y="24" width="32" height="32" stroke="currentColor" strokeWidth="0.7"/><rect x="34" y="34" width="12" height="12" fill="currentColor" opacity="0.5"/></svg>,
+  Installation: <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="68" x2="40" y2="12" stroke="currentColor" strokeWidth="0.7"/><line x1="40" y1="12" x2="68" y2="68" stroke="currentColor" strokeWidth="0.7"/><line x1="12" y1="68" x2="68" y2="68" stroke="currentColor" strokeWidth="0.7"/><circle cx="40" cy="12" r="3" fill="currentColor"/></svg>,
+  Performance:  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="40" rx="28" ry="18" stroke="currentColor" strokeWidth="0.7"/><ellipse cx="40" cy="40" rx="14" ry="28" stroke="currentColor" strokeWidth="0.7"/><circle cx="40" cy="40" r="3" fill="currentColor"/></svg>,
+  Textile:      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">{[0,1,2,3,4].map(i=><line key={'v'+i} x1={14+i*13} y1="14" x2={14+i*13} y2="66" stroke="currentColor" strokeWidth="0.6" opacity="0.7"/>)}{[0,1,2,3,4].map(i=><line key={'h'+i} x1="14" y1={14+i*13} x2="66" y2={14+i*13} stroke="currentColor" strokeWidth="0.6" opacity="0.7"/>)}</svg>,
+  Drawing:      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 58 Q28 12 40 40 Q52 68 68 24" stroke="currentColor" strokeWidth="1" fill="none"/><circle cx="40" cy="40" r="2.5" fill="currentColor"/></svg>,
+  Ceramics:     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M28 16 Q20 40 24 60 Q28 68 40 68 Q52 68 56 60 Q60 40 52 16 Z" stroke="currentColor" strokeWidth="0.7" fill="none"/><line x1="28" y1="16" x2="52" y2="16" stroke="currentColor" strokeWidth="0.7"/></svg>,
+  Sound:        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">{[0,1,2,3,4,5,6].map(i=><line key={i} x1={10+i*10} y1={40-Math.sin(i*0.9)*22} x2={10+i*10} y2={40+Math.sin(i*0.9)*22} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>)}</svg>,
+  default:      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="40,12 68,62 12,62" stroke="currentColor" strokeWidth="0.7" fill="none"/><circle cx="40" cy="46" r="8" stroke="currentColor" strokeWidth="0.5" fill="none"/></svg>,
+};
+const getDiscoverMotif = d => DISCOVER_MOTIFS[d] || DISCOVER_MOTIFS.default;
+
+function InFocusPanelItem({ entry, idx, onNavigate }) {
+  const [h, setH] = React.useState(false);
+  if (!entry) return null;
+  const r = ROLE_CONFIG[entry.role] || ROLE_CONFIG.Artist;
+  const bkg = { Artist: '#110820', Curator: '#0c1410', Institution: '#0a0a18' }[entry.role] || '#110820';
+  const disc = entry.discipline || '';
+  const loc  = entry.geography  || '';
+  const line = entry.featuredWorkTitle || '';
+  const name = entry.display_name || '';
+  const role = entry.role || 'Artist';
+  const navigable = Boolean(entry.id);
+
+  const imageLayer = entry.featuredImageUrl ? (
+    <>
+      <div
+        role="img"
+        aria-label={name}
+        style={{ position:'absolute', inset:0, backgroundImage:`url(${entry.featuredImageUrl})`, backgroundSize:'cover', backgroundPosition:'center', opacity:h?0.55:0.38, transition:'opacity 0.3s' }}
+      />
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(8,8,8,0.12) 0%, rgba(8,8,8,0.48) 40%, rgba(8,8,8,0.92) 100%)' }} />
+    </>
+  ) : (
+    <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:200, height:200, color:r.color, opacity:h?0.14:0.06, transition:'opacity 0.3s', pointerEvents:'none' }}>
+      {getDiscoverMotif(disc)}
+    </div>
+  );
+
+  const base = { background:bkg, cursor:navigable?'pointer':'default', position:'relative', overflow:'hidden', transition:'all 0.22s' };
+
+  if (idx === 0) return (
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      onClick={()=>navigable&&onNavigate(`/profile/${entry.id}`)}
+      style={{ ...base, display:'flex', flexDirection:'column', justifyContent:'flex-end', padding:'36px 32px' }}>
+      {imageLayer}
+      <div style={{ position:'absolute', top:24, left:32, zIndex:2 }}><RoleBadge role={role} size={12} /></div>
+      <div style={{ position:'relative', zIndex:2 }}>
+        {line && <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontStyle:'italic', fontSize:16, color:T.sub, lineHeight:1.5, margin:'0 0 24px', whiteSpace:'pre-line' }}>{line}</p>}
+        <h2 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(32px,3vw,46px)', lineHeight:1.0, letterSpacing:'-0.03em', color:T.text, margin:'0 0 8px' }}>{name}</h2>
+        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:h?r.color:T.muted, transition:'color 0.2s' }}>{disc}{loc?` · ${loc}`:''}</span>
+      </div>
+    </div>
+  );
+
+  if (idx === 1) return (
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      onClick={()=>navigable&&onNavigate(`/profile/${entry.id}`)}
+      style={{ ...base, display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'28px 28px' }}>
+      {imageLayer}
+      <div style={{ position:'relative', zIndex:2 }}><RoleBadge role={role} size={12} /></div>
+      <div style={{ position:'relative', zIndex:2 }}>
+        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:80, lineHeight:0.75, color:r.color, opacity:0.15, marginBottom:12, userSelect:'none' }}>&quot;</div>
+        {line && <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:18, lineHeight:1.4, color:T.text, margin:'0 0 20px', whiteSpace:'pre-line' }}>{line}</p>}
+        <h3 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:22, color:T.sub, margin:'0 0 4px', letterSpacing:'-0.01em' }}>{name}</h3>
+        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:h?r.color:T.muted, transition:'color 0.2s' }}>{disc}{loc?` · ${loc}`:''}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      onClick={()=>navigable&&onNavigate(`/profile/${entry.id}`)}
+      style={{ ...base, display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'28px 22px' }}>
+      {imageLayer}
+      {!entry.featuredImageUrl && (
+        <div style={{ position:'absolute', bottom:-16, right:-16, width:120, height:120, color:r.color, opacity:h?0.14:0.05, transition:'opacity 0.3s', pointerEvents:'none', zIndex:1 }}>
+          {getDiscoverMotif(disc)}
+        </div>
+      )}
+      <div style={{ position:'relative', zIndex:2 }}><RoleBadge role={role} size={12} /></div>
+      <div style={{ position:'relative', zIndex:2 }}>
+        <h3 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(18px,1.8vw,26px)', lineHeight:1.1, letterSpacing:'-0.02em', color:T.text, margin:'0 0 12px', wordBreak:'break-word' }}>{name}</h3>
+        {line && <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontStyle:'italic', fontSize:13, lineHeight:1.55, color:T.muted, margin:'0 0 20px', whiteSpace:'pre-line' }}>{line}</p>}
+      </div>
+      <span style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:h?r.color:T.muted, transition:'color 0.2s', position:'relative', zIndex:2 }}>{loc}</span>
+    </div>
+  );
+}
+
+export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null, filters = null, totalProfiles = 0, inFocusData = null }) {
   const router = useRouter();
-  const [geo, setGeo]   = React.useState(filters?.geography ?? []);
+  const [geo,  setGeo]  = React.useState(filters?.geography ?? []);
   const [disc, setDisc] = React.useState(filters?.discipline ?? []);
-  const [int_, setInt]  = React.useState(filters?.interests ?? []);
-  const [search, setSearch] = React.useState(filters?.q ?? '');
+  const [int_, setInt]  = React.useState(filters?.interests  ?? []);
+  const [search,    setSearch]    = React.useState(filters?.q ?? '');
   const [searchFoc, setSearchFoc] = React.useState(false);
   const [roleFilter, setRoleFilter] = React.useState('All');
+  const [hovRow,  setHovRow]  = React.useState(null);
+  const [pressedRow, setPressedRow] = React.useState(null);
+  const [dirPage, setDirPage] = React.useState(1);
+  const [leavingPath, setLeavingPath] = React.useState('');
   const searchInputRef = React.useRef(null);
+  const DIR_PAGE_SIZE = 12;
 
-  const geos  = ['New York','London','Paris','Berlin','Lagos','Tokyo','São Paulo','Cairo','Seoul','Amsterdam','Nairobi','Mexico City'];
-  const discs = ['Painting','Sculpture','Photography','Video','Performance','Installation','Digital Art','Sound','Ceramics','Drawing'];
-  const ints  = ['Collaboration','Residency','Exhibition','Commission','Research','Publication','Mentorship','Collection'];
-  const filterGeos = filterOptions?.geographies?.length ? filterOptions.geographies : GEOGRAPHY_PRESETS;
+  const discs       = ['Painting','Sculpture','Photography','Video','Performance','Installation','Digital Art','Sound','Ceramics','Drawing'];
+  const ints        = ['Collaboration','Residency','Exhibition','Commission','Research','Publication','Mentorship','Collection'];
+  const filterGeos  = filterOptions?.geographies?.length ? filterOptions.geographies : GEOGRAPHY_PRESETS;
   const filterDiscs = filterOptions?.disciplines?.length ? filterOptions.disciplines : discs;
-  const filterInts = filterOptions?.interests?.length ? filterOptions.interests : ints;
+  const filterInts  = filterOptions?.interests?.length   ? filterOptions.interests   : ints;
 
   React.useEffect(() => {
     setGeo(filters?.geography ?? [])
@@ -694,12 +789,8 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
     const timeout = window.setTimeout(() => {
       if ((filters?.q ?? '') === search.trim()) return
       window.history.replaceState(null, '', buildDiscoverUrl({
-        geography: geo,
-        discipline: disc,
-        interests: int_,
-        q: search.trim(),
-        sort: filters?.sort ?? 'newest',
-        page: 1,
+        geography: geo, discipline: disc, interests: int_,
+        q: search.trim(), sort: filters?.sort ?? 'newest', page: 1,
       }))
     }, 350)
     return () => window.clearTimeout(timeout)
@@ -718,134 +809,250 @@ export function DiscoverScreen2({ navigate, profiles = [], filterOptions = null,
 
   const updateFilters = (next) => {
     const merged = {
-      geography: geo,
-      discipline: disc,
-      interests: int_,
-      q: search.trim(),
-      sort: filters?.sort ?? 'newest',
-      page: 1,
-      ...next,
+      geography: geo, discipline: disc, interests: int_,
+      q: search.trim(), sort: filters?.sort ?? 'newest', page: 1, ...next,
     }
     setGeo(merged.geography)
     setDisc(merged.discipline)
     setInt(merged.interests)
-    router.replace(buildDiscoverUrl(merged))
+    router.replace(buildDiscoverUrl(merged), { scroll: false })
   }
 
   const tog = (arr, key, v) => {
-    const next = arr.includes(v) ? arr.filter(x=>x!==v) : [...arr,v]
+    const next = arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]
     updateFilters({ [key]: next })
-  };
-  const total = geo.length + disc.length + int_.length;
+  }
 
-  const people = [
-    { name:'Amara Osei',    role:'Artist',      discipline:'Photography',   location:'Lagos',       tags:['conceptual','documentary','africa'] },
-    { name:'Lena Richter',  role:'Curator',     discipline:'Contemporary',  location:'Berlin',      tags:['new-media','feminist','archive'] },
-    { name:'The Serpentine',role:'Institution', discipline:'Cross-discipl.',location:'London',      tags:['residency','commission','public'] },
-    { name:'Kenji Tanaka',  role:'Artist',      discipline:'Installation',  location:'Tokyo',       tags:['sound','space','minimal'] },
-    { name:'Sofia Marín',   role:'Artist',      discipline:'Performance',   location:'Mexico City', tags:['body','ritual','land'] },
-    { name:'Marcus Webb',   role:'Curator',     discipline:'Photography',   location:'New York',    tags:['street','identity','diaspora'] },
-    { name:'Dar Al Funun',  role:'Institution', discipline:'Visual Art',    location:'Cairo',       tags:['mena','residency','education'] },
-    { name:'Priya Nair',    role:'Artist',      discipline:'Textile',       location:'Mumbai',      tags:['craft','decolonial','color'] },
-    { name:'Yaw Darko',     role:'Artist',      discipline:'Drawing',       location:'Accra',       tags:['narrative','ink','mythology'] },
-  ];
-
-  const realPeople = profiles.length ? profiles.map(profile => ({
-    id: profile.id,
-    name: profile.display_name,
-    role: profile.role,
+  const PINNED_IDS = ['3ba0792b-f910-4e67-84a6-9500146c89d4', 'b4e16628-2539-4a44-a3d9-f700b5736709'];
+  const rawPeople = profiles.map(profile => ({
+    id:         profile.id,
+    name:       profile.display_name,
+    role:       profile.role,
     discipline: profile.discipline || 'Unspecified',
-    location: profile.geography || 'Global',
-    tags: profile.interests?.length ? profile.interests : [profile.role.toLowerCase()],
+    location:   profile.geography  || 'Global',
+    bio:        profile.bio        || null,
+    tags:       profile.interests?.length ? profile.interests : [],
     avatar_url: profile.avatar_url || null,
-  })) : people;
+  }));
+
+  const hasActiveFilter = search.trim() || geo.length > 0 || disc.length > 0 || int_.length > 0;
+  const orderedPeople = !hasActiveFilter ? [
+    ...PINNED_IDS.map(id => rawPeople.find(p => p.id === id)).filter(Boolean),
+    ...rawPeople.filter(p => !PINNED_IDS.includes(p.id)),
+  ] : rawPeople;
 
   const q = search.trim().toLowerCase();
-  const filtered = realPeople.filter(p => {
+  const filtered = orderedPeople.filter(p => {
     if (roleFilter !== 'All' && p.role !== roleFilter) return false;
     if (!q) return true;
-    return p.name.toLowerCase().includes(q) || p.discipline.toLowerCase().includes(q) || p.location.toLowerCase().includes(q) || p.tags.some(t => String(t).toLowerCase().includes(q));
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.discipline.toLowerCase().includes(q) ||
+      p.location.toLowerCase().includes(q) ||
+      p.tags.some(t => String(t).toLowerCase().includes(q))
+    );
   });
 
+  React.useEffect(() => { setDirPage(1) }, [roleFilter, q, geo, disc, int_]);
+
+  const totalDirPages = Math.ceil(filtered.length / DIR_PAGE_SIZE);
+  const pagedFiltered = filtered.slice((dirPage - 1) * DIR_PAGE_SIZE, dirPage * DIR_PAGE_SIZE);
+  const totalActive   = geo.length + disc.length + int_.length;
+  const onNavigate = React.useCallback((path) => {
+    if (!path || leavingPath) return
+    setLeavingPath(path)
+    window.setTimeout(() => {
+      router.push(path)
+    }, 180)
+  }, [leavingPath, router]);
+
+  const inFocusList = inFocusData
+    ? [inFocusData.artist, inFocusData.curator, inFocusData.institution].filter(Boolean)
+    : [];
+
   return (
-    <div style={{ minHeight:'100vh', background:T.bg, padding:'88px 48px 80px' }}>
-      <div style={{ marginBottom:40 }}>
-        <Label size={12} color={T.artist} tracking="0.14em">Discover</Label>
-        <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(40px,5.5vw,72px)', color:T.text, margin:'12px 0 0', letterSpacing:'-0.03em', lineHeight:1.0 }}>
-          Find your<br /><span style={{ color:T.artist }}>constellation.</span>
-        </h1>
-      </div>
+    <div style={{ minHeight:'100vh', background:T.bg, opacity:leavingPath?0:1, transform:leavingPath?'translateY(8px)':'none', transition:'opacity 0.18s ease, transform 0.18s ease', pointerEvents:leavingPath?'none':'auto' }}>
 
-      {/* Search */}
-      <div style={{ position:'relative', maxWidth:560, marginBottom:36 }}>
-        <input ref={searchInputRef} placeholder="Search by name, discipline, keyword…"
-          value={search} onChange={e => setSearch(e.target.value)}
-          onFocus={() => setSearchFoc(true)} onBlur={() => setSearchFoc(false)}
-          style={{ width:'100%', background:T.surf, border:`1px solid ${searchFoc ? 'rgba(155,127,248,0.4)' : T.line}`, borderRadius:3, padding:'13px 48px 13px 18px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:15, outline:'none', boxSizing:'border-box', transition:'border-color 0.15s', boxShadow: searchFoc ? '0 0 0 3px rgba(155,127,248,0.05)' : 'none' }} />
-        <span style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)', fontFamily:"'DM Mono',monospace", fontSize:12, color:T.muted }}>⌘K</span>
-      </div>
-
-      {/* Triple-filter shelf */}
-      <div style={{ marginBottom:12, padding:'24px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40, flexWrap:'wrap' }}>
-        <DiscoverFilterSearch label="Geography" chips={filterGeos} active={geo} filterKey="geography" onToggle={tog} />
-        <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <DiscoverFilterSearch label="Discipline" chips={filterDiscs} active={disc} filterKey="discipline" onToggle={tog} />
-        <div style={{ width:1, background:T.line, flexShrink:0 }} />
-        <DiscoverFilterSearch label="Interest" chips={filterInts} active={int_} filterKey="interests" onToggle={tog} />
-      </div>
-
-      {/* Active + clear */}
-      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:28, minHeight:32, flexWrap:'wrap' }}>
-        {total > 0 && <>
-          <Label size={12} color={T.faint}>Active:</Label>
-          {[...geo,...disc,...int_].map(f => (
-            <span key={f} style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.artist, background:T.artistDim, border:`1px solid rgba(155,127,248,0.2)`, padding:'3px 12px', borderRadius:2 }}>{f}</span>
-          ))}
-          <button onClick={() => { setGeo([]); setDisc([]); setInt([]); router.replace('/discover'); }}
-            style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
-            Clear all ×
-          </button>
-
-        </>}
-      </div>
-
-      {/* Role tabs */}
-      <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.line}`, marginBottom:28 }}>
-        {['All','Artist','Curator','Institution'].map(r => (
-          <button key={r} onClick={() => setRoleFilter(r)}
-            style={{ padding:'10px 20px', background:'none', border:'none', borderBottom:`2px solid ${roleFilter===r ? (r==='Artist'?T.artist:r==='Curator'?T.curator:r==='Institution'?T.inst:T.text) : 'transparent'}`, marginBottom:-1, fontFamily:"'Space Grotesk',sans-serif", fontSize:14, color: roleFilter===r ? T.text : T.muted, cursor:'pointer', transition:'all 0.15s' }}>
-            {r}
-          </button>
-        ))}
-        <Label size={12} color={T.muted} style={{ marginLeft:'auto', alignSelf:'center', paddingRight:4 }}>{profiles.length ? totalProfiles : filtered.length} results</Label>
-      </div>
-
-      {/* Cards */}
-      {filtered.length > 0 ? (
-        <div
-          key={JSON.stringify([geo, disc, int_, roleFilter])}
-          style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
-          {filtered.map((p, i) => (
-            <div key={p.id || p.name} style={{ animation: 'fadeUp 0.35s ease both', animationDelay: `${i * 55}ms` }}>
-              <DiscoverCard2 {...p} avatarUrl={p.avatar_url || null} onClick={() => p.id ? router.push(`/profile/${p.id}`) : navigate('profile')} />
-            </div>
-          ))}
+      {/* ── Page header ── */}
+      <div style={{ padding:'88px 48px 0', position:'relative' }}>
+        <div style={{ position:'absolute', left:0, top:'20%', bottom:'20%', width:3, background:`linear-gradient(to bottom, transparent, ${T.artist}, transparent)` }} />
+        <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:20, flexWrap:'wrap' }}>
+          <div>
+            <Label size={12} color={T.artist} tracking="0.14em">Discover</Label>
+            <h1 style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:'clamp(48px,6vw,84px)', color:T.text, margin:'12px 0 0', letterSpacing:'-0.04em', lineHeight:0.92 }}>
+              Find your<br /><span style={{ color:T.artist }}>constellation.</span>
+            </h1>
+          </div>
+          <div style={{ textAlign:'right', paddingBottom:4 }}>
+            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:64, color:T.surf2, lineHeight:1, letterSpacing:'-0.04em', userSelect:'none' }}>2.4K</div>
+            <Label size={12} color={T.faint}>Members worldwide</Label>
+          </div>
         </div>
-      ) : (
-        <div style={{ padding:'80px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
-          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
-          <Label size={13} color={T.muted}>No results</Label>
-          <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
-            Try different filters or clear your search.
-          </p>
-          {(total > 0 || q) && (
-            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); router.replace('/discover'); }}
-              style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
-              Clear everything
-            </button>
-          )}
+      </div>
+
+      {/* ── In Focus — three editorial panels ── */}
+      {inFocusList.length > 0 && (
+        <div style={{ padding:'48px 48px 0' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:24 }}>
+            <Label size={11} color={T.muted} tracking="0.14em">In Focus</Label>
+            <div style={{ flex:1, height:1, background:T.line }} />
+            <Label size={11} color={T.faint}>Selected members</Label>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1.8fr 1.2fr 0.9fr', gap:2, height:420 }}>
+            {inFocusList.map((entry, i) => (
+              <InFocusPanelItem key={entry.id} entry={entry} idx={i} onNavigate={onNavigate} />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* ── Filters (deployed design) ── */}
+      <div style={{ padding:'36px 48px 0' }}>
+        <div style={{ position:'relative', maxWidth:560, marginBottom:24 }}>
+          <input ref={searchInputRef} placeholder="Search by name, discipline, keyword…"
+            value={search} onChange={e => setSearch(e.target.value)}
+            onFocus={() => setSearchFoc(true)} onBlur={() => setSearchFoc(false)}
+            style={{ width:'100%', background:T.surf, border:`1px solid ${searchFoc?'rgba(155,127,248,0.4)':T.line}`, borderRadius:3, padding:'13px 48px 13px 18px', color:T.text, fontFamily:"'Space Grotesk',sans-serif", fontSize:15, outline:'none', boxSizing:'border-box', transition:'border-color 0.15s', boxShadow:searchFoc?'0 0 0 3px rgba(155,127,248,0.05)':'none' }} />
+          <span style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)', fontFamily:"'DM Mono',monospace", fontSize:12, color:T.muted }}>⌘K</span>
+        </div>
+        <div style={{ marginBottom:12, padding:'24px 28px', background:T.surf, border:`1px solid ${T.line}`, borderRadius:4, display:'flex', gap:40, flexWrap:'wrap' }}>
+          <DiscoverFilterSearch label="Geography" chips={filterGeos} active={geo} filterKey="geography" onToggle={tog} />
+          <div style={{ width:1, background:T.line, flexShrink:0 }} />
+          <DiscoverFilterSearch label="Discipline" chips={filterDiscs} active={disc} filterKey="discipline" onToggle={tog} />
+          <div style={{ width:1, background:T.line, flexShrink:0 }} />
+          <DiscoverFilterSearch label="Interest" chips={filterInts} active={int_} filterKey="interests" onToggle={tog} />
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, minHeight:32, flexWrap:'wrap' }}>
+          {totalActive > 0 && <>
+            <Label size={12} color={T.faint}>Active:</Label>
+            {[...geo, ...disc, ...int_].map(f => (
+              <span key={f} style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.artist, background:T.artistDim, border:`1px solid rgba(155,127,248,0.2)`, padding:'3px 12px', borderRadius:2 }}>{f}</span>
+            ))}
+            <button onClick={() => { setGeo([]); setDisc([]); setInt([]); router.replace('/discover', { scroll: false }); }}
+              style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted }}>
+              Clear all ×
+            </button>
+          </>}
+        </div>
+        <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${T.line}` }}>
+          {['All','Artist','Curator','Institution'].map(r => (
+            <button key={r} onClick={() => setRoleFilter(r)}
+              style={{ padding:'10px 20px', background:'none', border:'none', borderBottom:`2px solid ${roleFilter===r?(r==='Artist'?T.artist:r==='Curator'?T.curator:r==='Institution'?T.inst:T.text):'transparent'}`, marginBottom:-1, fontFamily:"'Space Grotesk',sans-serif", fontSize:14, color:roleFilter===r?T.text:T.muted, cursor:'pointer', transition:'all 0.15s' }}>
+              {r}
+            </button>
+          ))}
+          <Label size={12} color={T.muted} style={{ marginLeft:'auto', alignSelf:'center', paddingRight:4 }}>{filtered.length} results</Label>
+        </div>
+      </div>
+
+      {/* ── Directory — typographic list ── */}
+      <div style={{ padding:'56px 48px 100px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:0 }}>
+          <Label size={11} color={T.muted} tracking="0.14em">Directory</Label>
+          <div style={{ flex:1, height:1, background:T.line }} />
+          <Label size={11} color={T.faint}>{filtered.length} members</Label>
+        </div>
+
+        {/* Column headers */}
+        <div style={{ display:'grid', gridTemplateColumns:'48px 44px 1fr 160px 150px 120px', gap:0, padding:'16px 0', borderBottom:`1px solid ${T.line}`, marginTop:0 }}>
+          {['#', '', 'Name', 'Discipline', 'Location', 'Role'].map(h => (
+            <Label key={h} size={11} color={T.faint}>{h}</Label>
+          ))}
+        </div>
+
+        {filtered.length > 0 ? (
+          pagedFiltered.map((p, i) => {
+            const r = ROLE_CONFIG[p.role] || ROLE_CONFIG.Artist;
+            const absIdx = (dirPage - 1) * DIR_PAGE_SIZE + i;
+            const isHov  = hovRow === absIdx;
+            const isPressed = pressedRow === absIdx;
+            const navigable = Boolean(p.id);
+            return (
+              <div key={p.id || p.name}
+                onMouseEnter={() => setHovRow(absIdx)}
+                onMouseLeave={() => { setHovRow(null); setPressedRow(null); }}
+                onMouseDown={() => navigable && setPressedRow(absIdx)}
+                onMouseUp={() => setPressedRow(null)}
+                onClick={() => navigable && onNavigate(`/profile/${p.id}`)}
+                style={{
+                  display:'grid', gridTemplateColumns:'48px 44px 1fr 160px 150px 120px',
+                  gap:0, borderBottom:`1px solid ${T.line}`,
+                  cursor:navigable?'pointer':'default',
+                  transition:'background 0.15s, filter 0.12s',
+                  background:isHov?T.surf:'transparent',
+                  filter:isPressed?'brightness(1.12)':'none',
+                  margin:'0 -48px', padding:'22px 48px',
+                  position:'relative',
+                }}>
+                {/* Catalog number */}
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:13, color:isHov?r.color:T.faint, transition:'color 0.15s', alignSelf:'center' }}>
+                  {String(absIdx + 1).padStart(2, '0')}
+                </span>
+                {/* Avatar */}
+                <div style={{ alignSelf:'center', width:34, height:34, borderRadius:'50%', background:r.dim, border:`1px solid ${r.border}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0 }}>
+                  {p.avatar_url
+                    ? <div role="img" aria-label={p.name} style={{ width:'100%', height:'100%', backgroundImage:`url(${p.avatar_url})`, backgroundSize:'cover', backgroundPosition:'center' }} />
+                    : <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:13, color:r.color }}>{p.name.charAt(0).toUpperCase()}</span>
+                  }
+                </div>
+                {/* Name + bio on hover */}
+                <div style={{ alignSelf:'center' }}>
+                  <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:25, color:isHov?T.text:'#bbb', lineHeight:1.02, letterSpacing:'-0.01em', transition:'color 0.15s, transform 0.15s', transform:isHov?'translateX(6px)':'none', display:'inline-block' }}>
+                    {p.name}
+                  </div>
+                  {isHov && p.bio && <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontStyle:'italic', fontSize:14, color:T.muted, marginTop:5, lineHeight:1.45 }}>{p.bio}</div>}
+                </div>
+                {/* Discipline */}
+                <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:isHov?T.sub:T.muted, alignSelf:'center', transition:'color 0.15s' }}>{p.discipline}</span>
+                {/* Location */}
+                <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:isHov?T.sub:T.muted, alignSelf:'center', transition:'color 0.15s' }}>{p.location}</span>
+                {/* Role badge */}
+                <div style={{ alignSelf:'center' }}><RoleBadge role={p.role} size={12} /></div>
+                {/* Discipline motif on hover */}
+                {isHov && (
+                  <div style={{ position:'absolute', right:48, top:'50%', transform:'translateY(-50%)', width:64, height:64, color:r.color, opacity:0.18, pointerEvents:'none' }}>
+                    {getDiscoverMotif(p.discipline)}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div style={{ padding:'80px 0', textAlign:'center', borderTop:`1px solid ${T.line}` }}>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:32, color:T.faint, marginBottom:20 }}>∅</div>
+            <Label size={13} color={T.muted}>No results</Label>
+            <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.muted, marginTop:10, lineHeight:1.6 }}>
+              Try different filters or clear your search.
+            </p>
+            {(totalActive > 0 || q) && (
+              <button onClick={() => { setGeo([]); setDisc([]); setInt([]); setSearch(''); setRoleFilter('All'); router.replace('/discover', { scroll: false }); }}
+                style={{ marginTop:20, background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif", fontSize:13, color:T.muted, padding:'8px 20px', transition:'all 0.15s' }}>
+                Clear everything
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalDirPages > 1 && (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, marginTop:32 }}>
+            <button onClick={() => setDirPage(p => Math.max(1, p - 1))} disabled={dirPage === 1}
+              style={{ padding:'7px 14px', background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:dirPage===1?'default':'pointer', fontFamily:"'DM Mono',monospace", fontSize:12, color:dirPage===1?T.faint:T.muted, transition:'all 0.15s' }}>
+              ←
+            </button>
+            {Array.from({ length: totalDirPages }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setDirPage(n)}
+                style={{ padding:'7px 12px', borderRadius:3, border:`1px solid ${n===dirPage?T.artist:T.line}`, background:n===dirPage?T.artist:'none', fontFamily:"'DM Mono',monospace", fontSize:12, color:n===dirPage?T.bg:T.muted, cursor:'pointer', transition:'all 0.15s', fontWeight:n===dirPage?700:400 }}>
+                {n}
+              </button>
+            ))}
+            <button onClick={() => setDirPage(p => Math.min(totalDirPages, p + 1))} disabled={dirPage === totalDirPages}
+              style={{ padding:'7px 14px', background:'none', border:`1px solid ${T.line}`, borderRadius:3, cursor:dirPage===totalDirPages?'default':'pointer', fontFamily:"'DM Mono',monospace", fontSize:12, color:dirPage===totalDirPages?T.faint:T.muted, transition:'all 0.15s' }}>
+              →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

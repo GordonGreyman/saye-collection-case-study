@@ -1,6 +1,6 @@
 import { SayeShell } from '@/features/handoff/shell'
 import { parseDiscoverFilters, type DiscoverSearchParams } from '@/features/discover/filters'
-import { getFilterOptions, getProfiles } from '@/features/discover/queries'
+import { getFilterOptions, getInFocusData, getProfiles } from '@/features/discover/queries'
 import { getHandoffNavState } from '@/features/handoff/server'
 
 export default async function DiscoverPage({
@@ -10,10 +10,11 @@ export default async function DiscoverPage({
 }) {
   const params = await searchParams
   const filters = parseDiscoverFilters(params)
-  const [profilesResult, filterOptions, navState] = await Promise.all([
+  const [profilesResult, filterOptions, navState, inFocusData] = await Promise.all([
     getProfiles(filters),
     getFilterOptions(),
     getHandoffNavState(),
+    getInFocusData(),
   ])
 
   return (
@@ -25,6 +26,7 @@ export default async function DiscoverPage({
         filterOptions,
         filters,
         totalProfiles: profilesResult.total,
+        inFocusData,
       }}
     />
   )

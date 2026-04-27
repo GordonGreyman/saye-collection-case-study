@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useLayoutEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { pathForScreen } from '@/features/handoff/navigation'
 import type { NavigateFn, SayeScreen } from '@/features/handoff/navigation'
@@ -17,6 +17,14 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/ToastProvider'
 import type { HandoffNavState } from '@/features/handoff/server'
 
+function scrollToTopInstant() {
+  const root = document.documentElement
+  const previous = root.style.scrollBehavior
+  root.style.scrollBehavior = 'auto'
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  root.style.scrollBehavior = previous
+}
+
 export function SayeShell({
   current,
   navState = { isAuthenticated: false, profileId: null },
@@ -30,18 +38,22 @@ export function SayeShell({
   const pathname = usePathname()
   const { showToast } = useToast()
 
+  useLayoutEffect(() => {
+    scrollToTopInstant()
+  }, [pathname])
+
   const navigate = useCallback<NavigateFn>(
     (screen) => {
-      router.push(pathForScreen(screen))
-      window.scrollTo({ top: 0 })
+      router.push(pathForScreen(screen), { scroll: false })
+      scrollToTopInstant()
     },
     [router],
   )
 
   const navigatePath = useCallback(
     (path: string) => {
-      router.push(path)
-      window.scrollTo({ top: 0 })
+      router.push(path, { scroll: false })
+      scrollToTopInstant()
     },
     [router],
   )

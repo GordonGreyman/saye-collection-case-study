@@ -4,9 +4,117 @@ import { DISCOVER_PAGE_SIZE, type DiscoverFilters } from '@/features/discover/fi
 import { GEOGRAPHY_PRESETS } from '@/lib/constants'
 import { getAllMockPersonas, getFilteredMockPersonas } from '@/features/discover/mockPersonas'
 
+// ─── In Focus ─────────────────────────────────────────────────────────────────
+
+export type InFocusEntry = {
+  id: string
+  display_name: string
+  role: string
+  geography: string | null
+  discipline: string | null
+  avatar_url: string | null
+  featuredImageUrl: string | null
+  featuredWorkTitle: string | null
+}
+
+const INFOCUS_GORDON_ID = 'b4e16628-2539-4a44-a3d9-f700b5736709'
+const INFOCUS_DEMO_ARTIST_ID = '3ba0792b-f910-4e67-84a6-9500146c89d4'
+
+function extractImageFromContent(content: string): { imageUrl: string; title: string } | null {
+  try {
+    const parsed = JSON.parse(content) as Record<string, unknown>
+    if (parsed._v === 1 && Array.isArray(parsed.blocks)) {
+      const blocks = parsed.blocks as Array<{ type: string; content: string }>
+      const thumbnail = typeof parsed.thumbnail === 'string' ? parsed.thumbnail : ''
+      const imageBlock = blocks.find(b => b.type === 'image')
+      const textBlock = blocks.find(b => b.type === 'text')
+      const imageUrl = thumbnail || imageBlock?.content || ''
+      const title = textBlock?.content?.split('\n')[0] ?? ''
+      if (imageUrl) return { imageUrl, title }
+    }
+  } catch {
+    // not canvas JSON
+  }
+  return null
+}
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+
+async function fetchProfileWithImage(
+  supabase: SupabaseClient,
+  profileId: string,
+): Promise<InFocusEntry | null> {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, display_name, role, geography, discipline, avatar_url')
+    .eq('id', profileId)
+    .maybeSingle()
+
+  if (!profile) return null
+
+  const { data: archiveItems } = await supabase
+    .from('archive_items')
+    .select('type, content')
+    .eq('profile_id', profileId)
+    .eq('type', 'image')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  let featuredImageUrl: string | null = null
+  let featuredWorkTitle: string | null = null
+
+  for (const item of archiveItems ?? []) {
+    const extracted = extractImageFromContent(item.content)
+    if (extracted) {
+      featuredImageUrl = extracted.imageUrl
+      featuredWorkTitle = extracted.title || null
+      break
+    }
+  }
+
+  return {
+    id: profile.id,
+    display_name: profile.display_name,
+    role: profile.role,
+    geography: profile.geography,
+    discipline: profile.discipline,
+    avatar_url: profile.avatar_url,
+    featuredImageUrl,
+    featuredWorkTitle,
+  }
+}
+
+export type InFocusData = {
+  artist: InFocusEntry | null
+  curator: InFocusEntry | null
+  institution: InFocusEntry
+}
+
+export async function getInFocusData(): Promise<InFocusData> {
+  const supabase = await createClient()
+
+  const [gordonEntry, demoArtistEntry] = await Promise.all([
+    fetchProfileWithImage(supabase, INFOCUS_GORDON_ID),
+    fetchProfileWithImage(supabase, INFOCUS_DEMO_ARTIST_ID),
+  ])
+
+  const institution: InFocusEntry = {
+    id: 'demo-institution-riverfront-lab',
+    display_name: 'Riverfront Lab',
+    role: 'Institution',
+    geography: 'London',
+    discipline: 'Research',
+    avatar_url: null,
+    featuredImageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&auto=format&q=78',
+    featuredWorkTitle: 'The building, Bermondsey',
+  }
+
+  return { artist: gordonEntry, curator: demoArtistEntry, institution }
+}
+
 export type DiscoverProfile = Pick<
   Profile,
-  'id' | 'display_name' | 'role' | 'geography' | 'discipline' | 'interests' | 'avatar_url'
+  'id' | 'display_name' | 'role' | 'geography' | 'discipline' | 'interests' | 'avatar_url' | 'bio'
 >
 
 export type FilterOptions = {
@@ -50,7 +158,7 @@ export async function getProfiles(filters: DiscoverFilters): Promise<DiscoverPro
 
   let query = supabase
     .from('profiles')
-    .select('id, display_name, role, geography, discipline, interests, avatar_url')
+    .select('id, display_name, role, geography, discipline, interests, avatar_url, bio')
     .range(from, to)
 
   let countQuery = supabase.from('profiles').select('*', { count: 'exact', head: true })
@@ -101,6 +209,7 @@ export async function getProfiles(filters: DiscoverFilters): Promise<DiscoverPro
     discipline: persona.discipline,
     interests: persona.interests,
     avatar_url: null,
+    bio: persona.bio,
   }))
 
   const baseProfiles = (data ?? []) as DiscoverProfile[]
