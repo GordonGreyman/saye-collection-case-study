@@ -5,15 +5,17 @@ import { useRouter } from 'next/navigation'
 
 interface CelebrationScreenProps {
   name: string
+  userId?: string
 }
 
-export function CelebrationScreen({ name }: CelebrationScreenProps) {
+export function CelebrationScreen({ name, userId }: CelebrationScreenProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const timeout = setTimeout(() => { router.push('/discover') }, 2500)
+    const dest = userId ? `/profile/${userId}` : '/discover'
+    const timeout = setTimeout(() => { router.push(dest) }, 2500)
     return () => clearTimeout(timeout)
-  }, [router])
+  }, [router, userId])
 
   return (
     <div style={{
@@ -40,7 +42,7 @@ export function CelebrationScreen({ name }: CelebrationScreenProps) {
         {name}.
       </div>
       <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#9a9a9a', marginTop: 24 }}>
-        Your identity is live. Taking you to Discover…
+        {userId ? 'Taking you to your profile…' : 'Your identity is live. Taking you to Discover…'}
       </p>
     </div>
   )

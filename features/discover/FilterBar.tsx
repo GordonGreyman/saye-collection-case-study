@@ -30,6 +30,8 @@ export function FilterBar({ filters, filterOptions }: FilterBarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    // Keep the search input aligned when navigation changes the URL query.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearch(filters.q)
   }, [filters.q])
 

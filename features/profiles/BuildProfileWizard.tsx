@@ -25,9 +25,10 @@ const ROLE_TAGLINES: Record<ProfileRole, string> = {
 
 interface BuildProfileWizardProps {
   defaultValues?: Profile | null
+  userId?: string
 }
 
-export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
+export function BuildProfileWizard({ defaultValues, userId }: BuildProfileWizardProps) {
   const router = useRouter()
   const { showToast } = useToast()
   const isEditMode = Boolean(defaultValues)
@@ -196,6 +197,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
 
   const onSaveAndExit = () => {
     saveDraft()
+    showToast('Profile draft saved.', 'success')
     router.push('/discover')
   }
 
@@ -204,7 +206,7 @@ export function BuildProfileWizard({ defaultValues }: BuildProfileWizardProps) {
   }
 
   if (step === 4) {
-    return <CelebrationScreen name={displayName || 'friend'} />
+    return <CelebrationScreen name={displayName || 'friend'} userId={userId ?? defaultValues?.id} />
   }
 
   const stepLabels = ['YOUR ROLE', 'YOUR DETAILS', 'INTERESTS']

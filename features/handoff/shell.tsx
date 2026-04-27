@@ -14,6 +14,7 @@ import {
   ProfileScreen,
 } from '@/features/handoff/screens'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/ToastProvider'
 import type { HandoffNavState } from '@/features/handoff/server'
 
 export function SayeShell({
@@ -27,6 +28,7 @@ export function SayeShell({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { showToast } = useToast()
 
   const navigate = useCallback<NavigateFn>(
     (screen) => {
@@ -46,10 +48,15 @@ export function SayeShell({
 
   const signOut = useCallback(async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    showToast('Logged out successfully.', 'success')
     router.replace('/discover')
     router.refresh()
-  }, [router])
+  }, [router, showToast])
 
   return (
     <div>

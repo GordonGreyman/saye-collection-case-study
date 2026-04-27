@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/ToastProvider'
 
 interface LoginFormProps {
   nextPath: string
@@ -17,6 +18,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const [error, setError] = useState('')
 
   const router = useRouter()
+  const { showToast } = useToast()
   const supabase = createClient()
 
   const handleGoogle = async () => {
@@ -28,7 +30,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       provider: 'google',
       options: { redirectTo: callbackUrl.toString() },
     })
-    if (error) { setError(error.message); setLoading(false) }
+    if (error) { setError(error.message); showToast(error.message, 'error'); setLoading(false) }
   }
 
   const handleEmail = async (e: React.FormEvent) => {
@@ -42,8 +44,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       ? await supabase.auth.signInWithPassword({ email, password })
       : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callbackUrl.toString() } })
 
-    if (error) { setError(error.message); setLoading(false); return }
+    if (error) { setError(error.message); showToast(error.message, 'error'); setLoading(false); return }
     setLoading(false)
+    showToast(mode === 'signin' ? 'Signed in successfully.' : 'Account created successfully.', 'success')
     router.replace(nextPath)
     router.refresh()
   }

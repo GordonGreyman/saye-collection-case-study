@@ -3,13 +3,20 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/ToastProvider'
 
 export function AccountMenu() {
   const router = useRouter()
+  const { showToast } = useToast()
   const supabase = createClient()
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    showToast('Logged out successfully.', 'success')
     router.replace('/discover')
     router.refresh()
   }

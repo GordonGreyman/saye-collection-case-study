@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Saye Collective
 
-## Getting Started
+A platform for artists, curators, and institutions to build a presence, archive their practice, and connect with peers across disciplines and geographies.
 
-First, run the development server:
+## What it is
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Saye is a professional network built around the art world. Members create a profile representing their role — Artist, Curator, or Institution — and build an archive of their work: texts, images, and links. The discover feed lets you find and connect with others by discipline, location, and interest.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Core features:**
+- Role-based profiles (Artist / Curator / Institution) with banner and profile photo
+- Archive — a personal repository of texts, images, and links with cover images
+- Discover — filter members by geography, discipline, and interest
+- Connections — request and manage peer connections
+- Full auth via email or Google
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Live demo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**URL:** https://saye-pi.vercel.app
 
-## Learn More
+**Test account:**
+| | |
+|---|---|
+| Email | `demo@saye.art` |
+| Password | `saye2026` |
 
-To learn more about Next.js, take a look at the following resources:
+The account is pre-populated with archive entries and a complete profile. You can also create your own account and explore the platform freely.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework:** Next.js 16 (App Router)
+- **Database & Auth:** Supabase (Postgres + Row Level Security + Storage)
+- **Deployment:** Vercel
+- **Styling:** Inline design system (`features/handoff/ui.jsx`)
+- **Animations:** Framer Motion

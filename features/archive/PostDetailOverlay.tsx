@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
@@ -30,6 +32,7 @@ import {
   normalizeHttpUrl,
   resolveArchiveEntry,
 } from '@/features/archive/entry'
+import { useToast } from '@/components/ui/ToastProvider'
 import { lockBodyScroll } from '@/lib/ui/bodyScrollLock'
 import type { ArchiveItem, Profile } from '@/lib/types'
 
@@ -355,6 +358,7 @@ export function PostDetailOverlay({
   profile,
 }: PostDetailOverlayProps) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [currentIndex, setCurrentIndex] = useState(() =>
     Math.max(0, items.findIndex(i => i.id === initialItem.id)),
   )
@@ -447,17 +451,19 @@ export function PostDetailOverlay({
     setIsSavingPos(false)
     if ('error' in result) {
       setActionError(result.error)
+      showToast(result.error, 'error')
       return
     }
     setThumbPos(draftPos)
     setIsRepositioning(false)
+    showToast('Cover position saved.', 'success')
     // Update the parent immediately so reopening the overlay shows the new position
     try {
       const patched = JSON.parse(item.content) as Record<string, unknown>
       patched.thumbnailPosition = draftPos
       onItemUpdate?.({ ...item, content: JSON.stringify(patched) })
     } catch {}
-  }, [item, draftPos, onItemUpdate])
+  }, [item, draftPos, onItemUpdate, showToast])
 
   const handleRepoCancel = useCallback(() => {
     setDraftPos(thumbPos)
@@ -540,12 +546,14 @@ export function PostDetailOverlay({
     setSaving(false)
     if ('error' in result) {
       setActionError(result.error)
+      showToast(result.error, 'error')
       return
     }
     setDeleteConfirmOpen(false)
+    showToast('Archive item deleted.', 'success')
     onClose()
     router.refresh()
-  }, [item.id, onClose, router])
+  }, [item.id, onClose, router, showToast])
 
   const moreItems = creatorItems.length
     ? creatorItems

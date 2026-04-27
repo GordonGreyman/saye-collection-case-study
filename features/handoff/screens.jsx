@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArchivePrimeRail, Btn2, Chip2, DiscoverCard2, Input2, Label, ROLE_CONFIG, RoleBadge, RoleCard2, RuleLine, SectionMark, T } from '@/features/handoff/ui'
 import { createClient } from '@/lib/supabase/client'
 import { buildDiscoverUrl } from '@/features/discover/filters'
+import { useToast } from '@/components/ui/ToastProvider'
 import { connectProfiles, disconnectProfiles, saveProfileAvatar, saveProfileBanner, upsertProfile } from '@/features/profiles/actions'
 import { uploadAvatarImage } from '@/features/profiles/avatar'
 import { DISCIPLINE_PRESETS, GEOGRAPHY_PRESETS, PROFILE_BANNER_COLORS } from '@/lib/constants'
@@ -265,6 +266,7 @@ export function LandingScreen2({ navigate }) {
 // --- AUTH ------------------------------------------------------------------
 export function AuthScreen2({ navigate, nextPath = '/discover' }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [mode, setMode] = React.useState('in');
   const [email, setEmail] = React.useState('');
   const [pass, setPass]   = React.useState('');
@@ -284,6 +286,7 @@ export function AuthScreen2({ navigate, nextPath = '/discover' }) {
     })
     if (authError) {
       setError(authError.message)
+      showToast(authError.message, 'error')
       setLoading(false)
     }
   };
@@ -305,11 +308,13 @@ export function AuthScreen2({ navigate, nextPath = '/discover' }) {
 
     if (authError) {
       setError(authError.message)
+      showToast(authError.message, 'error')
       setLoading(false)
       return
     }
 
     setLoading(false)
+    showToast(mode === 'in' ? 'Signed in successfully.' : 'Account created successfully.', 'success')
     router.replace(nextPath)
     router.refresh()
   };
@@ -392,6 +397,7 @@ export function AuthScreen2({ navigate, nextPath = '/discover' }) {
 // --- BUILD PROFILE ---------------------------------------------------------
 export function BuildProfileScreen2({ navigate, defaultValues = null }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const isEditMode = Boolean(defaultValues);
   const [step, setStep] = React.useState(1);
   const [role, setRole] = React.useState(defaultValues?.role ?? null);
@@ -430,7 +436,9 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
   const completeProfile = async () => {
     setError('')
     if (!role || !form.name.trim() || !form.location.trim() || disc.length === 0) {
-      setError('Choose a role, name, location, and at least one discipline.')
+      const message = 'Choose a role, name, location, and at least one discipline.'
+      setError(message)
+      showToast(message, 'error')
       return
     }
     setSaving(true)
@@ -445,10 +453,12 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
     setSaving(false)
     if ('error' in result) {
       setError(result.error)
+      showToast(result.error, 'error')
       return
     }
     localStorage.removeItem('saye_profile_draft')
-    router.push('/discover')
+    showToast(isEditMode ? 'Profile updated successfully.' : 'Profile saved successfully.', 'success')
+    router.push(defaultValues?.id ? `/profile/${defaultValues.id}` : '/discover')
     router.refresh()
   }
 
@@ -1004,6 +1014,7 @@ export function ArchiveScreen2({ navigate, items = [], userProfileId = null, pro
 // --- PROFILE ---------------------------------------------------------------
 export function ProfileScreen2({ navigate, profile = null, archiveItems = [], isOwner = false, viewerIsAuthenticated = false, isConnected = false, connectedProfiles = [], suggestedProfiles = [] }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [tab, setTab] = React.useState('work');
@@ -1221,6 +1232,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       if ('error' in result) {
         setBannerSaving(false)
         setBannerError(result.error)
+        showToast(result.error, 'error')
         return
       }
       imageUrl = result.url
@@ -1228,8 +1240,10 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       imageUrl = bannerUrlInput.trim()
     }
     if (bannerMode === 'image' && !imageUrl) {
+      const message = 'Upload a banner photo or paste a URL first.'
       setBannerSaving(false)
-      setBannerError('Upload a banner photo or paste a URL first.')
+      setBannerError(message)
+      showToast(message, 'error')
       return
     }
 
@@ -1258,6 +1272,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setBannerSaving(false)
     if ('error' in result) {
       setBannerError(result.error)
+      showToast(result.error, 'error')
       return
     }
 
@@ -1272,6 +1287,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       y: bannerNumber(payload.banner_position_y),
     })
     setBannerPanelOpen(false)
+    showToast(bannerMode === 'none' ? 'Profile banner removed.' : 'Profile banner saved.', 'success')
     router.refresh()
   }
 
@@ -1294,10 +1310,12 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setBannerSaving(false)
     if ('error' in result) {
       setBannerError(result.error)
+      showToast(result.error, 'error')
       return
     }
     setProfileBanner(current => ({ ...current, x: draftBannerPosition.x, y: draftBannerPosition.y }))
     setIsBannerRepositioning(false)
+    showToast('Banner position saved.', 'success')
     router.refresh()
   }
 
@@ -1389,14 +1407,17 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
       if ('error' in result) {
         setAvatarSaving(false)
         setAvatarError(result.error)
+        showToast(result.error, 'error')
         return
       }
       url = result.url
     } else if (avatarUrlInput.trim()) {
       url = avatarUrlInput.trim()
     } else {
+      const message = 'Upload a photo or paste a URL first.'
       setAvatarSaving(false)
-      setAvatarError('Upload a photo or paste a URL first.')
+      setAvatarError(message)
+      showToast(message, 'error')
       return
     }
 
@@ -1404,10 +1425,12 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setAvatarSaving(false)
     if ('error' in result) {
       setAvatarError(result.error)
+      showToast(result.error, 'error')
       return
     }
     setLocalAvatarUrl(url)
     closeAvatarPanel()
+    showToast('Profile photo saved.', 'success')
     router.refresh()
   }
 
@@ -1418,10 +1441,12 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setAvatarSaving(false)
     if ('error' in result) {
       setAvatarError(result.error)
+      showToast(result.error, 'error')
       return
     }
     setLocalAvatarUrl(null)
     closeAvatarPanel()
+    showToast('Profile photo removed.', 'success')
     router.refresh()
   }
 
@@ -1480,10 +1505,16 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
 
   const [copied, setCopied] = React.useState(false)
 
-  const copyProfileLink = () => {
-    navigator.clipboard?.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
+  const copyProfileLink = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable')
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      showToast('Profile link copied.', 'success')
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      showToast('Unable to copy link in this browser.', 'error')
+    }
   }
 
   const connectToProfile = async () => {
@@ -1501,8 +1532,10 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     setConnectionSaving(false)
     if ('error' in result) {
       setArchiveError(result.error)
+      showToast(result.error, 'error')
       return
     }
+    showToast(connected ? 'Profile disconnected.' : 'Profile connected.', 'success')
     setConnected(!connected)
     router.refresh()
   }

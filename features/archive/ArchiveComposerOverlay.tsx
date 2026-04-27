@@ -23,6 +23,7 @@ import {
   normalizeHttpUrl,
 } from '@/features/archive/entry'
 import { uploadArchiveImage } from '@/features/archive/upload'
+import { useToast } from '@/components/ui/ToastProvider'
 import { lockBodyScroll } from '@/lib/ui/bodyScrollLock'
 import type { ArchiveCanvasBlock, ArchiveCanvasBlockType, ArchiveItemType } from '@/lib/types'
 
@@ -418,6 +419,7 @@ export function ArchiveComposerOverlay({
   initialDraft,
   editTarget,
 }: ArchiveComposerOverlayProps) {
+  const { showToast } = useToast()
   const [title, setTitle] = useState('')
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailContent, setThumbnailContent] = useState('')
@@ -639,6 +641,12 @@ export function ArchiveComposerOverlay({
     window.addEventListener('mouseup', onUp)
   }
 
+  const stopWithError = (message: string) => {
+    setSaving(false)
+    setError(message)
+    showToast(message, 'error')
+  }
+
   const save = async () => {
     setSaving(true)
     setError('')
@@ -648,8 +656,7 @@ export function ArchiveComposerOverlay({
     if (thumbnailFile) {
       const result = await uploadArchiveImage(thumbnailFile, profileId)
       if ('error' in result) {
-        setSaving(false)
-        setError(result.error)
+        stopWithError(result.error)
         return
       }
       resolvedThumbnail = result.url
@@ -661,8 +668,7 @@ export function ArchiveComposerOverlay({
       if (block.type === 'image' && block.file) {
         const result = await uploadArchiveImage(block.file, profileId)
         if ('error' in result) {
-          setSaving(false)
-          setError(result.error)
+          stopWithError(result.error)
           return
         }
         resolved.push({ ...block, content: result.url, file: null })
@@ -676,8 +682,7 @@ export function ArchiveComposerOverlay({
       if (block.type === 'image' || block.type === 'link') {
         if (!hasUsefulContent(block.content)) continue
         if (!isLikelyHttpUrl(normalizeHttpUrl(block.content))) {
-          setSaving(false)
-          setError(
+          stopWithError(
             block.type === 'image'
               ? 'One of your image blocks has an invalid URL.'
               : 'One of your link blocks has an invalid URL.',
@@ -708,8 +713,7 @@ export function ArchiveComposerOverlay({
     const canvas = [...titleBlock, ...bodyBlocks]
 
     if (canvas.length === 0) {
-      setSaving(false)
-      setError('Add at least one piece of content: text, link, or image.')
+      stopWithError('Add at least one piece of content: text, link, or image.')
       return
     }
 
@@ -722,8 +726,7 @@ export function ArchiveComposerOverlay({
       : await addArchiveItemClient({ canvas, thumbnail: thumbnailArg, thumbnailPosition: thumbPos })
 
     if ('error' in result) {
-      setSaving(false)
-      setError(result.error)
+      stopWithError(result.error)
       return
     }
 
@@ -739,6 +742,7 @@ export function ArchiveComposerOverlay({
     setThumbnailPreview('')
     setBlocks([newBlock('text')])
     setError('')
+    showToast(editTarget ? 'Archive item updated.' : 'Added to archive.', 'success')
     onSaved()
     onClose()
   }
