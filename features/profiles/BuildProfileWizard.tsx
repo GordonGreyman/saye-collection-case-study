@@ -38,6 +38,7 @@ export function BuildProfileWizard({ defaultValues, userId }: BuildProfileWizard
       role: defaultValues?.role ?? 'Artist',
       display_name: defaultValues?.display_name ?? '',
       bio: defaultValues?.bio ?? '',
+      website_url: defaultValues?.website_url ?? '',
       geography: defaultValues?.geography ?? '',
       discipline: defaultValues?.discipline ?? '',
       interests: defaultValues?.interests ?? [],
@@ -186,6 +187,13 @@ export function BuildProfileWizard({ defaultValues, userId }: BuildProfileWizard
 
     localStorage.removeItem(DRAFT_KEY)
     showToast('Profile saved successfully.', 'success')
+
+    if (isEditMode && defaultValues?.id) {
+      router.replace(`/profile/${defaultValues.id}`)
+      router.refresh()
+      return
+    }
+
     setStep(4)
   }
 
@@ -336,6 +344,15 @@ export function BuildProfileWizard({ defaultValues, userId }: BuildProfileWizard
               maxLength={300}
               {...register('bio', { maxLength: { value: 300, message: 'Max 300 characters' } })}
               error={errors.bio?.message}
+            />
+          </div>
+          <div style={{ gridColumn: 'span 2' }}>
+            <Input
+              id="website_url"
+              label="Website"
+              placeholder="yoursite.com"
+              {...register('website_url')}
+              error={errors.website_url?.message}
             />
           </div>
 

@@ -405,7 +405,7 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
     name: defaultValues?.display_name ?? '',
     bio: defaultValues?.bio ?? '',
     location: defaultValues?.geography ?? '',
-    website: '',
+    website: defaultValues?.website_url ?? '',
   });
   const [disc, setDisc] = React.useState(() => {
     const values = [defaultValues?.discipline, ...(defaultValues?.interests ?? [])].filter(Boolean)
@@ -446,6 +446,7 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
       role,
       display_name: form.name,
       bio: form.bio,
+      website_url: form.website,
       geography: form.location,
       discipline: disc[0],
       interests: disc.length ? disc : [disc[0]],
@@ -458,7 +459,12 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
     }
     localStorage.removeItem('saye_profile_draft')
     showToast(isEditMode ? 'Profile updated successfully.' : 'Profile saved successfully.', 'success')
-    router.push(defaultValues?.id ? `/profile/${defaultValues.id}` : '/discover')
+    if (isEditMode && defaultValues?.id) {
+      router.replace(`/profile/${defaultValues.id}`)
+      router.refresh()
+      return
+    }
+    router.push('/discover')
     router.refresh()
   }
 
@@ -1069,6 +1075,7 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
     geography: 'Lagos, Nigeria',
     discipline: 'Photography',
     interests: ['conceptual','documentary','large-format','silver-gelatin','africa','diaspora'],
+    website_url: null,
     banner_color: null,
     banner_image_url: null,
     banner_position_x: null,
@@ -1861,6 +1868,19 @@ export function ProfileScreen2({ navigate, profile = null, archiveItems = [], is
             <p style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:16, color:T.sub, lineHeight:1.75, marginBottom:32 }}>
               {currentProfile.bio || `${currentProfile.display_name} is part of the Saye collective.`}
             </p>
+            {currentProfile.website_url && (
+              <div style={{ marginBottom:32 }}>
+                <Label size={12} color={T.muted} style={{ display:'block', marginBottom:10 }}>Website</Label>
+                <a
+                  href={currentProfile.website_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:15, color:T.artist, textDecoration:'none' }}
+                >
+                  {domainFromUrl(currentProfile.website_url)}
+                </a>
+              </div>
+            )}
             <RuleLine margin="0 0 28px" />
             <Label size={12} color={T.muted} style={{ display:'block', marginBottom:12 }}>Disciplines</Label>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>

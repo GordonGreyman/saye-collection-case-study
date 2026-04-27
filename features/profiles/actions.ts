@@ -54,6 +54,7 @@ export async function upsertProfile(input: ProfileFormData): Promise<ActionResul
       role: payload.role,
       display_name: payload.display_name,
       bio: payload.bio ?? null,
+      website_url: payload.website_url ?? null,
       geography: payload.geography,
       discipline: payload.discipline,
       interests: payload.interests,

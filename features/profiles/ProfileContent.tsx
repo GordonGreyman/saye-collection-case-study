@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArchiveItem } from '@/features/archive/ArchiveItem'
+import { domainFromUrl } from '@/features/archive/entry'
 import type { ArchiveItem as ArchiveItemType } from '@/lib/types'
 import type { Profile } from '@/lib/types'
 
@@ -88,6 +89,22 @@ export function ProfileContent({ profile, archiveItems, isOwner }: ProfileConten
                 <p style={{ fontFamily: 'var(--font-heading)', fontSize: 15, color: '#777', lineHeight: 1.75, margin: '0 0 32px' }}>
                   {profile.bio}
                 </p>
+              </>
+            )}
+
+            {profile.website_url && (
+              <>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.14em', color: '#9b7ff8', marginBottom: 12 }}>
+                  WEBSITE
+                </div>
+                <a
+                  href={profile.website_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: 'inline-block', fontFamily: 'var(--font-heading)', fontSize: 15, color: '#9b7ff8', textDecoration: 'none', marginBottom: 32 }}
+                >
+                  {domainFromUrl(profile.website_url)}
+                </a>
               </>
             )}
 

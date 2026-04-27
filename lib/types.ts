@@ -5,6 +5,7 @@ export type Profile = {
   role: ProfileRole
   display_name: string
   bio: string | null
+  website_url: string | null
   geography: string | null
   discipline: string | null
   interests: string[]

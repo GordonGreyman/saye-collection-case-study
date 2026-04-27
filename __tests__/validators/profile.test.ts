@@ -70,4 +70,18 @@ describe('profileSchema', () => {
     const withoutBio = { ...valid, bio: undefined }
     expect(profileSchema.safeParse(withoutBio).success).toBe(true)
   })
+
+  test('normalizes website without protocol', () => {
+    const result = profileSchema.safeParse({ ...valid, website_url: 'kaan.example' })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.website_url).toBe('https://kaan.example')
+    }
+  })
+
+  test('rejects invalid website URL', () => {
+    const result = profileSchema.safeParse({ ...valid, website_url: 'not a website' })
+    expect(result.success).toBe(false)
+  })
 })
