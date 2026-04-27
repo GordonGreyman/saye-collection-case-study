@@ -82,6 +82,8 @@ function profileCopyFor(role) {
 // --- LANDING ---------------------------------------------------------------
 export function LandingScreen2({ navigate }) {
   const [hov, setHov] = React.useState(null);
+  const [visibleFeatures, setVisibleFeatures] = React.useState({});
+  const featureRefs = React.useRef([]);
 
   const stats = [
     { n: '2.4K', label: 'Artists' },
@@ -166,6 +168,51 @@ export function LandingScreen2({ navigate }) {
     </svg>,
   ];
 
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          const index = Number(entry.target.getAttribute('data-feature-index'));
+          if (Number.isNaN(index)) {
+            return;
+          }
+
+          setVisibleFeatures((current) => {
+            if (current[index]) {
+              return current;
+            }
+
+            return { ...current, [index]: true };
+          });
+
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        threshold: 0.25,
+        rootMargin: '0px 0px -12% 0px',
+      },
+    );
+
+    featureRefs.current.forEach((node) => {
+      if (node) {
+        observer.observe(node);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div style={{ background: T.bg }}>
       {/* -- Hero -- */}
@@ -238,6 +285,10 @@ export function LandingScreen2({ navigate }) {
       {/* -- Feature Sections -- */}
       {features.map((f, i) => (
         <section key={i}
+          ref={(node) => {
+            featureRefs.current[i] = node;
+          }}
+          data-feature-index={i}
           onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
           style={{
             padding: '72px 48px',
@@ -247,7 +298,11 @@ export function LandingScreen2({ navigate }) {
             gap: 80,
             alignItems: 'center',
             background: hov === i ? T.bg2 : T.bg,
-            transition: 'background 0.2s',
+            opacity: visibleFeatures[i] ? 1 : 0,
+            transform: visibleFeatures[i] ? 'translateY(0)' : 'translateY(30px)',
+            transition: `opacity 0.6s ease, transform 0.6s ease, background 0.2s ease`,
+            transitionDelay: visibleFeatures[i] ? `${i * 80}ms` : '0ms',
+            willChange: 'opacity, transform',
           }}>
           {i % 2 !== 0 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{featureVis[i]}</div>}
           <div>
