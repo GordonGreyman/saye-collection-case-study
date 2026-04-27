@@ -459,9 +459,8 @@ export function BuildProfileScreen2({ navigate, defaultValues = null }) {
     }
     localStorage.removeItem('saye_profile_draft')
     showToast(isEditMode ? 'Profile updated successfully.' : 'Profile saved successfully.', 'success')
-    if (isEditMode && defaultValues?.id) {
-      router.replace(`/profile/${defaultValues.id}`)
-      router.refresh()
+    if (isEditMode && result.profileId) {
+      router.replace(`/profile/${result.profileId}`)
       return
     }
     router.push('/discover')

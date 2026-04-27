@@ -65,7 +65,7 @@ describe('upsertProfile', () => {
 
     const result = await upsertProfile(validPayload)
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({ success: true, profileId: 'u1' })
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'u1',
@@ -91,7 +91,7 @@ describe('upsertProfile', () => {
 
     const result = await upsertProfile({ ...validPayload, website_url: 'aylin.example' })
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({ success: true, profileId: 'u1' })
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         website_url: 'https://aylin.example',

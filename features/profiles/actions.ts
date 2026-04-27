@@ -6,7 +6,7 @@ import { PROFILE_BANNER_COLORS } from '@/lib/constants'
 import { isLikelyHttpUrl, normalizeHttpUrl } from '@/features/archive/entry'
 import { profileSchema, type ProfileFormData } from '@/lib/validators/profile'
 
-export type ActionResult = { success: true } | { error: string }
+export type ActionResult = { success: true; profileId?: string } | { error: string }
 
 type ProfileBannerInput = {
   banner_color?: string | null
@@ -66,7 +66,7 @@ export async function upsertProfile(input: ProfileFormData): Promise<ActionResul
     return { error: error.message }
   }
 
-  return { success: true }
+  return { success: true, profileId: user.id }
 }
 
 export async function saveProfileBanner(input: ProfileBannerInput): Promise<ActionResult> {

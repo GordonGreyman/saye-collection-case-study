@@ -188,9 +188,8 @@ export function BuildProfileWizard({ defaultValues, userId }: BuildProfileWizard
     localStorage.removeItem(DRAFT_KEY)
     showToast('Profile saved successfully.', 'success')
 
-    if (isEditMode && defaultValues?.id) {
-      router.replace(`/profile/${defaultValues.id}`)
-      router.refresh()
+    if (isEditMode && result.profileId) {
+      router.replace(`/profile/${result.profileId}`)
       return
     }
 

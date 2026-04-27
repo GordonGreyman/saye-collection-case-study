@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react'
 
@@ -22,6 +23,49 @@ type ToastContextValue = {
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
+
+const containerStyle: CSSProperties = {
+  position: 'fixed',
+  top: 16,
+  right: 16,
+  zIndex: 2147483647,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  pointerEvents: 'none',
+  maxWidth: 'min(420px, calc(100vw - 32px))',
+}
+
+const baseToastStyle: CSSProperties = {
+  borderRadius: 8,
+  border: '1px solid rgba(255,255,255,0.16)',
+  boxShadow: '0 18px 60px rgba(0,0,0,0.42)',
+  backdropFilter: 'blur(14px)',
+  color: '#f2f2f2',
+  fontFamily: 'var(--font-heading)',
+  fontSize: 14,
+  lineHeight: 1.45,
+  padding: '10px 14px',
+  minWidth: 220,
+}
+
+const toneStyles: Record<ToastTone, CSSProperties> = {
+  success: {
+    background: 'rgba(12, 54, 36, 0.94)',
+    borderColor: 'rgba(74, 222, 128, 0.45)',
+    color: '#dcfce7',
+  },
+  error: {
+    background: 'rgba(69, 18, 28, 0.94)',
+    borderColor: 'rgba(248, 113, 113, 0.5)',
+    color: '#fee2e2',
+  },
+  info: {
+    background: 'rgba(18, 18, 22, 0.94)',
+    borderColor: 'rgba(155, 127, 248, 0.36)',
+    color: '#f2f2f2',
+  },
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -40,17 +84,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed right-4 top-4 z-[999] flex flex-col gap-2 pointer-events-none">
+      <div style={containerStyle}>
         {toasts.map(toast => (
           <div
             key={toast.id}
-            className={`px-4 py-2 rounded-lg border text-sm shadow-lg backdrop-blur-sm ${
-              toast.tone === 'success'
-                ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-100'
-                : toast.tone === 'error'
-                  ? 'bg-red-500/15 border-red-400/30 text-red-100'
-                  : 'bg-surface/90 border-white/20 text-text-primary'
-            }`}
+            style={{ ...baseToastStyle, ...toneStyles[toast.tone] }}
             role="status"
             aria-live="polite"
           >
